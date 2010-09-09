@@ -28,6 +28,39 @@ function testempty($val)
 }
 
 
+require_once("plugins/inc/magmi_item_processor.class.php");
+require_once("plugins/inc/magmi_datasource.class.php");
+
+class PluginManager
+{
+	
+	public static function getPluginClasses($basedir,$baseclass)
+	{
+		$basedir=dirname(__FILE__)."/".$basedir;
+		$candidates=glob("$basedir/*.php");
+		$pluginclasses=array();
+		foreach($candidates as $pcfile)
+		{
+			$content=file_get_contents($pcfile);
+			if(preg_match_all("/class\s+(.*?)\s+extends\s+$baseclass/mi",$content,$matches,PREG_SET_ORDER))
+			{
+				require_once($pcfile);				
+				foreach($matches as $match)
+				{
+					$pluginclasses[]=$match[1];
+				}
+			}
+		}
+		return $pluginclasses;
+	}
+
+	public static function scanPlugins()
+	{
+		$plugins=array("itemprocessors"=>self::getPluginClasses("plugins/itemprocessors","Magmi_ItemProcessor"),
+					   "datasources"=>self::getPluginClasses("plugins/datasources","Magmi_Datasource"));
+		return $plugins;
+	}
+}
 /* here inheritance from DBHelper is used for syntactic convenience */
 class MagentoMassImporter extends DBHelper
 {
@@ -53,7 +86,6 @@ class MagentoMassImporter extends DBHelper
 	public static $version="0.5.3";
 	public $customip=null;
 	public  static $_script=__FILE__;
-	
 	public static $indexlist="catalog_product_attribute,catalog_product_price,catalog_product_flat,catalog_category_flat,catalog_category_product,cataloginventory_stock,catalog_url,catalogsearch_fulltext";
 	public static function getStateFile()
 	{
@@ -99,12 +131,9 @@ class MagentoMassImporter extends DBHelper
 	public function __construct()
 	{
 		$this->props=new Properties();
-		$cf=dirname(__FILE__)."/custom_item_processor.class.php";
-		if(file_exists($cf))
-		{
-			require_once($cf);
-			$this->customip=new CustomItemProcessor();
-		}		
+		$plugins=PluginManager::scanPlugins();
+		$this->itemprocessorclasses=$plugins["itemprocessors"];
+		$this->datasourceclasses=$plugins["datasources"];
 	}
 
 	/**
@@ -120,6 +149,8 @@ class MagentoMassImporter extends DBHelper
 			$this->imgsourcedir=$this->getProp("IMAGES","sourcedir",$this->magdir."/media/import");
 			$this->tprefix=$this->getProp("DATABASE","table_prefix");
 			$this->enabled_label=$this->getProp("MAGENTO","enabled_status_label","Enabled");
+			$this->enabled_processor_classes=explode(",",$this->getProp("PROCESSORS","classes",implode(",",$this->itemprocessorclasses)));
+			$this->datasource_class=$this->getProp("DATASOURCE","class","Magmi_CsvDataSource");
 		}
 		catch(Exception $e)
 		{
@@ -182,6 +213,11 @@ class MagentoMassImporter extends DBHelper
 		{
 			$func=$this->logcb;
 			$func($data,$type);
+		}
+		else
+		{
+			print "$type:($data)\n";
+			flush();
 		}
 	}
 	/**
@@ -599,7 +635,7 @@ class MagentoMassImporter extends DBHelper
 	 * @return mixed : false if no further processing is needed,
 	 * 					int (magento value) for the int attribute otherwise
 	 */
-	public function handleIntAttribute($pid,$storeids,$ivalue,$attrdesc)
+	public function handleIntAttribute($pid,$storeid,$ivalue,$attrdesc)
 	{
 		$ovalue=$ivalue;
 		$attid=$attrdesc["attribute_id"];
@@ -643,9 +679,8 @@ class MagentoMassImporter extends DBHelper
 	 * @param string $ivalue : attribute value
 	 * @param array $attrdesc : attribute description
 	 */
-	public function handleVarcharAttribute($pid,$storeids,$ivalue,$attrdesc)
+	public function handleVarcharAttribute($pid,$storeid,$ivalue,$attrdesc)
 	{
-		//ignore empty values for store id <>0
 		if($storeid!==0 && empty($ivalue))
 		{
 			return false;
@@ -769,21 +804,23 @@ class MagentoMassImporter extends DBHelper
 				//use reflection to find special handlers
 				$handler="handle".ucfirst($tp)."Attribute";
 				//if we have a handler for the current type
-				if(in_array($handler,get_class_methods($this)))
+				foreach($store_ids as $store_id)
 				{
-					//call it and get its output value for the current attribute
-					$ovalue=$this->$handler($pid,$store_id,$ivalue,$attrdesc);
-				}
-				else
-				//if not, use value
-				{
-					$ovalue=$ivalue;
-				}
+			
+					if(in_array($handler,get_class_methods($this)))
+					{
+						//call it and get its output value for the current attribute
+						$ovalue=$this->$handler($pid,$store_ids,$ivalue,$attrdesc);
+	
+					}
+					else
+					//if not, use value
+					{
+						$ovalue=$ivalue;
+					}
 
-
-				if($ovalue!==false)
-				{
-					foreach($store_ids as $store_id)
+					
+					if($ovalue!==false)
 					{
 						$inserts[]="(?,?,?,?,?)";
 						$data[]=$this->prod_etype;
@@ -1050,14 +1087,17 @@ class MagentoMassImporter extends DBHelper
 
 	
 	
-	public function callProcessor($step,$item,$params=null)
+	public function callProcessors($step,&$item,$params)
 	{
 		$methname="processItem".ucfirst($step);
-		if($this->customip)
+		foreach($this->processors as $ip)
 		{
-			if(method_exists($this->customip,$methname))
+			if(method_exists($ip,$methname))
 			{
-				return $this->customip->$methname($this,$item,$params);
+				if(!$ip->$methname($item,$params))
+				{
+					return false;
+				}
 			}
 		}
 		return true;
@@ -1075,7 +1115,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		//first step
 		
-		if(!$this->callProcessor("beforeId",$item))
+		if(!$this->callProcessors("beforeId",$item))
 		{
 			return;
 		}
@@ -1112,7 +1152,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		try
 		{
-			if(!$this->callProcessor("afterId",$item,array("product_id"=>$pid)))
+			if(!$this->callProcessors("afterId",$item,array("product_id"=>$pid)))
 			{
 				return;
 			}
@@ -1142,7 +1182,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		catch(Exception $e)
 		{
-			$this->callProcessor("exception",$item,array("exception"=>$e));
+			$this->callProcessors("exception",$item,array("exception"=>$e));
 			$this->log($e->getMessage(),"error");
 			//if anything got wrong, rollback
 			$this->rollbackTransaction();
@@ -1158,25 +1198,14 @@ class MagentoMassImporter extends DBHelper
 	 * count lines of csv file
 	 * @param string $csvfile filename
 	 */
-	public function lookup($csvfile)
+	public function lookup()
 	{
 		$t0=microtime(true);
-		//open csv file
-		$f=fopen($csvfile,"rb");
-		//get csv separator
-		$csep=$this->getProp("GLOBAL","csv_separator",",");
-		//get column names
-		$count=-1;
-		while(fgetcsv($f,4096,$csep))
-		{
-			$count++;
-		}
-		fclose($f);
 		$t1=microtime(true);
 		$time=$t1-$t0;
+		$count=$this->datasource->getRecordsCount();		
 		$this->log("$count:$time","lookup");
-
-		return $count;
+		
 	}
 
 	/**
@@ -1190,25 +1219,40 @@ class MagentoMassImporter extends DBHelper
 		return isset($params[$pname])?$params[$pname]:$default;
 	}
 	
+	public function createItemProcessors($params)
+	{
+		foreach($this->enabled_processor_classes as $ipclass)
+		{
+
+			$ip=new $ipclass();
+			$ip->pluginInit($this,$params);
+			$this->itemprocessors[]=$ip;
+		}	
+	}
+	
+	public function createDatasource($params)
+	{
+		$dsclass=$this->datasource_class;
+		$this->datasource=new $dsclass();
+		$this->datasource->pluginInit($this,$params);
+	}
+	
 	public function import($params)
 	{
-		$csvfile=$this->getParam($params,"filename");
+		
 		$reset=$this->getParam($params,"reset",false);
 		$mode=$this->getParam($params,"mode","update");
 		$reindex=$this->getParam($params,"reindex",MagentoMassImporter::$indexlist);
+		//initializing datasource
 		try
 		{
-			if(!isset($csvfile))
-			{
-				die("No csv file set");
-			}
-			if(!file_exists($csvfile))
-			{
-				die("$csvfile not found");
-			}
+			
 			$this->log("Magento Mass Importer by dweeves - version:".MagentoMassImporter::$version,"title");
 			$this->log("step:".$this->getProp("GLOBAL","step",100),"step");
-			$this->lookup($csvfile);
+			$this->createDatasource($params);
+			
+			$this->datasource->beforeImport();
+			$this->lookup();
 			MagentoMassImporter::setState("running");
 			//initialize db connectivity
 			$this->connectToMagento();
@@ -1226,15 +1270,9 @@ class MagentoMassImporter extends DBHelper
 			//intialize store id cache
 			$this->initStores();
 			setLocale(LC_COLLATE,"fr_FR.UTF-8");
-			//open csv file
-			$f=fopen($csvfile,"rb");
-			//get csv separator
-			$csep=$this->getProp("GLOBAL","csv_separator",",");
-			//get column names
-
-			$this->cols=fgetcsv($f,4096,$csep);
+			$this->datasource->startImport();
 			//initialize attribute infos & indexes from column names
-			$this->initAttrInfos($this->cols);
+			$this->initAttrInfos($this->datasource->getColumnNames());
 			//counter
 			$cnt=0;
 			//start time
@@ -1247,15 +1285,15 @@ class MagentoMassImporter extends DBHelper
 			{
 				$mstep=100;
 			}
+			//initializing item processors
+			$this->createItemProcessors($params);
 			//read each line
-			while($row=fgetcsv($f,4096,$csep,'"'))
+			while($item=$this->datasource->getNextRecord())
 			{
 				//counter
 				$cnt++;
 				try
 				{
-					//create product attributes values array indexed by attribute code
-					$item=array_combine($this->cols,$row);
 					if(is_array($item))
 					{
 						//import item
@@ -1263,7 +1301,7 @@ class MagentoMassImporter extends DBHelper
 					}
 					else
 					{
-						$this->log("ERROR - LINE $cnt - INVALID ROW :".count($row)."/".count($this->cols)." cols found","error");
+						$this->log("ERROR - LINE $cnt - INVALID ROW :".count($row)."/".count($this->attrinfo)." cols found","error");
 					}
 					//intermediary measurement
 					if($cnt%$mstep==0)
@@ -1275,16 +1313,15 @@ class MagentoMassImporter extends DBHelper
 				}
 				catch(Exception $e)
 				{
-					$this->log("ERROR - LINE $cnt - ".$e->getMessage(),"error");
+					$this->log("ERROR - RECORD NUMBER $cnt - ".$e->getMessage(),"error");
 				}
 					
 			}
 
-			fclose($f);
+			$this->datasource->endImport();
 			$tend=microtime(true);
 			$this->log($cnt." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 			$this->log("Imported $cnt recs in ".round($tend-$tstart,2)." secs - ".ceil(($cnt*60)/($tend-$tstart))." rec/mn","report");
-			flush();
 			$this->disconnectFromMagento();
 			//Perform full reindexing
 			if($reindex!="")
