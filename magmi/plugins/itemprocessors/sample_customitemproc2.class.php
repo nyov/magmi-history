@@ -1,41 +1,24 @@
 <?php
 /**
- * Class CustomItemProcessor
+ * Class SampleItemProcessor
  * @author dweeves
  *
- * This class enables to perform custom modifications on item 
- * 
- * class principle:
- * methods should be called processItemXxx where Xxx is an import step of the MagentoMassImporter
- *
- * all processItemXxx methods are optional, you need only to define methods you need to implement
- * 
- * processItemXxx signature are always the same
- *
- * 
- *  processItemXxx($mmi,&$item,$params=null) where
- *  
- *  $mmi : reference to MagentoMassImporterClass instance
- *  &$item : array reference to item 
- *  $params : step dependent array, may be null
- *  
- * processItemXxx method always return a boolean value , return false if you want to break mmi processing for item
- * 
- * current available import steps:
- * beforeId => method processItemBeforeId , called before item is identified, just after loading csv values for item
- * $params : null
- * 
- * 
- * afterId => method processItemAfterId , called after item is identified or created in magento
- * $params :  array("product_id"=><magento product id>)
- * 
- * exception => method processItemException , called when mmi processing caused an exception (even customItemProcessor thrown exception)
- *$params : array("exception"=><exception instance thrown>)
- *
- *
- */
-class CustomItemProcessor
+ * This class is a sample for item processing   
+*/ 
+class SampleCustomItemProcessor2 extends Magmi_ItemProcessor
 {
+
+
+	public function beforeImport()
+	{
+		return true;
+	}
+	
+	public function afterImport()
+	{
+		return true;
+	}
+	
 	/**
 	 * you can add/remove columns for the item passed since it is passed by reference
 	 * @param MagentoMassImporter $mmi : reference to mass importer (convenient to perform database operations)
@@ -47,7 +30,7 @@ class CustomItemProcessor
 	 */
 	
 	
-	public function processItemBeforeId($mmi,&$item,$params=null)
+	public function processItemBeforeId(&$item,$params=null)
 	{
 		/* example code 1 */
 		/* i've added some non item attribute values in my csv (cp_id,cp_price) but
@@ -88,7 +71,7 @@ class CustomItemProcessor
 		return true;
 	}
 	
-	public function processItemAfterId($mmi,&$item,$params=null)
+	public function processItemAfterId(&$item,$params=null)
 	{
 		return true;
 	}
@@ -98,4 +81,9 @@ class CustomItemProcessor
 	{
 		
 	}*/
+	
+	public function initialize($params)
+	{
+		
+	}
 }
