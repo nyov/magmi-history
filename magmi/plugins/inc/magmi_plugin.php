@@ -41,7 +41,7 @@ abstract class Magmi_Plugin
 	public function pluginHello()
 	{
 		$info=$this->getPluginInfo();
-		$hello=array(isset($info["name"])?"":$info["name"]);
+		$hello=array(!isset($info["name"])?"":$info["name"]);
 		$hello[]=!isset($info["version"])?"":$info["version"];
 		$hello[]=!isset($info["author"])?"":$info["author"];
 		$hello[]=!isset($info["url"])?"":$info["url"];
