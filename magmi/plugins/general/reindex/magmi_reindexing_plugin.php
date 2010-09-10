@@ -8,5 +8,13 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 					 "version"=>"1.0");
 	}
 	
-	public function a
+	public function afterImport()
+	{
+		
+	}
+	
+	public function initialize($params)
+	{
+		
+	}
 }

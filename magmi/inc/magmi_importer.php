@@ -3,18 +3,21 @@
 /**
  * MAGENTO MASS IMPORTER CLASS
  *
- * version : 0.5
+ * version : 0.6
  * author : S.BRACQUEMONT aka dweeves
- * updated : 2010-08-09
+ * updated : 2010-10-09
  *
  */
 
 /* use external file for db helper */
-$base_dir=dirname(__FILE__);
-$plugin_dir=dirname(__FILE__)."/plugins";
-ini_set("include_path",ini_get("include_path").":$plugin_dir/inc:$base_dir");
 require_once("dbhelper.class.php");
-require_once("properties.php");
+
+require_once("magmi_statemanager.php");
+require_once("magmi_pluginhelper.php");
+require_once("magmi_config.php");
+
+
+
 function nullifempty($val)
 {
 	return (isset($val)?(strlen($val)==0?null:$val):null);
@@ -29,9 +32,6 @@ function testempty($val)
 {
 	return !isset($val) || strlen($val)==0;
 }
-
-
-require_once("magmi_pluginhelper.php");
 
 /* here inheritance from DBHelper is used for syntactic convenience */
 class MagentoMassImporter extends DBHelper
@@ -54,10 +54,14 @@ class MagentoMassImporter extends DBHelper
 	public $mode="update";
 	public static $state=null;
 	protected static $_statefile=null;
-	public static $version="0.5.3";
+	public static $version="0.6";
 	public $customip=null;
 	public  static $_script=__FILE__;
 	public static $indexlist="catalog_product_attribute,catalog_product_price,catalog_product_flat,catalog_category_flat,catalog_category_product,cataloginventory_stock,catalog_url,catalogsearch_fulltext";
+	private $_pluginclasses;
+	private $_activeplugins;
+	private $_conf;
+	private $_initialized=false;
 	
 	public function setLoggingCallback($cb)
 	{
@@ -70,37 +74,42 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function __construct()
 	{
-		$this->props=new Properties();
-		$plugins=Magmi_PluginHelper::scanPlugins("class");
-		$this->itemprocessorclasses=$plugins["itemprocessors"];
-		$this->datasourceclasses=$plugins["datasources"];
 	}
 
 	/**
 	 * load properties
 	 * @param string $conf : configuration .ini filename
 	 */
-	public function loadProperties($conf)
+	public function init()
 	{
+		if($this->_initialized)
+		{
+			return;
+		}
 		try
 		{
-			$this->props->load($conf);
-			$this->magdir=$this->getProp("MAGENTO","basedir");
-			$this->imgsourcedir=$this->getProp("IMAGES","sourcedir",$this->magdir."/media/import");
-			$this->tprefix=$this->getProp("DATABASE","table_prefix");
-			$this->enabled_label=$this->getProp("MAGENTO","enabled_status_label","Enabled");
-			$this->enabled_processor_classes=explode(",",$this->getProp("PROCESSORS","classes",implode(",",$this->itemprocessorclasses)));
-			$this->datasource_class=$this->getProp("DATASOURCE","class","Magmi_CsvDataSource");
+			$this->_pluginclasses=Magmi_PluginHelper::scanPlugins("class");
+			
+			$this->_conf=Magmi_Config::getInstance();
+			$this->_conf->load();		
+			$this->magdir=$this->_conf->get("MAGENTO","basedir");
+			$this->imgsourcedir=$this->_conf->get("IMAGES","sourcedir",$this->magdir."/media/import");
+			$this->tprefix=$this->_conf->get("DATABASE","table_prefix");
+			$this->enabled_label=$this->_conf->get("MAGENTO","enabled_status_label","Enabled");
+			$this->enabled_processor_classes=explode(",",$this->_conf->get("PLUGINS:PROCESSORS","classes",implode(",",$this->_pluginclasses["itemprocessors"])));
+			$this->datasource_class=$this->_conf->get("PLUGINS:DATASOURCE","class",$this->_pluginclasses["datasources"][0]);
+			$this->enabled_general_classes=explode(",",$this->_conf->get("PLUGINS:GENERAL","classes",implode(",",$this->_pluginclasses["general"])));
+			$this->_initialized=true;
 		}
 		catch(Exception $e)
 		{
-			die("Error parsing ini file:$conf \n".$e->getMessage());
+			die("Error parsing ini file:{$this->_conf->getConfigFilename()} \n".$e->getMessage());
 		}
 	}
 
 	public function getProp($sec,$val,$default=null)
 	{
-		return $this->props->get($sec,$val,$default);
+		return $this->_conf->get($sec,$val,$default);
 	}
 	/**
 	 * Initialize Connection with Magento Database
@@ -1027,6 +1036,11 @@ class MagentoMassImporter extends DBHelper
 
 	
 	
+	public function callPlugins($types,&$item,$params)
+	{
+		
+	}
+	
 	public function callProcessors($step,&$item,$params)
 	{
 		$methname="processItem".ucfirst($step);
@@ -1159,6 +1173,14 @@ class MagentoMassImporter extends DBHelper
 		return isset($params[$pname])?$params[$pname]:$default;
 	}
 	
+	public function createGeneralPlugins($params)
+	{
+		foreach($this->enabled_general_classes as $giclass)
+		{
+			$gi=new $giclass();
+			$gi->pluginInit($this,$params);
+		}
+	}
 	public function createItemProcessors($params)
 	{
 		foreach($this->enabled_processor_classes as $ipclass)
@@ -1179,7 +1201,7 @@ class MagentoMassImporter extends DBHelper
 	
 	public function import($params)
 	{
-		
+		$this->init();
 		$reset=$this->getParam($params,"reset",false);
 		$mode=$this->getParam($params,"mode","update");
 		$reindex=$this->getParam($params,"reindex",MagentoMassImporter::$indexlist);
@@ -1193,7 +1215,7 @@ class MagentoMassImporter extends DBHelper
 			
 			$this->datasource->beforeImport();
 			$this->lookup();
-			MagentoMassImporter::setState("running");
+			Magmi_StateManager::setState("running");
 			//initialize db connectivity
 			$this->connectToMagento();
 			//store reset flag
@@ -1269,7 +1291,7 @@ class MagentoMassImporter extends DBHelper
 				$this->updateIndexes($reindex);
 			}
 			$this->log("Import Ended","end");
-			MagentoMassImporter::setState("idle");
+			Magmi_StateManager::setState("idle");
 			
 		}
 		catch(Exception $e)
