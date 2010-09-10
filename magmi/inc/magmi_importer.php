@@ -215,6 +215,8 @@ class MagentoMassImporter extends DBHelper
 	private $_conf;
 	private $_initialized=false;
 	private $_attributehandlers;
+	private $current_row;
+	
 	public function setLoggingCallback($cb)
 	{
 		$this->logcb=$cb;
@@ -1341,7 +1343,7 @@ class MagentoMassImporter extends DBHelper
 			
 			$this->initAttrInfos($cols);
 			//counter
-			$cnt=0;
+			$this->current_row=0;
 			//start time
 			$tstart=microtime(true);
 			//differential
@@ -1356,7 +1358,7 @@ class MagentoMassImporter extends DBHelper
 			while($item=$this->datasource->getNextRecord())
 			{
 				//counter
-				$cnt++;
+				$this->current_row++;
 				try
 				{
 					if(is_array($item))
@@ -1366,27 +1368,27 @@ class MagentoMassImporter extends DBHelper
 					}
 					else
 					{
-						$this->log("ERROR - LINE $cnt - INVALID ROW :".count($row)."/".count($this->attrinfo)." cols found","error");
+						$this->log("ERROR - LINE $this->current_row - INVALID ROW :".count($row)."/".count($this->attrinfo)." cols found","error");
 					}
 					//intermediary measurement
-					if($cnt%$mstep==0)
+					if($this->current_row%$mstep==0)
 					{
 						$tend=microtime(true);
-						$this->log($cnt." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
+						$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 						$tdiff=microtime(true);
 					}
 				}
 				catch(Exception $e)
 				{
-					$this->log("ERROR - RECORD NUMBER $cnt - ".$e->getMessage(),"error");
+					$this->log("ERROR - RECORD NUMBER $this->current_row - ".$e->getMessage(),"error");
 				}
 					
 			}
 
 			$this->datasource->endImport();
 			$tend=microtime(true);
-			$this->log($cnt." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
-			$this->log("Imported $cnt recs in ".round($tend-$tstart,2)." secs - ".ceil(($cnt*60)/($tend-$tstart))." rec/mn","report");
+			$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
+			$this->log("Imported $this->current_row recs in ".round($tend-$tstart,2)." secs - ".ceil(($this->current_row*60)/($tend-$tstart))." rec/mn","report");
 			$this->disconnectFromMagento();
 			$this->datasource->afterImport();
 			$this->callGeneral("afterImport");
