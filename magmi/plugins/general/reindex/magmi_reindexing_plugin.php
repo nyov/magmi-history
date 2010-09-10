@@ -23,19 +23,25 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		{
 			$idxlist=explode(",",$idxlist);
 			//reindex using magento command line
+			cwd($this->_mmi->magdir);
+			$cur=getcwd();
+			
 			foreach($idxlist as $idx)
 			{
 				$tstart=microtime(true);
 				$this->log("Reindexing $idx....","indexing");
-				exec("php $this->magdir/shell/indexer.php --reindex $idx");
+				exec("php {$this->_mmi->magdir}/shell/indexer.php --reindex $idx");
 				$tend=microtime(true);
 				$this->log("done in ".round($tend-$tstart,2). " secs","indexing");
 				if(Magmi_StateManager::getState()=="canceled")
 				{
+					cwd($cur);
 					exit();
 				}
+				
 				flush();
 			}
+			cwd($cur);
 		}
 		else
 		{
