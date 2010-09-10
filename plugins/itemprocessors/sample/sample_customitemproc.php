@@ -3,32 +3,24 @@
  * Class SampleItemProcessor
  * @author dweeves
  *
- * This class is a sample for item processing
-*/
+ * This class is a sample for item processing   
+*/ 
 class SampleCustomItemProcessor extends Magmi_ItemProcessor
 {
 
-    public function getPluginInfo()
-    {
-        return array(
-            "name" => "Sample Custom",
-            "author" => "Your Name",
-            "version" => "0.0.1"
-        );
-    }
 
-
+	
 	/**
 	 * you can add/remove columns for the item passed since it is passed by reference
 	 * @param MagentoMassImporter $mmi : reference to mass importer (convenient to perform database operations)
 	 * @param unknown_type $item : modifiable reference to item before import
 	 * the $item is a key/value array with column names as keys and values as read from csv file.
-	 * @return bool :
+	 * @return bool : 
 	 * 		true if you want the item to be imported after your custom processing
 	 * 		false if you want to skip item import after your processing
 	 */
-
-
+	
+	
 	public function processItemBeforeId(&$item,$params=null)
 	{
 		/* example code 1 */
@@ -36,9 +28,9 @@ class SampleCustomItemProcessor extends Magmi_ItemProcessor
 		 * these values are meant to be inserted into a custom module table
 		 * so , i get the following code (commented)
 		 */
-
+		
 		/*
-		 //if my special column cp_id exists
+		 //if my special column cp_id exists 
 		  if(isset($item['cp_id']))
 		{
 			//if its value is not empty
@@ -56,7 +48,7 @@ class SampleCustomItemProcessor extends Magmi_ItemProcessor
 			unset($item["cp_id"]);
 			unset($item["cp_price"]);
 		}*/
-
+		
 		/** example code 2 **/
 		/*
 		 * //if we have qty column & are in create mode & reset, do not import items with 0 qty
@@ -69,25 +61,24 @@ class SampleCustomItemProcessor extends Magmi_ItemProcessor
 		//return true , enable item processing
 		return true;
 	}
-
+	
 	public function processItemAfterId(&$item,$params=null)
 	{
 		return true;
 	}
-
+	
 	/*
 	public function processItemException(&$item,$params=null)
 	{
-
+		
 	}*/
-
+	
 	public function initialize($params)
 	{
-
+		
 	}
-
+	
 	public function processColumnList(&$cols,$params=null)
 	{
-
 	}
 }
