@@ -1,6 +1,11 @@
-File to import:
-<select name="csvfile">
-	<?php foreach($files as $fname){ ?>	
-		<option <?php if($fname==$curfile)?>selected<?php ?>><?php echo $fname?></option>
+	<input type="hidden" name="indexes" id="indexes"></input>
+	<div>
+	<ul>
+	Indexing:<a href="#" onclick="fcheck(1);">All</a>&nbsp;<a href="#" onclick="fcheck(0)">None</a>
+	<?php $idxarr=explode(",",MagentoMassImporter::$indexlist);
+		foreach($idxarr as $indexname)
+		{
+	?>
+		<li><input type="checkbox" name="<?php echo $indexname?>" class="_magindex"><?php echo $indexname?></input></li>
 	<?php }?>
-</select>
+	</ul>

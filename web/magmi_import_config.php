@@ -65,17 +65,24 @@
 	</select>
 	<span id="rstspan" style="display:none">
 	<input type="checkbox" id="reset" name="reset">Clear all products</span>
-	<input type="hidden" name="indexes" id="indexes"></input>
+	</div>
+	
 	<div>
-	<ul>
-	Indexing:<a href="#" onclick="fcheck(1);">All</a>&nbsp;<a href="#" onclick="fcheck(0)">None</a>
-	<?php $idxarr=explode(",",MagentoMassImporter::$indexlist);
-		foreach($idxarr as $indexname)
-		{
-	?>
-		<li><input type="checkbox" name="<?php echo $indexname?>" class="_magindex"><?php echo $indexname?></input></li>
+	<?php foreach($plugins["general"] as $gpldesc){?>
+		<div class="general_plugin_config">
+			<?php $plinst=Magmi_PluginManager::createInstance($gpldesc["class"]); 
+				  $plinfo=$plinst->getPluginInfo();
+				  $panel=$plinst->getOptionsPanel();
+				  ?>
+				  
+				  <h3><input type="chekbox" id="<?php echo $gpldesc["class"]?>" onclick=> <?php echo $plinfo["name"] - $plinfo["version"]?></h3>
+				  
+				  <div class="plugin_configpanel" id="<?php echo "{$gpldesc["class"]}_opanel"?>">
+				  	<?php if($panel) ?>
+				  </div>
+			
+		</div>
 	<?php }?>
-	</ul>
 	</div>
 	<div>
 	<a href="javascript:doPost()">Launch Import</a>
