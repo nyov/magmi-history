@@ -34,8 +34,8 @@
  *
  *
  */
-require_once("magmi_plugin.php");
-abstract class Magmi_ItemProcessor extends Magmi_Plugin
+require_once("magmi_generalimport_plugin.php");
+abstract class Magmi_ItemProcessor extends Magmi_GeneralImport_Plugin
 {
 	/**
 	 * you can add/remove columns for the item passed since it is passed by reference
