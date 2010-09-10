@@ -20,10 +20,6 @@ class CategoryNamesItemProcessor extends Magmi_ItemProcessor
 
 	public function processItemBeforeId(&$item,$params=null)
 	{
-        // categories
-        $item['category_ids'] = $this->getCategories($mmi, $item);
-        unset($item['category_names']);
-
         if(isset($item['category_names'])) {
             $categories = $item['category_names'];
             $categories = explode(',', $categories);
