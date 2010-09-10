@@ -1,6 +1,10 @@
 <?php
-require_once("magmi_item_processor.class.php");
-require_once("magmi_datasource.class.php");
+$base_dir=dirname(__FILE__);
+$plugin_dir=dirname(__FILE__)."/../plugins";
+ini_set("include_path",ini_get("include_path").":$plugin_dir/inc:$base_dir");
+
+require_once("magmi_item_processor.php");
+require_once("magmi_datasource.php");
 
 class Magmi_PluginHelper
 {
@@ -8,7 +12,7 @@ class Magmi_PluginHelper
 	public static function getPluginClasses($basedir,$baseclass)
 	{
 		$pgdir=dirname(__FILE__);
-		$basedir="$pgdir/$basedir";
+		$basedir="$pgdir/../$basedir";
 		$candidates=glob("$basedir/*/*.php");
 		$pluginclasses=array();
 		foreach($candidates as $pcfile)
@@ -29,8 +33,9 @@ class Magmi_PluginHelper
 	public static function scanPlugins($filter=null)
 	{
 		$tmp=array("itemprocessors"=>self::getPluginClasses("plugins/itemprocessors","Magmi_ItemProcessor"),
-				"datasources"=>self::getPluginClasses("plugins/datasources","Magmi_Datasource"));
-		
+				"datasources"=>self::getPluginClasses("plugins/datasources","Magmi_Datasource"),
+				"general"=>self::getPluginClasses("plugins/general","Magmi_GeneralImportPlugin"));
+					
 		
 		if(isset($filter))
 		{
@@ -41,7 +46,10 @@ class Magmi_PluginHelper
 				{
 					$out[$k]=array();
 				}
-				$out[$k][]=$tmp[$k][$filter];
+				foreach($arr as $desc)
+				{
+					$out[$k][]=$desc[$filter];
+				}
 			}	
 			$plugins=$out;
 		}
