@@ -70,6 +70,13 @@ abstract class Magmi_Plugin
 		
 	public function __call($data,$arg)
 	{
-		  return call_user_func_array(array($this->_mmi,$data), $arg); 
+		if(method_exists($this->_mmi,$data))
+		{
+		  return call_user_func_array(array($this->_mmi,$data), $arg);
+		}
+		else
+		{
+			die("Invalid Method Call: $data - Not found in Plugin nor MagentoMassImporter");
+		}
 	}
 }
