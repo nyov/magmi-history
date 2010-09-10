@@ -1127,16 +1127,23 @@ class MagentoMassImporter extends DBHelper
 			
 	}
 	
-	public function callProcessors($step,&$item,$params=null)
+	public function callProcessors($step,&$item=null,$params=null,$prefix="")
 	{
-		$methname="processItem".ucfirst($step);
+		$methname=$prefix.ucfirst($step);
 		foreach($this->_activeplugins["processors"] as $ip)
 		{
 			if(method_exists($ip,$methname))
 			{
-				if(!$ip->$methname($item,$params))
+				if($prefix=="processItem")
+				{				
+					if(!$ip->$methname($item,$params))
+					{
+						return false;
+					}
+				}
+				else
 				{
-					return false;
+					$ip->$methname($params);
 				}
 			}
 		}
@@ -1155,7 +1162,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		//first step
 		
-		if(!$this->callProcessors("beforeId",$item))
+		if(!$this->callProcessors("beforeId",$item,"processItem"))
 		{
 			return;
 		}
@@ -1194,7 +1201,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		try
 		{
-			if(!$this->callProcessors("afterId",$item,array("product_id"=>$pid,"new"=>$isnew)))
+			if(!$this->callProcessors("afterId",$item,array("product_id"=>$pid,"new"=>$isnew),"processItem"))
 			{
 				return;
 			}
@@ -1224,7 +1231,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		catch(Exception $e)
 		{
-			$this->callProcessors("exception",$item,array("exception"=>$e));
+			$this->callProcessors("exception",$item,array("exception"=>$e),"processItem");
 			$this->log($e->getMessage(),"error");
 			//if anything got wrong, rollback
 			$this->rollbackTransaction();
@@ -1302,8 +1309,11 @@ class MagentoMassImporter extends DBHelper
 			$this->log("step:".$this->getProp("GLOBAL","step",100),"step");
 			$this->createDatasource($params);
 			$this->createGeneralPlugins($params);
+			//initializing item processors
+			$this->createItemProcessors($params);
 			$this->datasource->beforeImport();
 			$this->callGeneral("beforeImport");
+			$this->callProcessors("beforeImport");
 			$this->registerAttributeHandler("Magmi_DefaultAttributeHandler");
 			
 			$this->lookup();
@@ -1342,8 +1352,6 @@ class MagentoMassImporter extends DBHelper
 			{
 				$mstep=100;
 			}
-			//initializing item processors
-			$this->createItemProcessors($params);
 			//read each line
 			while($item=$this->datasource->getNextRecord())
 			{
@@ -1380,7 +1388,10 @@ class MagentoMassImporter extends DBHelper
 			$this->log($cnt." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 			$this->log("Imported $cnt recs in ".round($tend-$tstart,2)." secs - ".ceil(($cnt*60)/($tend-$tstart))." rec/mn","report");
 			$this->disconnectFromMagento();
+			$this->datasource->afterImport();
 			$this->callGeneral("afterImport");
+			$this->callProcessors("afterImport");
+			
 			$this->log("Import Ended","end");
 			Magmi_StateManager::setState("idle");
 			
