@@ -144,8 +144,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 
         // create new custom options
         if(count($custom_options)>0) {
-            //$item['options_container'] = 'Block after Info Column';
-
+            $item['options_container'] = 'container2';
 
             $optionTitleSql = "INSERT INTO $t2 (option_id, store_id, title) VALUES ";
             $optionTitleValues = array();
@@ -214,5 +213,6 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 	public function processColumnList(&$cols,$params=null)
 	{
         $cols=array_unique(array_merge($cols, array('has_options', 'is_require', 'options_container')));
+        return true;
 	}
 }
