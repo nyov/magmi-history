@@ -1338,7 +1338,7 @@ class MagentoMassImporter extends DBHelper
 			setLocale(LC_COLLATE,"fr_FR.UTF-8");
 			$this->datasource->startImport();
 			$cols=$this->datasource->getColumnNames();
-			$this->callProcessors("columnList",$cols);
+			$this->callProcessors("columnList",$cols,null,"process");
 			//initialize attribute infos & indexes from column names
 			
 			$this->initAttrInfos($cols);
