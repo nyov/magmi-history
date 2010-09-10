@@ -212,7 +212,9 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 
 	public function processColumnList(&$cols,$params=null)
 	{
-        $cols=array_unique(array_merge($cols, array('has_options', 'is_require', 'options_container')));
+        if(!in_array('options_container', $cols)) {
+            $cols[] = 'options_container';
+        }
         return true;
 	}
 }
