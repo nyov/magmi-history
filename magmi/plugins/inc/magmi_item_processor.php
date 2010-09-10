@@ -48,7 +48,7 @@ abstract class Magmi_ItemProcessor extends Magmi_GeneralImportPlugin
 	 */
 	
 	
-	public function processItemBeforeId($mmi,&$item,$params=null)
+	public function processItemBeforeId(&$item,$params=null)
 	{
 		/* example code 1 */
 		/* i've added some non item attribute values in my csv (cp_id,cp_price) but
@@ -89,7 +89,7 @@ abstract class Magmi_ItemProcessor extends Magmi_GeneralImportPlugin
 		return true;
 	}
 	
-	public function processItemAfterId($mmi,&$item,$params=null)
+	public function processItemAfterId(&$item,$params=null)
 	{
 		return true;
 	}
