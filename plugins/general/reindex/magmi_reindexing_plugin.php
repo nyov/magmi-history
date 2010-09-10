@@ -1,6 +1,9 @@
 <?php
 class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 {
+	protected $_reindex;
+	protected $_indexlist="catalog_product_attribute,catalog_product_price,catalog_product_flat,catalog_category_flat,catalog_category_product,cataloginventory_stock,catalog_url,catalogsearch_fulltext";
+	
 	public function getPluginInfo()
 	{
 		return array("name"=>"Magmi Magento Reindexer",
@@ -10,11 +13,39 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 	
 	public function afterImport()
 	{
-		
+		$this->updateIndexes($this->_reindex);
+	}
+	
+	public function updateIndexes($idxlist)
+	{
+		$indexer="{$this->_mmi->magdir}/shell/indexer.php";
+		if(file_exists($indexer))
+		{
+			$idxlist=explode(",",$idxlist);
+			//reindex using magento command line
+			foreach($idxlist as $idx)
+			{
+				$tstart=microtime(true);
+				$this->log("Reindexing $idx....","indexing");
+				exec("php $this->magdir/shell/indexer.php --reindex $idx");
+				$tend=microtime(true);
+				$this->log("done in ".round($tend-$tstart,2). " secs","indexing");
+				if(Magmi_StateManager::getState()=="canceled")
+				{
+					exit();
+				}
+				flush();
+			}
+		}
+		else
+		{
+			$this->log("Magento 1.4 indexer not found, you should reindex manually using magento admin","warning");
+		}
 	}
 	
 	public function initialize($params)
 	{
+		$this->_reindex=$this->getParam("reindex",$this->_indexlist);
 		
 	}
 }
