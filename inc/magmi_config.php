@@ -1,23 +1,29 @@
 <?php
+require_once("properties.php");
 class Magmi_Config extends Properties
 {
 	private static $_instance=null;
 	private $_configname=null;
 	private $_defaultconfigname=null;
 	
-	private function __construct()
+	public function __construct()
 	{
-		$this->_configname=dirname(__FILE__)."/../conf/magmi.conf";
-		$this->_defaultconfigname=dirname(__FILE__)."/../conf/magmi.default.conf";
+		$this->_configname=dirname(__FILE__)."/../conf/magmi.ini";
+		$this->_defaultconfigname=dirname(__FILE__)."/../conf/magmi.default.ini";
 	}
 	
-	public static getInstance()
+	public function getConfigFilename()
 	{
-		if($_instance==null)
+		return $this->_configname;	
+	}
+	
+	public static function getInstance()
+	{
+		if(self::$_instance==null)
 		{
-			$_instance=new Magmi_Config();
+			self::$_instance=new Magmi_Config();
 		}
-		return $_instance;
+		return self::$_instance;
 	}
 	
 	public function isDefault()
@@ -27,12 +33,17 @@ class Magmi_Config extends Properties
 	
 	public function load()
 	{
-		$this->load($this->_configname);
+		parent::load($this->_configname);
+		return $this;
 	}
 	
 	public function loadDefault()
 	{
 		$this->load($this->_defaultconfigname);
-		
+	}
+	
+	public function isPluginEnabled($type,$classname)
+	{
+		return in_array($classname,explode(",",$this->get["PLUGINS:$type"]));
 	}
 }
