@@ -33,6 +33,159 @@ function testempty($val)
 	return !isset($val) || strlen($val)==0;
 }
 
+class Default_AttributeHandler extends Magmi_AttributeHandler
+{
+	/**
+	 * attribute handler for decimal attributes
+	 * @param int $pid	: product id
+	 * @param int $ivalue : initial value of attribute
+	 * @param array $attrdesc : attribute description
+	 * @return mixed : false if no further processing is needed,
+	 * 					string (magento value) for the decimal attribute otherwise
+	 */
+	public function handleDecimalAttribute($pid,$storeid,$ivalue,$attrdesc)
+	{
+		$ovalue=falseifempty($ivalue);
+		return $ovalue;
+	}
+
+	/**
+	 * attribute handler for datetime attributes
+	 * @param int $pid	: product id
+	 * @param int $ivalue : initial value of attribute
+	 * @param array $attrdesc : attribute description
+	 * @return mixed : false if no further processing is needed,
+	 * 					string (magento value) for the datetime attribute otherwise
+	 */	
+	public function handleDatetimeAttribute($pid,$storeid,$ivalue,$attrdesc)
+	{
+		$ovalue=nullifempty($ivalue);
+		return $ovalue;
+	}
+
+	/**
+	 * attribute handler for int typed attributes
+	 * @param int $pid	: product id
+	 * @param int $ivalue : initial value of attribute
+	 * @param array $attrdesc : attribute description
+	 * @return mixed : false if no further processing is needed,
+	 * 					int (magento value) for the int attribute otherwise
+	 */
+	public function handleIntAttribute($pid,$storeid,$ivalue,$attrdesc)
+	{
+		$ovalue=$ivalue;
+		$attid=$attrdesc["attribute_id"];
+		if($ivalue=="")
+		{
+			return false;	
+		}
+		//if we've got a select type value
+		if($attrdesc["frontend_input"]=="select")
+		{
+			//we need to identify its type since some have no options
+			switch($attrdesc["source_model"])
+			{
+				//if its status, make it available
+				case "catalog/product_status":
+					$ovalue=($ivalue==$this->enabled_label?1:2);
+					break;
+					//if it's tax_class, get tax class id from item value
+				case "tax/class_source_product":
+					$ovalue=$this->getTaxClassId($ivalue);
+					break;
+					//if it's visibility ,set it to catalog/search
+				case "catalog/product_visibility":
+					$ovalue=4;
+					break;
+					//otherwise, standard option behavior
+					//get option id for value, create it if does not already exist
+					//do not insert if empty
+				default:
+					$ovalue=($ivalue!=""?$this->getOptionId($attid,$ivalue):false);
+					break;
+			}
+		}
+		return $ovalue;
+	}
+
+
+	/**
+	 * attribute handler for varchar based attributes
+	 * @param int $pid : product id
+	 * @param string $ivalue : attribute value
+	 * @param array $attrdesc : attribute description
+	 */
+	public function handleVarcharAttribute($pid,$storeid,$ivalue,$attrdesc)
+	{
+		if($storeid!==0 && empty($ivalue))
+		{
+			return false;
+		}
+		$ovalue=$ivalue;
+		//if it's an image attribute (image,small_image or thumbnail)
+		if($attrdesc["frontend_input"]=="media_image")
+		{
+			//do nothing if empty
+			if($ivalue=="")
+			{
+				return false;
+			}
+			//else copy image file
+			$imagefile=$this->copyImageFile($ivalue);
+			//return value
+			$ovalue=$imagefile;
+			//add to gallery as excluded
+			$this->addImageToGallery($pid,$imagefile,true);
+				
+		}
+		//if it's a gallery
+		if($attrdesc["frontend_input"]=="gallery")
+		{
+			//do nothing if empty
+			if($ivalue=="")
+			{
+				return false;
+			}
+			//use ";" as image separator
+			$images=explode(";",$ivalue);
+			$imgnames=array();
+			//for each image
+			$this->resetGallery($pid);
+			foreach($images as $imagefile)
+			{
+				//copy it from source dir to product media dir
+				$imagefile=$this->copyImageFile($imagefile);
+				//add to gallery
+				$this->addImageToGallery($pid,$imagefile);
+			}
+			//we don't want to insert after that
+			$ovalue=false;
+		}
+
+		//--- Contribution From mennos , optimized by dweeves ----
+		//Added to support multiple select attributes
+		//(as far as i could figure out) always stored as varchars
+		//if it's a multiselect value
+		if($attrdesc["frontend_input"]=="multiselect")
+		{
+			$attid=$attrdesc["attribute_id"];
+
+			//do nothing if empty
+			if($ivalue=="")
+			{
+				return false;
+			}
+			//magento uses "," as separator for different multiselect values
+			$multiselectvalues=explode(",",$ivalue);
+			//use optimized function to get multiple option ids from an array of values
+			$oids=$this->getMultipleOptionIds($attid,$multiselectvalues);
+			// ovalue is set to the option id's, seperated by a colon and all multiselect values will be inserted
+			$ovalue=implode(",",$oids);
+		}
+		return $ovalue;
+	}
+	
+}
 /* here inheritance from DBHelper is used for syntactic convenience */
 class MagentoMassImporter extends DBHelper
 {
@@ -61,7 +214,7 @@ class MagentoMassImporter extends DBHelper
 	private $_activeplugins;
 	private $_conf;
 	private $_initialized=false;
-	
+	private $_attributehandlers;
 	public function setLoggingCallback($cb)
 	{
 		$this->logcb=$cb;
@@ -134,6 +287,10 @@ class MagentoMassImporter extends DBHelper
 		$this->exitDb();
 	}
 
+	public function registerAttributeHandler($ah)
+	{
+		$this->_attributehandlers[]=$ah;
+	}
 	/**
 	 * Initialize websites list
 	 */
@@ -558,8 +715,13 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function handleDecimalAttribute($pid,$storeid,$ivalue,$attrdesc)
 	{
-		$ovalue=falseifempty($ivalue);
-		return $ovalue;
+		foreach($this->_attributehandlers as $ah)
+		{
+			if(method_exist($ah,"handleDecimalAttribute"))
+			{
+				$ovalue=$ah->handleDecimalAttribute($pid,$storeid,$ivalue,$attrdesc);				
+			}
+		}
 	}
 
 	/**
@@ -569,10 +731,16 @@ class MagentoMassImporter extends DBHelper
 	 * @param array $attrdesc : attribute description
 	 * @return mixed : false if no further processing is needed,
 	 * 					string (magento value) for the datetime attribute otherwise
-	 */	public function handleDatetimeAttribute($pid,$storeid,$ivalue,$attrdesc)
+	 */	
+	public function handleDatetimeAttribute($pid,$storeid,$ivalue,$attrdesc)
 	{
-		$ovalue=nullifempty($ivalue);
-		return $ovalue;
+		foreach($this->_attributehandlers as $ah)
+		{
+			if(method_exist($ah,"handleDatetimeAttribute"))
+			{
+				$ovalue=$ah->handleDatetimeAttribute($pid,$storeid,$ivalue,$attrdesc);				
+			}
+		}
 	}
 
 	/**
@@ -585,39 +753,14 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function handleIntAttribute($pid,$storeid,$ivalue,$attrdesc)
 	{
-		$ovalue=$ivalue;
-		$attid=$attrdesc["attribute_id"];
-		if($ivalue=="")
+		foreach($this->_attributehandlers as $ah)
 		{
-			return false;	
-		}
-		//if we've got a select type value
-		if($attrdesc["frontend_input"]=="select")
-		{
-			//we need to identify its type since some have no options
-			switch($attrdesc["source_model"])
+			if(method_exist($ah,"handleIntAttribute"))
 			{
-				//if its status, make it available
-				case "catalog/product_status":
-					$ovalue=($ivalue==$this->enabled_label?1:2);
-					break;
-					//if it's tax_class, get tax class id from item value
-				case "tax/class_source_product":
-					$ovalue=$this->getTaxClassId($ivalue);
-					break;
-					//if it's visibility ,set it to catalog/search
-				case "catalog/product_visibility":
-					$ovalue=4;
-					break;
-					//otherwise, standard option behavior
-					//get option id for value, create it if does not already exist
-					//do not insert if empty
-				default:
-					$ovalue=($ivalue!=""?$this->getOptionId($attid,$ivalue):false);
-					break;
+				$ovalue=$ah->handleIntAttribute($pid,$storeid,$ivalue,$attrdesc);				
 			}
 		}
-		return $ovalue;
+		
 	}
 
 
@@ -629,72 +772,13 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function handleVarcharAttribute($pid,$storeid,$ivalue,$attrdesc)
 	{
-		if($storeid!==0 && empty($ivalue))
+		foreach($this->_attributehandlers as $ah)
 		{
-			return false;
-		}
-		$ovalue=$ivalue;
-		//if it's an image attribute (image,small_image or thumbnail)
-		if($attrdesc["frontend_input"]=="media_image")
-		{
-			//do nothing if empty
-			if($ivalue=="")
+			if(method_exist($ah,"handleVarcharAttribute"))
 			{
-				return false;
+				$ovalue=$ah->handleVarcharAttribute($pid,$storeid,$ivalue,$attrdesc);				
 			}
-			//else copy image file
-			$imagefile=$this->copyImageFile($ivalue);
-			//return value
-			$ovalue=$imagefile;
-			//add to gallery as excluded
-			$this->addImageToGallery($pid,$imagefile,true);
-				
 		}
-		//if it's a gallery
-		if($attrdesc["frontend_input"]=="gallery")
-		{
-			//do nothing if empty
-			if($ivalue=="")
-			{
-				return false;
-			}
-			//use ";" as image separator
-			$images=explode(";",$ivalue);
-			$imgnames=array();
-			//for each image
-			$this->resetGallery($pid);
-			foreach($images as $imagefile)
-			{
-				//copy it from source dir to product media dir
-				$imagefile=$this->copyImageFile($imagefile);
-				//add to gallery
-				$this->addImageToGallery($pid,$imagefile);
-			}
-			//we don't want to insert after that
-			$ovalue=false;
-		}
-
-		//--- Contribution From mennos , optimized by dweeves ----
-		//Added to support multiple select attributes
-		//(as far as i could figure out) always stored as varchars
-		//if it's a multiselect value
-		if($attrdesc["frontend_input"]=="multiselect")
-		{
-			$attid=$attrdesc["attribute_id"];
-
-			//do nothing if empty
-			if($ivalue=="")
-			{
-				return false;
-			}
-			//magento uses "," as separator for different multiselect values
-			$multiselectvalues=explode(",",$ivalue);
-			//use optimized function to get multiple option ids from an array of values
-			$oids=$this->getMultipleOptionIds($attid,$multiselectvalues);
-			// ovalue is set to the option id's, seperated by a colon and all multiselect values will be inserted
-			$ovalue=implode(",",$oids);
-		}
-		return $ovalue;
 	}
 
 	/**
@@ -1088,13 +1172,15 @@ class MagentoMassImporter extends DBHelper
 		}
 
 		//first get product id
-		$pid=$this->getProductId($sku);		
+		$pid=$this->getProductId($sku);
+		$isnew=false;		
 		if(!isset($pid))
 		{
 			//if not found & mode !=update
 			if($this->mode!=='update')
 			{
 				$pid=$this->createProduct($item,$asid);
+				$isnew=true;
 			}
 			else
 			{
@@ -1105,7 +1191,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		try
 		{
-			if(!$this->callProcessors("afterId",$item,array("product_id"=>$pid)))
+			if(!$this->callProcessors("afterId",$item,array("product_id"=>$pid,"new"=>$isnew)))
 			{
 				return;
 			}
@@ -1215,6 +1301,8 @@ class MagentoMassImporter extends DBHelper
 			$this->createGeneralPlugins($params);
 			$this->datasource->beforeImport();
 			$this->callGeneral("beforeImport");
+			$this->registerAttributeHandler(new Magmi_DefaultAttributeHandler());
+			
 			$this->lookup();
 			Magmi_StateManager::setState("running");
 			//initialize db connectivity
@@ -1234,8 +1322,11 @@ class MagentoMassImporter extends DBHelper
 			$this->initStores();
 			setLocale(LC_COLLATE,"fr_FR.UTF-8");
 			$this->datasource->startImport();
+			$cols=$this->datasource->getColumnNames();
+			$this->callProcessors("columnList",$cols);
 			//initialize attribute infos & indexes from column names
-			$this->initAttrInfos($this->datasource->getColumnNames());
+			
+			$this->initAttrInfos($cols);
 			//counter
 			$cnt=0;
 			//start time

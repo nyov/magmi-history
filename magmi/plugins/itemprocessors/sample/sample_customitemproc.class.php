@@ -86,4 +86,9 @@ class SampleCustomItemProcessor extends Magmi_ItemProcessor
 	{
 		
 	}
+	
+	public function processColumnList(&$cols,$params=null)
+	{
+		
+	}
 }
