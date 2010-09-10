@@ -5,8 +5,8 @@
  *
  * This class enables to perform input format support for ingested data
  */ 
- require_once("magmi_plugin.php");
-abstract class Magmi_DataSource extends Magmi_Plugin
+ require_once("magmi_generalimport_plugin.php");
+abstract class Magmi_DataSource extends Magmi_GeneralImportPlugin
 {
 	
 	public function getColumnNames()
@@ -17,23 +17,9 @@ abstract class Magmi_DataSource extends Magmi_Plugin
 	{
 		
 	}
-	
-	public function beforeImport()
-	{
-		
-	}
-	
-	public function afterImport()
-	{
-		
-	}
-	
+
 	public function getNextRecord()
 	{
 		
-	}
-	public function getOptionsPanel()
-	{
-		return "options_panel.php";
 	}
 }
