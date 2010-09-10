@@ -31,8 +31,6 @@ function testempty($val)
 }
 
 
-require_once("magmi_item_processor.class.php");
-require_once("magmi_datasource.class.php");
 require_once("magmi_pluginhelper.php");
 
 /* here inheritance from DBHelper is used for syntactic convenience */
@@ -49,7 +47,6 @@ class MagentoMassImporter extends DBHelper
 	public $magdir;
 	public $imgsourcedir;
 	public $tprefix;
-	protected $_conffile;
 	public $logcb=null;
 	public $enabled_label;
 	public $prod_etype;
@@ -61,38 +58,7 @@ class MagentoMassImporter extends DBHelper
 	public $customip=null;
 	public  static $_script=__FILE__;
 	public static $indexlist="catalog_product_attribute,catalog_product_price,catalog_product_flat,catalog_category_flat,catalog_category_product,cataloginventory_stock,catalog_url,catalogsearch_fulltext";
-	public static function getStateFile()
-	{
-		return dirname(MagentoMassImporter::$_script)."/.magmistate";
-	}
-	public static function setState($state)
-	{
-		if(MagentoMassImporter::$state==$state)
-		{
-			return;	
-		}
-
-		MagentoMassImporter::$state=$state;
-		$f=fopen(MagentoMassImporter::getStateFile(),"w");
-		fwrite($f,$state);
-		fclose($f);	
-	}
 	
-	public static function getState($cached=false)
-	{
-		if(!$cached)
-		{
-			if(!file_exists(MagentoMassImporter::getStateFile()))
-			{
-				MagentoMassImporter::setState("idle");
-			}
-			return file_get_contents(MagentoMassImporter::getStateFile());		
-		}
-		else
-		{
-			return MagentoMassImporter::$state;
-		}
-	}
 	public function setLoggingCallback($cb)
 	{
 		$this->logcb=$cb;
