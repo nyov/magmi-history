@@ -32,4 +32,8 @@ abstract class Magmi_DataSource extends Magmi_Plugin
 	{
 		
 	}
+	public function getOptionsPanel()
+	{
+		return "options_panel.php";
+	}
 }
