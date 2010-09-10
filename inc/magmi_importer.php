@@ -1129,16 +1129,16 @@ class MagentoMassImporter extends DBHelper
 			
 	}
 	
-	public function callProcessors($step,&$item=null,$params=null,$prefix="")
+	public function callProcessors($step,&$data=null,$params=null,$prefix="")
 	{
 		$methname=$prefix.ucfirst($step);
 		foreach($this->_activeplugins["processors"] as $ip)
 		{
 			if(method_exists($ip,$methname))
 			{
-				if($prefix=="processItem")
+				if($prefix=="processItem" || $prefix="process")
 				{				
-					if(!$ip->$methname($item,$params))
+					if(!$ip->$methname($data,$params))
 					{
 						return false;
 					}
@@ -1311,11 +1311,8 @@ class MagentoMassImporter extends DBHelper
 			$this->log("step:".$this->getProp("GLOBAL","step",100),"step");
 			$this->createDatasource($params);
 			$this->createGeneralPlugins($params);
-			//initializing item processors
-			$this->createItemProcessors($params);
 			$this->datasource->beforeImport();
 			$this->callGeneral("beforeImport");
-			$this->callProcessors("beforeImport");
 			$this->registerAttributeHandler("Magmi_DefaultAttributeHandler");
 			
 			$this->lookup();
@@ -1337,6 +1334,10 @@ class MagentoMassImporter extends DBHelper
 			$this->initStores();
 			setLocale(LC_COLLATE,"fr_FR.UTF-8");
 			$this->datasource->startImport();
+			
+			//initializing item processors
+			$this->createItemProcessors($params);
+			
 			$cols=$this->datasource->getColumnNames();
 			$this->callProcessors("columnList",$cols,null,"process");
 			//initialize attribute infos & indexes from column names
@@ -1392,7 +1393,6 @@ class MagentoMassImporter extends DBHelper
 			$this->disconnectFromMagento();
 			$this->datasource->afterImport();
 			$this->callGeneral("afterImport");
-			$this->callProcessors("afterImport");
 			
 			$this->log("Import Ended","end");
 			Magmi_StateManager::setState("idle");
