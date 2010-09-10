@@ -67,5 +67,6 @@ class CategoryNamesItemProcessor extends Magmi_ItemProcessor
         if(!in_array('category_ids', $cols)) {
             $cols[] = 'category_ids';
         }
+        return true;
 	}
 }
