@@ -1,6 +1,7 @@
 <?php
-	ini_set('include_path',ini_get('include_path').":..");
-	require_once("magento_mass_importer.class.php");
+	ini_set('include_path',ini_get('include_path').":../inc");
+	require_once("magmi_importer.php");
+	require_once("magmi_config.php");
 	require_once("fshelper.php");
 	session_start();
 ?>

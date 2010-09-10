@@ -1,4 +1,7 @@
 <?php
+require_once("magmi_item_processor.class.php");
+require_once("magmi_datasource.class.php");
+
 class Magmi_PluginHelper
 {
 	

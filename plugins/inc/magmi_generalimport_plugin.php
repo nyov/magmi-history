@@ -1,6 +1,6 @@
 <?php
 require_once("magmi_plugin.php");
-class MagmiGeneralImportPlugin extends Magmi_Plugin
+class Magmi_GeneralImportPlugin extends Magmi_Plugin
 {
 	public function beforeImport()
 	{
