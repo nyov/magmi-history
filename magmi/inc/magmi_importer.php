@@ -1164,7 +1164,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		//first step
 		
-		if(!$this->callProcessors("beforeId",$item,"processItem"))
+		if(!$this->callProcessors("beforeId",$item,null,"processItem"))
 		{
 			return;
 		}
