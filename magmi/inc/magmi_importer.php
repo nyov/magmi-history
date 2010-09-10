@@ -15,7 +15,7 @@ require_once("dbhelper.class.php");
 require_once("magmi_statemanager.php");
 require_once("magmi_pluginhelper.php");
 require_once("magmi_config.php");
-
+require_once("magmi_attributehandler.php");
 
 
 function nullifempty($val)
@@ -33,7 +33,7 @@ function testempty($val)
 	return !isset($val) || strlen($val)==0;
 }
 
-class Default_AttributeHandler extends Magmi_AttributeHandler
+class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 {
 	/**
 	 * attribute handler for decimal attributes
@@ -87,11 +87,11 @@ class Default_AttributeHandler extends Magmi_AttributeHandler
 			{
 				//if its status, make it available
 				case "catalog/product_status":
-					$ovalue=($ivalue==$this->enabled_label?1:2);
+					$ovalue=($ivalue==$this->_mmi->enabled_label?1:2);
 					break;
 					//if it's tax_class, get tax class id from item value
 				case "tax/class_source_product":
-					$ovalue=$this->getTaxClassId($ivalue);
+					$ovalue=$this->_mmi->getTaxClassId($ivalue);
 					break;
 					//if it's visibility ,set it to catalog/search
 				case "catalog/product_visibility":
@@ -101,7 +101,7 @@ class Default_AttributeHandler extends Magmi_AttributeHandler
 					//get option id for value, create it if does not already exist
 					//do not insert if empty
 				default:
-					$ovalue=($ivalue!=""?$this->getOptionId($attid,$ivalue):false);
+					$ovalue=($ivalue!=""?$this->_mmi->getOptionId($attid,$ivalue):false);
 					break;
 			}
 		}
@@ -131,11 +131,11 @@ class Default_AttributeHandler extends Magmi_AttributeHandler
 				return false;
 			}
 			//else copy image file
-			$imagefile=$this->copyImageFile($ivalue);
+			$imagefile=$this->_mmi->copyImageFile($ivalue);
 			//return value
 			$ovalue=$imagefile;
 			//add to gallery as excluded
-			$this->addImageToGallery($pid,$imagefile,true);
+			$this->_mmi->addImageToGallery($pid,$imagefile,true);
 				
 		}
 		//if it's a gallery
@@ -150,13 +150,13 @@ class Default_AttributeHandler extends Magmi_AttributeHandler
 			$images=explode(";",$ivalue);
 			$imgnames=array();
 			//for each image
-			$this->resetGallery($pid);
+			$this->_mmi->resetGallery($pid);
 			foreach($images as $imagefile)
 			{
 				//copy it from source dir to product media dir
-				$imagefile=$this->copyImageFile($imagefile);
+				$imagefile=$this->_mmi->copyImageFile($imagefile);
 				//add to gallery
-				$this->addImageToGallery($pid,$imagefile);
+				$this->_mmi->addImageToGallery($pid,$imagefile);
 			}
 			//we don't want to insert after that
 			$ovalue=false;
@@ -178,7 +178,7 @@ class Default_AttributeHandler extends Magmi_AttributeHandler
 			//magento uses "," as separator for different multiselect values
 			$multiselectvalues=explode(",",$ivalue);
 			//use optimized function to get multiple option ids from an array of values
-			$oids=$this->getMultipleOptionIds($attid,$multiselectvalues);
+			$oids=$this->_mmi->getMultipleOptionIds($attid,$multiselectvalues);
 			// ovalue is set to the option id's, seperated by a colon and all multiselect values will be inserted
 			$ovalue=implode(",",$oids);
 		}
@@ -287,9 +287,9 @@ class MagentoMassImporter extends DBHelper
 		$this->exitDb();
 	}
 
-	public function registerAttributeHandler($ah)
+	public function registerAttributeHandler($ahclass)
 	{
-		$this->_attributehandlers[]=$ah;
+		$this->_attributehandlers[]=new $ahclass($this);
 	}
 	/**
 	 * Initialize websites list
@@ -717,11 +717,12 @@ class MagentoMassImporter extends DBHelper
 	{
 		foreach($this->_attributehandlers as $ah)
 		{
-			if(method_exist($ah,"handleDecimalAttribute"))
+			if(method_exists($ah,"handleDecimalAttribute"))
 			{
 				$ovalue=$ah->handleDecimalAttribute($pid,$storeid,$ivalue,$attrdesc);				
 			}
 		}
+		return $ovalue;
 	}
 
 	/**
@@ -736,11 +737,12 @@ class MagentoMassImporter extends DBHelper
 	{
 		foreach($this->_attributehandlers as $ah)
 		{
-			if(method_exist($ah,"handleDatetimeAttribute"))
+			if(method_exists($ah,"handleDatetimeAttribute"))
 			{
 				$ovalue=$ah->handleDatetimeAttribute($pid,$storeid,$ivalue,$attrdesc);				
 			}
 		}
+		return $ovalue;
 	}
 
 	/**
@@ -755,12 +757,12 @@ class MagentoMassImporter extends DBHelper
 	{
 		foreach($this->_attributehandlers as $ah)
 		{
-			if(method_exist($ah,"handleIntAttribute"))
+			if(method_exists($ah,"handleIntAttribute"))
 			{
 				$ovalue=$ah->handleIntAttribute($pid,$storeid,$ivalue,$attrdesc);				
 			}
 		}
-		
+		return $ovalue;
 	}
 
 
@@ -774,11 +776,12 @@ class MagentoMassImporter extends DBHelper
 	{
 		foreach($this->_attributehandlers as $ah)
 		{
-			if(method_exist($ah,"handleVarcharAttribute"))
+			if(method_exists($ah,"handleVarcharAttribute"))
 			{
 				$ovalue=$ah->handleVarcharAttribute($pid,$storeid,$ivalue,$attrdesc);				
 			}
 		}
+		return $ovalue;
 	}
 
 	/**
@@ -1301,7 +1304,7 @@ class MagentoMassImporter extends DBHelper
 			$this->createGeneralPlugins($params);
 			$this->datasource->beforeImport();
 			$this->callGeneral("beforeImport");
-			$this->registerAttributeHandler(new Magmi_DefaultAttributeHandler());
+			$this->registerAttributeHandler("Magmi_DefaultAttributeHandler");
 			
 			$this->lookup();
 			Magmi_StateManager::setState("running");
