@@ -7,7 +7,7 @@ class Magmi_StateManager
 	
 	public static function getStateFile()
 	{
-		return dirname(self::$_script)."../state/.magmistate";
+		return dirname(self::$_script)."/../state/.magmistate";
 	}
 
 	public static function setState($state)
