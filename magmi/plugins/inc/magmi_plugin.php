@@ -67,4 +67,9 @@ abstract class Magmi_Plugin
 			
 		}
 	}
+	
+	public function log($data,$type)
+	{
+		$this->_mmi->log($data,$type);
+	}
 }

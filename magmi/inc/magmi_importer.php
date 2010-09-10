@@ -57,8 +57,7 @@ class MagentoMassImporter extends DBHelper
 	public static $version="0.6";
 	public $customip=null;
 	public  static $_script=__FILE__;
-	public static $indexlist="catalog_product_attribute,catalog_product_price,catalog_product_flat,catalog_category_flat,catalog_category_product,cataloginventory_stock,catalog_url,catalogsearch_fulltext";
-	private $_pluginclasses;
+	private $_pluginclasses=array();
 	private $_activeplugins;
 	private $_conf;
 	private $_initialized=false;
@@ -88,17 +87,17 @@ class MagentoMassImporter extends DBHelper
 		}
 		try
 		{
-			$this->_pluginclasses=Magmi_PluginHelper::scanPlugins("class");
-			
+			$pluginclasses=Magmi_PluginHelper::scanPlugins("class");
+			$this->_activeplugins=array("general"=>array(),"processors"=>array());
 			$this->_conf=Magmi_Config::getInstance();
 			$this->_conf->load();		
 			$this->magdir=$this->_conf->get("MAGENTO","basedir");
 			$this->imgsourcedir=$this->_conf->get("IMAGES","sourcedir",$this->magdir."/media/import");
 			$this->tprefix=$this->_conf->get("DATABASE","table_prefix");
 			$this->enabled_label=$this->_conf->get("MAGENTO","enabled_status_label","Enabled");
-			$this->enabled_processor_classes=explode(",",$this->_conf->get("PLUGINS:PROCESSORS","classes",implode(",",$this->_pluginclasses["itemprocessors"])));
-			$this->datasource_class=$this->_conf->get("PLUGINS:DATASOURCE","class",$this->_pluginclasses["datasources"][0]);
-			$this->enabled_general_classes=explode(",",$this->_conf->get("PLUGINS:GENERAL","classes",implode(",",$this->_pluginclasses["general"])));
+			$this->_pluginclasses["processors"]=array_intersect(explode(",",$this->_conf->get("PLUGINS:PROCESSORS","classes",implode(",",$pluginclasses["itemprocessors"]))),$pluginclasses["itemprocessors"]);
+			$this->datasource_class=$this->_conf->get("PLUGINS:DATASOURCE","class",$pluginclasses["datasources"][0]);
+			$this->_pluginclasses["general"]=array_intersect(explode(",",$this->_conf->get("PLUGINS:GENERAL","classes",implode(",",$pluginclasses["general"]))),$pluginclasses["general"]);
 			$this->_initialized=true;
 		}
 		catch(Exception $e)
@@ -979,32 +978,7 @@ class MagentoMassImporter extends DBHelper
 		$this->insert($sql,$data);
 	}
 
-	public function updateIndexes($idxlist)
-	{
-		$indexer="$this->magdir/shell/indexer.php";
-		if(file_exists($indexer))
-		{
-			$idxlist=explode(",",$idxlist);
-			//reindex using magento command line
-			foreach($idxlist as $idx)
-			{
-				$tstart=microtime(true);
-				$this->log("Reindexing $idx....","indexing");
-				exec("php $this->magdir/shell/indexer.php --reindex $idx");
-				$tend=microtime(true);
-				$this->log("done in ".round($tend-$tstart,2). " secs","indexing");
-				if(MagentoMassImporter::getState()=="canceled")
-				{
-					exit();
-				}
-				flush();
-			}
-		}
-		else
-		{
-			$this->log("Magento 1.4 indexer not found, you should reindex manually using magento admin","warning");
-		}
-	}
+	
 
 	/**
 	 * set website of product if not exists
@@ -1036,15 +1010,40 @@ class MagentoMassImporter extends DBHelper
 
 	
 	
-	public function callPlugins($types,&$item,$params)
+	public function callPlugins($types,$step,&$item,$params)
 	{
-		
+		foreach($types as $type)
+		{
+			$meth="call".ucfirst($type);
+			if(!$this->$meth($step,$item,$params))
+			{
+				return false;
+			}
+		}	
+		return true;
 	}
 	
-	public function callProcessors($step,&$item,$params)
+	public function callGeneral($step)
+	{
+		$methname=$step;
+		foreach($this->_activeplugins["general"] as $gp)
+		{
+			if(method_exists($gp,$methname))
+			{
+				if(!$gp->$methname())
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+			
+	}
+	
+	public function callProcessors($step,&$item,$params=null)
 	{
 		$methname="processItem".ucfirst($step);
-		foreach($this->processors as $ip)
+		foreach($this->_activeplugins["processors"] as $ip)
 		{
 			if(method_exists($ip,$methname))
 			{
@@ -1063,7 +1062,7 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function importItem($item)
 	{
-		if(MagentoMassImporter::getState()=="canceled")
+		if(Magmi_StateManager::getState()=="canceled")
 		{
 			exit();
 		}
@@ -1175,20 +1174,22 @@ class MagentoMassImporter extends DBHelper
 	
 	public function createGeneralPlugins($params)
 	{
-		foreach($this->enabled_general_classes as $giclass)
+		foreach($this->_pluginclasses["general"] as $giclass)
 		{
 			$gi=new $giclass();
 			$gi->pluginInit($this,$params);
+			$this->_activeplugins["general"][]=$gi;
 		}
+		
 	}
 	public function createItemProcessors($params)
 	{
-		foreach($this->enabled_processor_classes as $ipclass)
+		foreach($this->_pluginclasses["processors"] as $ipclass)
 		{
 
 			$ip=new $ipclass();
 			$ip->pluginInit($this,$params);
-			$this->itemprocessors[]=$ip;
+			$this->_activeplugins["processors"][]=$ip;
 		}	
 	}
 	
@@ -1204,7 +1205,6 @@ class MagentoMassImporter extends DBHelper
 		$this->init();
 		$reset=$this->getParam($params,"reset",false);
 		$mode=$this->getParam($params,"mode","update");
-		$reindex=$this->getParam($params,"reindex",MagentoMassImporter::$indexlist);
 		//initializing datasource
 		try
 		{
@@ -1212,8 +1212,9 @@ class MagentoMassImporter extends DBHelper
 			$this->log("Magento Mass Importer by dweeves - version:".MagentoMassImporter::$version,"title");
 			$this->log("step:".$this->getProp("GLOBAL","step",100),"step");
 			$this->createDatasource($params);
-			
+			$this->createGeneralPlugins($params);
 			$this->datasource->beforeImport();
+			$this->callGeneral("beforeImport");
 			$this->lookup();
 			Magmi_StateManager::setState("running");
 			//initialize db connectivity
@@ -1285,11 +1286,7 @@ class MagentoMassImporter extends DBHelper
 			$this->log($cnt." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 			$this->log("Imported $cnt recs in ".round($tend-$tstart,2)." secs - ".ceil(($cnt*60)/($tend-$tstart))." rec/mn","report");
 			$this->disconnectFromMagento();
-			//Perform full reindexing
-			if($reindex!="")
-			{
-				$this->updateIndexes($reindex);
-			}
+			$this->callGeneral("afterImport");
 			$this->log("Import Ended","end");
 			Magmi_StateManager::setState("idle");
 			
