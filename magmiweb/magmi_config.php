@@ -9,10 +9,10 @@ $t=0;
 
 <?php 
 
-$cnf="../magento_mass_importer.ini";
+$cnf="../conf/magento_mass_importer.ini";
 if(!file_exists("$cnf"))
 {
-	$cnf="../magento_mass_importer.ini.default";
+	$cnf="../conf/magento_mass_importer.ini.default";
 }
 $props=new Properties();
 $props->load($cnf);
@@ -66,8 +66,11 @@ $props->load($cnf);
 	</div>
 	<div class="clear"></div>
 	
+	</div>
+<div class="container_12">
+
 	<div class="grid_4 omega push_11">
 		<input type="submit"></input>
 	</div>
-	</div>
+</div>
 </form>

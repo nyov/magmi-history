@@ -10,6 +10,9 @@
  */
 
 /* use external file for db helper */
+$base_dir=dirname(__FILE__);
+$plugin_dir=dirname(__FILE__)."/plugins";
+ini_set("include_path",ini_get("include_path").":$plugin_dir/inc:$base_dir");
 require_once("dbhelper.class.php");
 require_once("properties.php");
 function nullifempty($val)
@@ -28,39 +31,10 @@ function testempty($val)
 }
 
 
-require_once("plugins/inc/magmi_item_processor.class.php");
-require_once("plugins/inc/magmi_datasource.class.php");
+require_once("magmi_item_processor.class.php");
+require_once("magmi_datasource.class.php");
+require_once("magmi_pluginhelper.php");
 
-class PluginManager
-{
-	
-	public static function getPluginClasses($basedir,$baseclass)
-	{
-		$basedir=dirname(__FILE__)."/".$basedir;
-		$candidates=glob("$basedir/*.php");
-		$pluginclasses=array();
-		foreach($candidates as $pcfile)
-		{
-			$content=file_get_contents($pcfile);
-			if(preg_match_all("/class\s+(.*?)\s+extends\s+$baseclass/mi",$content,$matches,PREG_SET_ORDER))
-			{
-				require_once($pcfile);				
-				foreach($matches as $match)
-				{
-					$pluginclasses[]=$match[1];
-				}
-			}
-		}
-		return $pluginclasses;
-	}
-
-	public static function scanPlugins()
-	{
-		$plugins=array("itemprocessors"=>self::getPluginClasses("plugins/itemprocessors","Magmi_ItemProcessor"),
-					   "datasources"=>self::getPluginClasses("plugins/datasources","Magmi_Datasource"));
-		return $plugins;
-	}
-}
 /* here inheritance from DBHelper is used for syntactic convenience */
 class MagentoMassImporter extends DBHelper
 {
@@ -131,7 +105,7 @@ class MagentoMassImporter extends DBHelper
 	public function __construct()
 	{
 		$this->props=new Properties();
-		$plugins=PluginManager::scanPlugins();
+		$plugins=Magmi_PluginHelper::scanPlugins("class");
 		$this->itemprocessorclasses=$plugins["itemprocessors"];
 		$this->datasourceclasses=$plugins["datasources"];
 	}
