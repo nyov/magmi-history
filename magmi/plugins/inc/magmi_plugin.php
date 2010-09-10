@@ -46,7 +46,7 @@ abstract class Magmi_Plugin
 		$hello[]=!isset($info["author"])?"":$info["author"];
 		$hello[]=!isset($info["url"])?"":$info["url"];
 		$hellostr=implode("-",$hello);
-		$this->_mmi->log("Plugin : $hellostr ","pluginhello:$this->_baseclass");
+		$this->log("Plugin : $hellostr ","pluginhello:$this->_baseclass");
 		
 	}
 
@@ -71,5 +71,10 @@ abstract class Magmi_Plugin
 	public function log($data,$type)
 	{
 		$this->_mmi->log($data,$type);
+	}
+	
+	public function __call($data,$arg)
+	{
+		  return call_user_func_array(array($this->_mmi,$data), $arg); 
 	}
 }
