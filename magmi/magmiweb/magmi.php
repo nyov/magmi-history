@@ -1,4 +1,5 @@
 <?php
+	ini_set("display_errors",1);
 	ini_set('include_path',ini_get('include_path').":..");
 	require_once("magento_mass_importer.class.php");
 	require_once("fshelper.php");
@@ -32,7 +33,7 @@
 	if(FSHelper::isDirWritable(".."))
 	{
 	
-		if(isset($_REQUEST["run"]) && file_exists("../magento_mass_importer.ini"))
+		if(isset($_REQUEST["run"]) && file_exists("../conf/magento_mass_importer.ini"))
 		{
 			unset($mmi);
 			require_once("magmi_import.php");

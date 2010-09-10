@@ -45,18 +45,26 @@ abstract class Magmi_Plugin
 		$hello[]=!isset($info["version"])?"":$info["version"];
 		$hello[]=!isset($info["author"])?"":$info["author"];
 		$hello[]=!isset($info["url"])?"":$info["url"];
-		$hello=implode(" - ",$hello);
-		$this->_mmi->log("Plugin : $hello ","pluginhello:$this->_baseclass");
+		$hellostr=implode("-",$hello);
+		$this->_mmi->log("Plugin : $hellostr ","pluginhello:$this->_baseclass");
+		
 	}
 
 	public abstract function initialize($params);
 	
-	public final function pluginInit($mmi,$params=null)
+	public final function pluginInit($mmi,$params=null,$doinit=true)
 	{		
 		$this->_mmi=$mmi;
 		$this->_baseclass=get_parent_class($this);
 		$this->_params=$params;
-		$this->pluginHello();
-		$this->initialize($params);
+		if(isset($mmi))
+		{
+			$this->pluginHello();		
+		}
+		if($doinit)
+		{
+			$this->initialize($params);
+			
+		}
 	}
 }

@@ -1,10 +1,36 @@
 <?php
+	require_once("../magento_mass_importer.class.php");
 	$mmi=new MagentoMassImporter();
-	$mmi->loadProperties("../magento_mass_importer.ini");
+	$mmi->loadProperties("../conf/magento_mass_importer.ini");
 	$basedir=$mmi->magdir;
-	$files=glob("$basedir/var/import/*.csv");
-	$curfile=(isset($_POST["csvfile"])?$_POST["csvfile"]:null);
 	?>
+<?php function buildDSPanel()
+{
+	require_once("../magmi_pluginhelper.php");
+	$plugins=Magmi_PluginHelper::scanPlugins();	
+	$sout="<select id=\"datasource_class\" onchange=\"load_ds_panel()\">";
+	$vout="<script type=\"text/javascript\">\n";
+	$vout.="window.dsurls=[];\n";
+	foreach($plugins["datasources"] as $dsc)
+	{
+		$dsi=Magmi_PluginHelper::createInstance($dsc["class"]);
+		$info=$dsi->getPluginInfo();
+		$cl=get_class($dsi);
+		$sout.="<option value=\"$cl\">".$info["name"]." ".$info["version"]."</option>";
+		$vout.="window.dsurls['$cl']='".$dsc["dir"]."/".$dsi->getOptionsPanel()."';\n";
+	}
+	$sout.="</select>";
+	$vout.="</script>";
+	return $sout."\n".$vout;
+}
+?>
+<script type="text/javascript">
+ load_ds_panel=function()
+ {
+	 var dsc=$F('datasource_class');
+	 var test=new Ajax.Updater('ds_option_panel',window.dsurls[dsc]);
+ }
+</script>
 <div class="container_12">
 	<div class="grid_12">
 	<?php if(!isset($curfile) && MagentoMassImporter::getState()!=="running"){?>
@@ -28,18 +54,21 @@
 			$$('._magindex').each(function(it){it.checked=t});
 			
 		}
+
 		
 	</script>
+	
+	
 	<div class="import_params">
 	<h2>import parameters</h2>
-	<form id="csvfile_form" method="post" action="">
-	File to import:
-	<select name="csvfile">
-		<?php foreach($files as $fname){ ?>
-		
-			<option <?php if($fname==$curfile)?>selected<?php ?>><?php echo $fname?></option>
-		<?php }?>
-	</select>
+	<form id="import_form" method="post" action="">
+	<h3>Data Source:</h3>
+	<div>
+		<?php echo buildDSPanel();?>
+	<div id="ds_option_panel">
+	</div>
+
+	</div>
 	Mode:<select name="mode" id="mode">
 		<option value="update">Update only</option>
 		<option value="create">Create</option>
@@ -78,6 +107,8 @@
 		}
 	}
 	$('mode').observe('change',checkmode);
+	load_ds_panel();
+
 	</script>
 	<?php }
 	else
