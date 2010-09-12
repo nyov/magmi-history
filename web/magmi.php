@@ -1,6 +1,7 @@
 <?php
 	ini_set('include_path',ini_get('include_path').":../inc");
 	ini_set("display_errors",1);
+	ini_set("error_reporting",E_ALL);
 	require_once("magmi_importer.php");
 	require_once("magmi_config.php");
 	require_once("fshelper.php");
@@ -31,13 +32,20 @@
 	<div class="clear"></div>
 </div>
 <?php
-	if(FSHelper::isDirWritable(".."))
+	if(FSHelper::isDirWritable("../state"))
 	{
 	
 		if(isset($_REQUEST["run"]) && file_exists("../conf/magmi.ini"))
 		{
-			unset($mmi);
-			require_once("magmi_import_config.php");
+			if($_REQUEST["run"]==2 ||Magmi_StateManager::getState()=="running" )
+			{
+				require_once("magmi_import_run.php");
+			}
+			else
+			{
+				Magmi_StateManager::setState("idle",true);
+				require_once("magmi_import_config.php");
+			}
 		}
 		else
 		{

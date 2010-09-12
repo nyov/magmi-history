@@ -1,3 +1,3 @@
 <?php
-require_once("../magento_mass_importer.class.php");
-MagentoMassImporter::setState("canceled");
+require_once("../inc/magmi_statemanager.php");
+Magmi_StateManager::setState("canceled");
