@@ -108,6 +108,7 @@ class Properties
     return true; 
 }
 	
+
 	/**
 	 * retrieve property value with default if not found
 	 * @param string $secname section name

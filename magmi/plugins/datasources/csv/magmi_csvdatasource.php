@@ -89,5 +89,6 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		$record=array_combine($this->_cols,$row);
 		return $record;
 	}
+	
 
 }

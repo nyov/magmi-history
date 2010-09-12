@@ -9,7 +9,9 @@ require_once("magmi_datasource.php");
 class Magmi_PluginHelper
 {
 	
-	public static function getPluginClasses($basedir,$baseclass)
+	static $_plugins_cache=null;
+	
+	public static function initPluginInfos($basedir,$baseclass)
 	{
 		$pgdir=dirname(__FILE__);
 		$basedir="$pgdir/../$basedir";
@@ -30,17 +32,22 @@ class Magmi_PluginHelper
 		return $pluginclasses;
 	}
 
-	public static function scanPlugins($filter=null)
+	public static function getPluginClasses()
 	{
-		$tmp=array("itemprocessors"=>self::getPluginClasses("plugins/itemprocessors","Magmi_ItemProcessor"),
-				"datasources"=>self::getPluginClasses("plugins/datasources","Magmi_Datasource"),
-				"general"=>self::getPluginClasses("plugins/general","Magmi_GeneralImportPlugin"));
-					
+		return self::getPluginsInfo("class");
+	}
+	
+	public static function getPluginsInfo($filter=null)
+	{
+		if(self::$_plugins_cache==null)
+		{
+			self::scanPlugins();
+		}
 		
 		if(isset($filter))
 		{
 			$out=array();
-			foreach($tmp as $k=>$arr)
+			foreach(self::$_plugins_cache as $k=>$arr)
 			{
 				if(!isset($out[$k]))
 				{
@@ -55,17 +62,53 @@ class Magmi_PluginHelper
 		}
 		else
 		{
-			$plugins=$tmp;
+			$plugins=self::$_plugins_cache;
 		}
+		return $plugins;
+		
+	}
+	public static function scanPlugins()
+	{
+		if(!isset(self::$_plugins_cache))
+		{
+			self::$_plugins_cache=array("itemprocessors"=>self::initPluginInfos("plugins/itemprocessors","Magmi_ItemProcessor"),
+				"datasources"=>self::initPluginInfos("plugins/datasources","Magmi_Datasource"),
+				"general"=>self::initPluginInfos("plugins/general","Magmi_GeneralImportPlugin"));
+		}
+
 		
 		return $plugins;
 	}
 	
+	
 	public static function createInstance($pclass)
 	{
+	
+		if(self::$_plugins_cache==null)
+		{
+			self::scanPlugins();
+		}
 		$plinst=new $pclass();
 		$plinst->pluginInit(null,$params,false);
 		return $plinst;
+	}
+	
+	public static function getPluginDir($pinst)
+	{
+		if(self::$_plugins_cache==null)
+		{
+			self::scanPlugins();
+		}
 		
+		foreach(self::$_plugins_cache as $t=>$l)
+		{
+			foreach($l as $pdesc)
+			{
+				if($pdesc["class"]==get_class($pinst))
+				{
+					return $pdesc["dir"];
+				}
+			}
+		}
 	}
 }

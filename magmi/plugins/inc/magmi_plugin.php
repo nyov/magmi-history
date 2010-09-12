@@ -1,4 +1,41 @@
 <?php
+
+class PluginOptionsPanel
+{
+	private $_plugin;
+	
+	public function __construct($pinst)
+	{
+		$this->_plugin=$pinst;	
+	}
+	
+	public function getFile()
+	{
+		$dir=Magmi_PluginHelper::getPluginDir($this->_plugin);
+		return 	substr($dir."/options_panel.php",1);
+	}
+	
+	public function getHtml()
+	{
+		$plugin=$this->_plugin;
+		$panelfile=$this->getFile();
+		$content="";
+		if(file_exists($panelfile))
+		{
+			ob_start();
+			require_once($panelfile);
+			$content = ob_get_contents();
+			ob_end_clean();
+		}
+		return $content;
+	}
+	
+	public function __call($data,$arg)
+	{
+		 return call_user_func_array(array($this->_plugin,$data), $arg);
+	}
+}
+
 abstract class Magmi_Plugin
 {
 	protected $_mmi=null;
@@ -67,7 +104,11 @@ abstract class Magmi_Plugin
 			
 		}
 	}
-		
+	public function getOptionsPanel()
+	{
+		return new PluginOptionsPanel($this);
+	}
+	
 	public function __call($data,$arg)
 	{
 		if(method_exists($this->_mmi,$data))
