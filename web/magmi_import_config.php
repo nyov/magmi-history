@@ -55,7 +55,7 @@
 				  
 				  <h2><input type="checkbox" id="<?php echo $plc?>" onclick=""> <?php echo "{$plinfo["name"]} - v{$plinfo["version"]}"?></h2>
 				  
-				  <div class="plugin_configpanel" id="<?php echo "$plc_opanel"?>">
+				  <div class="plugin_configpanel">
 				  	<?php if($panel){
 				  		echo $panel->getHtml();
 				  	} ?>
@@ -74,7 +74,7 @@
 				  
 				  <h2><input type="checkbox" id="<?php echo $plc?>" onclick=""> <?php echo "{$plinfo["name"]} - v{$plinfo["version"]}"?></h2>
 				  
-				  <div class="plugin_configpanel" id="<?php echo "$plc_opanel"?>">
+				  <div class="plugin_configpanel">
 				  	<?php if($panel){
 				  		echo $panel->getHtml();
 				  	} ?>
