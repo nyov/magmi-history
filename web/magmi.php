@@ -58,7 +58,7 @@
 	<div class="container_12 config_error">
 		Directory permissions not compatible with Mass Importer operations
 		<br/>
-		PHP/Web Server must have write permissions to magmi directory
+		PHP/Web Server must have write permissions to magmi/state directory
 	</div>
 		<?php 
 	}
