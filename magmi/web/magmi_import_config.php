@@ -1,9 +1,10 @@
 	<?php require_once("../inc/magmi_pluginhelper.php");?>
 	<?php require_once("../inc/magmi_config.php");?>
+	
 	<script type="text/javascript">
-		var magmi_import={
+		var magmi_import=Class.create({
 			bsfcallbacks:[],
-			register_before_submit:function(cb){this.bsfcallbacks.push(cb)}),
+			register_before_submit:function(cb){this.bsfcallbacks.push(cb)},
 			submit:function(){
 				var context={results:[]};
 				this.bsfcallbacks.each(function(bsc,o){this.results.push(bsc())},context);
@@ -14,11 +15,14 @@
 						return false;
 					}
 				}
-				$('import_form').submit();};
-		}
+				$('import_form').submit();}
+		});
+		var importer=new magmi_import();
 	</script>
 	<div class="container_12">
 	<div class="import_params">
+
+	<form id="import_form" method="post" action="magmi.php?run=2">
 	<h2>import parameters</h2>
 	Mode:<select name="mode" id="mode">
 		<option value="update">Update only</option>
@@ -26,8 +30,6 @@
 	</select>
 	<span id="rstspan" style="display:none">
 	<input type="checkbox" id="reset" name="reset">Clear all products</span>
-
-	<form id="import_form" method="post" action="">
 	<?php 
 		$conf=Magmi_Config::getInstance();
 		$conf->load();
@@ -37,7 +39,7 @@
 		$dsinfo=$dsinst->getPluginInfo();
 	?>
 	<h2>Data Source - <?php echo $dsinfo["name"] . " -v".$dsinfo["version"]?></h2>
-	<div id="ds_option_panel">
+	<div id="dsp_option_panel">
 		<?php 
 		echo $dsinst->getOptionsPanel()->getHtml();?>
 	</div>
@@ -53,9 +55,9 @@
 				  $panel=$plinst->getOptionsPanel();
 				  ?>
 				  
-				  <h2><input type="checkbox" id="<?php echo $plc?>" onclick=""> <?php echo "{$plinfo["name"]} - v{$plinfo["version"]}"?></h2>
+				  <h2><?php echo "{$plinfo["name"]} - v{$plinfo["version"]}"?></h2>
 				  
-				  <div class="plugin_configpanel">
+				  <div class="gp_configpanel">
 				  	<?php if($panel){
 				  		echo $panel->getHtml();
 				  	} ?>
@@ -72,9 +74,9 @@
 				  $panel=$plinst->getOptionsPanel();
 				  ?>
 				  
-				  <h2><input type="checkbox" id="<?php echo $plc?>" onclick=""> <?php echo "{$plinfo["name"]} - v{$plinfo["version"]}"?></h2>
+				  <h2><?php echo "{$plinfo["name"]} - v{$plinfo["version"]}"?></h2>
 				  
-				  <div class="plugin_configpanel">
+				  <div class="ipp_configpanel">
 				  	<?php if($panel){
 				  		echo $panel->getHtml();
 				  	} ?>
@@ -83,10 +85,11 @@
 	<?php }}?>
 	</div>
 	<div>
-	<a href="javascript:magmi_import.submit()">Launch Import</a>
+	<a href="javascript:importer.submit()">Launch Import</a>
 	<a href='magmi.php'>Back to configuration</a>
 	</div>
 	</form>
+	</div>
 	</div>
 	<script type="text/javascript">
 	checkmode=function()

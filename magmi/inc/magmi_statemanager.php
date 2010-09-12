@@ -10,9 +10,10 @@ class Magmi_StateManager
 		return dirname(self::$_script)."/../state/.magmistate";
 	}
 
-	public static function setState($state)
+	public static function setState($state,$force=false)
 	{
-		if(self::$_state==$state)
+	
+		if(self::$_state==$state && !$force)
 		{
 			return;	
 		}
@@ -29,7 +30,7 @@ class Magmi_StateManager
 		{
 			if(!file_exists(self::getStateFile()))
 			{
-				self::setState("idle");
+				self::setState("idle",true);
 			}
 			$state=file_get_contents(self::getStateFile());		
 		}
