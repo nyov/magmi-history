@@ -1,5 +1,5 @@
 <?php
-require_once("../magento_mass_importer.class.php");
+require_once("../inc/magmi_statemanager.php");
 try
 {
 	//read whole file
@@ -8,7 +8,7 @@ try
 	$skipped=0;
 	//avoid warning
 		$out="initializing...";
-		if(MagentoMassImporter::getState()=="canceled")
+		if(Magmi_StateManager::getState()=="canceled")
 		{
 		$out="";
 			$out.="<div class='log_warning'>Canceled by user</div>";
@@ -20,9 +20,9 @@ try
 		}
 		else
 		{
-			if(file_exists("./tmp_out.txt"))
+			if(file_exists("../state/tmp_out.txt"))
 			{
-				$data=file_get_contents("./tmp_out.txt");
+				$data=file_get_contents("../state/tmp_out.txt");
 			}
 		}
 	if($data)
