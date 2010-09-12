@@ -1,14 +1,19 @@
 	<div class="clear"></div>
+	<form name="import_params" id="import_params" action="./magmi_run.php">
+	<?php
+		foreach($_POST as $k=>$v)
+		{
+			?>
+			<input type="hidden" value="<?php echo $v?>" name="<?php echo $k?>"></input>
+			<?php
+		}
+	?>
+	</form>
 	<div id="import_log" class="col">
-		<input type="hidden" name="reset" id="reset" value="<?php echo $_REQUEST["reset"]?>"></input>
-		<input type="hidden" name="filename" id="filename" value="<?php echo $curfile?>"></input>
-		<input type="hidden" name="mode" id="mode" value="<?php echo $_REQUEST["mode"]?>"></input>
-		<input type="hidden" name="reindex" id="reindex" value="<?php echo $_REQUEST["indexes"]?>"></input>
+	
 		<div class="section_title">
-			<span>Importing <?php echo $curfile?></span>
-			<?php if(isset($curfile) && $curfile!=""){?>
+			<span>Importing...</span>
 			<span><input type="button" value="cancel" onclick="cancelImport()"></input></span>
-			<?php }?>
 			<div id="progress_container">
 				&nbsp;
 				<div id="import_progress"></div>
@@ -34,9 +39,7 @@
 	{
 		if(window._sr==null)
 		{
-			var rq=new Ajax.Request("./magmi_run.php",
-									{method:'get',
-									 parameters:{'filename':filename,'reset':$F('reset'),'mode':$F('mode'),'reindex':$F('reindex')},
+			var rq=$('import_params').request({method:'get',
 									onCreate:function(r){window._sr=r;}});
 			
 		}
@@ -57,6 +60,6 @@
 	}
 	
 	
-	startImport('<?php echo $curfile?>');
+	startImport();
 	
 </script>
