@@ -43,7 +43,10 @@
 	</div>
 	
 	<div>
-	<?php foreach($conf->getEnabledPluginClasses("GENERAL") as $plc){?>
+	<?php 
+		if($conf->getEnabledPluginClasses("GENERAL"))
+		{
+		foreach($conf->getEnabledPluginClasses("GENERAL") as $plc){?>
 		<div class="general_plugin_config">
 			<?php $plinst=Magmi_PluginHelper::createInstance($plc); 
 				  $plinfo=$plinst->getPluginInfo();
@@ -58,9 +61,12 @@
 				  	} ?>
 				  </div>
 		</div>
-	<?php }?>
-	<?php foreach($conf->getEnabledPluginClasses("ITEMPROCESSORS") as $plc){?>
-		<div class="general_plugin_config">
+	<?php }}?>
+	<?php 
+		if($conf->getEnabledPluginClasses("ITEMPROCESSORS"))
+		{
+		foreach($conf->getEnabledPluginClasses("ITEMPROCESSORS") as $plc){?>
+		<div class="itemprocessor_plugin_config">
 			<?php $plinst=Magmi_PluginHelper::createInstance($plc); 
 				  $plinfo=$plinst->getPluginInfo();
 				  $panel=$plinst->getOptionsPanel();
@@ -74,7 +80,7 @@
 				  	} ?>
 				  </div>
 		</div>
-	<?php }?>
+	<?php }}?>
 	</div>
 	<div>
 	<a href="javascript:magmi_import.submit()">Launch Import</a>
