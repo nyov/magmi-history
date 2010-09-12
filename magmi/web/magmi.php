@@ -1,5 +1,6 @@
 <?php
 	ini_set('include_path',ini_get('include_path').":../inc");
+	ini_set("display_errors",1);
 	require_once("magmi_importer.php");
 	require_once("magmi_config.php");
 	require_once("fshelper.php");
@@ -36,11 +37,11 @@
 		if(isset($_REQUEST["run"]) && file_exists("../conf/magmi.ini"))
 		{
 			unset($mmi);
-			require_once("magmi_import.php");
+			require_once("magmi_import_config.php");
 		}
 		else
 		{
-			require_once("magmi_config.php");
+			require_once("magmi_config_setup.php");
 		}
 	}
 	else

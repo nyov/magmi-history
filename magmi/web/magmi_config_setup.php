@@ -1,25 +1,35 @@
-<?php
-$t=0;
-?>
 <div class="container_12">
 
 	<div class="grid_12 subtitle">Configuration</div>
 </div>
 <div class="clear"></div>
-
 <?php 
 require_once("magmi_config.php");
 $conf=Magmi_Config::getInstance();
-if($conf->isDefault())
-{
-	$conf->loadDefault();	
-}
-else
-{
-	$conf->load();
-}
+$conf->load();
 ?>
-<form method="post" action="magmi_saveconfig.php">
+<script type="text/javascript">
+	addclass=function(it,o)
+	{
+		if(it.checked){
+			this.arr.push(it.name);
+		}
+	};
+	
+	gatherclasses=function(tlist)
+	{
+		tlist.each(function(t,o){
+			var context={arr:[]};
+			$$(".pl_"+t).each(addclass,context);
+			var target=$("plc_"+t);
+			target.value=context.arr.join(",");
+		});
+	};
+	
+	
+</script>
+
+<form method="post" action="magmi_saveconfig.php" onsubmit="return gatherclasses(['GENERAL','ITEMPROCESSORS'])">
 <div class="container_12">
 	<div class="grid_4 col">
 	<h3>Database</h3>
@@ -65,10 +75,57 @@ else
 	<div class="clear"></div>
 	
 	</div>
+
+<div class="container_12">
+	<div class="grid_12 subtitle">Enabled Plugins</div>
+</div>
+<div class="clear"></div>
+<?php
+require_once("magmi_pluginhelper.php");
+$plugins=Magmi_PluginHelper::getPluginClasses();
+$order=array("datasources","general","itemprocessors");
+?>
+<div class="container_12">
+	<?php foreach($order as $k)
+	{?>
+	<div class="grid_4 col <?php if($k==$order[count($order)-1]){?>omega<?php }?>">
+		<h3><?php echo ucfirst($k)?></h3>
+		<?php if($k=="datasources")
+		{?>
+			<select name="PLUGINS_DATASOURCES:class">
+			<?php $pinf=$plugins[$k];?>
+			<?php foreach($pinf as $pclass)
+			{
+			$pinst=Magmi_PluginHelper::createInstance($pclass);
+			$pinfo=$pinst->getPluginInfo();
+			?>
+			<option value="<?php echo $pclass?>"<?php  if($conf->isPluginEnabled($k,$pclass)){?>selected="selected"<?php }?>><?php echo $pinfo["name"]." v".$pinfo["version"];?></option>
+			<?php }?>
+					
+			</select>
+			<?php 
+		}
+		else
+		{?>
+		<ul>
+		<?php $pinf=$plugins[$k];?>
+		<?php foreach($pinf as $pclass)	{
+			$pinst=Magmi_PluginHelper::createInstance($pclass);
+			$pinfo=$pinst->getPluginInfo();
+		?>
+		<li><input type="checkbox" class="pl_<?php echo strtoupper($k)?>" name="<?php echo $pclass?>" <?php if($conf->isPluginEnabled($k,$pclass)){?>checked="checked"<?php }?>><?php echo $pinfo["name"]." v".$pinfo["version"];?></input></li>
+		<?php }?>	
+		</ul>
+		<input type="hidden" id="plc_<?php echo strtoupper($k)?>" value="<?php echo implode(",",$conf->getEnabledPluginClasses($k))?>" name="PLUGINS_<?php echo strtoupper($k)?>:classes"></input>
+		<?php 
+		}?>
+	</div>
+	<?php }?>
+</div>
 <div class="container_12">
 
 	<div class="grid_4 omega push_11">
-		<input type="submit"></input>
+		<input type="submit" value="Apply Configuration"></input>
 	</div>
 </div>
 </form>

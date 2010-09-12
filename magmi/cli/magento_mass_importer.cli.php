@@ -41,7 +41,6 @@ function clilog($data,$type)
 }
 
 $importer=new MagentoMassImporter();
-$importer->loadProperties("magento_mass_importer.ini");
 $importer->setLoggingCallback("clilog");
 $importer->import($options);
 ?>
