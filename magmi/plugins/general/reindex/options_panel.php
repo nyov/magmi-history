@@ -1,8 +1,28 @@
+	<script type="text/javascript">
+		getIndexes=function()
+		{
+			var outs=[];
+			$$('._magindex').each(function(it){if(it.checked){outs.push(it.name)}});
+			return outs.join(",");
+		};
+
+	
+		fcheck=function(t)
+		{
+			$$('._magindex').each(function(it){it.checked=t});
+			
+		}
+
+		magmi_import.registerBeforeSubmit(getIndexes);
+				
+	</script>
+	
 	<input type="hidden" name="indexes" id="indexes"></input>
 	<div>
 	<ul>
 	Indexing:<a href="#" onclick="fcheck(1);">All</a>&nbsp;<a href="#" onclick="fcheck(0)">None</a>
-	<?php $idxarr=explode(",",MagentoMassImporter::$indexlist);
+	<?php 
+	    $idxarr=explode(",",$this->_plugin->getIndexList());
 		foreach($idxarr as $indexname)
 		{
 	?>

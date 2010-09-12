@@ -9,7 +9,7 @@ class Magmi_Config extends Properties
 	public function __construct()
 	{
 		$this->_configname=dirname(__FILE__)."/../conf/magmi.ini";
-		$this->_defaultconfigname=dirname(__FILE__)."/../conf/magmi.default.ini";
+		$this->_defaultconfigname=dirname(__FILE__)."/../conf/magmi.ini.default";
 	}
 	
 	public function getConfigFilename()
@@ -28,12 +28,13 @@ class Magmi_Config extends Properties
 	
 	public function isDefault()
 	{
-		return !file_exists($this->_conffile);	
+		return !file_exists($this->_configname);	
 	}
 	
 	public function load()
 	{
-		parent::load($this->_configname);
+		$conf=(!$this->isDefault())?$this->_configname:$this->_defaultconfigname;
+		parent::load($conf);
 		return $this;
 	}
 	
@@ -42,8 +43,35 @@ class Magmi_Config extends Properties
 		$this->load($this->_defaultconfigname);
 	}
 	
-	public function isPluginEnabled($type,$classname)
-	{
-		return in_array($classname,explode(",",$this->get["PLUGINS:$type"]));
+	public function getEnabledPluginClasses($type)
+	{	
+		$type=strtoupper($type);
+		if($type=="DATASOURCES")
+		{
+			return array($this->get("PLUGINS_$type","class"));
+		}
+		else
+		{
+			return explode(",",$this->get("PLUGINS_$type","classes",""));
+		}
 	}
+	
+	public function isPluginEnabled($type,$pclass)
+	{
+		return in_array($pclass,$this->getEnabledPluginClasses($type));
+	}
+	
+	public function save($arr)
+	{
+		foreach($arr as $k=>$v)
+		{
+			if(!preg_match("/\w+:\w+/",$k))
+			{
+				unset($arr[$k]);
+			}
+		}
+		$this->setPropsFromFlatArray($arr);
+		parent::save($this->_configname);
+	}
+	
 }

@@ -1,91 +1,83 @@
-<?php function buildDSPanel()
-{
-	require_once("../magmi_pluginhelper.php");
-	$plugins=Magmi_PluginHelper::scanPlugins();	
-	$sout="<select id=\"datasource_class\" onchange=\"load_ds_panel()\">";
-	$vout="<script type=\"text/javascript\">\n";
-	$vout.="window.dsurls=[];\n";
-	foreach($plugins["datasources"] as $dsc)
-	{
-		$dsi=Magmi_PluginHelper::createInstance($dsc["class"]);
-		$info=$dsi->getPluginInfo();
-		$cl=get_class($dsi);
-		$sout.="<option value=\"$cl\">".$info["name"]." ".$info["version"]."</option>";
-		$vout.="window.dsurls['$cl']='".$dsc["dir"]."/".$dsi->getOptionsPanel()."';\n";
-	}
-	$sout.="</select>";
-	$vout.="</script>";
-	return $sout."\n".$vout;
-}
-?>
-<script type="text/javascript">
- load_ds_panel=function()
- {
-	 var dsc=$F('datasource_class');
-	 var test=new Ajax.Updater('ds_option_panel',window.dsurls[dsc]);
- }
-</script>
-<script type="text/javascript">
-		getIndexes=function()
-		{
-			var outs=[];
-			$$('._magindex').each(function(it){if(it.checked){outs.push(it.name)}});
-			return outs.join(",");
-		};
-
-		doPost=function()
-		{
-			$('indexes').value=getIndexes();
-			$('csvfile_form').submit();
-		};
-
-		fcheck=function(t)
-		{
-			$$('._magindex').each(function(it){it.checked=t});
-			
+	<?php require_once("../inc/magmi_pluginhelper.php");?>
+	<?php require_once("../inc/magmi_config.php");?>
+	<script type="text/javascript">
+		var magmi_import={
+			bsfcallbacks:[],
+			register_before_submit:function(cb){this.bsfcallbacks.push(cb)}),
+			submit:function(){
+				var context={results:[]};
+				this.bsfcallbacks.each(function(bsc,o){this.results.push(bsc())},context);
+				for(i=0;i<context.results.length;i++)
+				{
+					if(context.result[i]==false)
+					{
+						return false;
+					}
+				}
+				$('import_form').submit();};
 		}
-
-		
 	</script>
-	
-	
+	<div class="container_12">
 	<div class="import_params">
 	<h2>import parameters</h2>
-	<form id="import_form" method="post" action="">
-	<h3>Data Source:</h3>
-	<div>
-		<?php echo buildDSPanel();?>
-	<div id="ds_option_panel">
-	</div>
-
-	</div>
 	Mode:<select name="mode" id="mode">
 		<option value="update">Update only</option>
 		<option value="create">Create</option>
 	</select>
 	<span id="rstspan" style="display:none">
 	<input type="checkbox" id="reset" name="reset">Clear all products</span>
+
+	<form id="import_form" method="post" action="">
+	<?php 
+		$conf=Magmi_Config::getInstance();
+		$conf->load();
+		$dst=$conf->getEnabledPluginClasses("datasources");
+		$ds=$dst[0];
+		$dsinst=Magmi_PluginHelper::createInstance($ds);
+		$dsinfo=$dsinst->getPluginInfo();
+	?>
+	<h2>Data Source - <?php echo $dsinfo["name"] . " -v".$dsinfo["version"]?></h2>
+	<div id="ds_option_panel">
+		<?php 
+		echo $dsinst->getOptionsPanel()->getHtml();?>
 	</div>
 	
 	<div>
-	<?php foreach($plugins["general"] as $gpldesc){?>
+	<?php foreach($conf->getEnabledPluginClasses("GENERAL") as $plc){?>
 		<div class="general_plugin_config">
-			<?php $plinst=Magmi_PluginManager::createInstance($gpldesc["class"]); 
+			<?php $plinst=Magmi_PluginHelper::createInstance($plc); 
 				  $plinfo=$plinst->getPluginInfo();
 				  $panel=$plinst->getOptionsPanel();
 				  ?>
 				  
-				  <h3><input type="chekbox" id="<?php echo $gpldesc["class"]?>" onclick=> <?php echo $plinfo["name"] - $plinfo["version"]?></h3>
+				  <h2><input type="checkbox" id="<?php echo $plc?>" onclick=""> <?php echo "{$plinfo["name"]} - v{$plinfo["version"]}"?></h2>
 				  
-				  <div class="plugin_configpanel" id="<?php echo "{$gpldesc["class"]}_opanel"?>">
-				  	<?php if($panel) ?>
+				  <div class="plugin_configpanel" id="<?php echo "$plc_opanel"?>">
+				  	<?php if($panel){
+				  		echo $panel->getHtml();
+				  	} ?>
 				  </div>
-			
+		</div>
+	<?php }?>
+	<?php foreach($conf->getEnabledPluginClasses("ITEMPROCESSORS") as $plc){?>
+		<div class="general_plugin_config">
+			<?php $plinst=Magmi_PluginHelper::createInstance($plc); 
+				  $plinfo=$plinst->getPluginInfo();
+				  $panel=$plinst->getOptionsPanel();
+				  ?>
+				  
+				  <h2><input type="checkbox" id="<?php echo $plc?>" onclick=""> <?php echo "{$plinfo["name"]} - v{$plinfo["version"]}"?></h2>
+				  
+				  <div class="plugin_configpanel" id="<?php echo "$plc_opanel"?>">
+				  	<?php if($panel){
+				  		echo $panel->getHtml();
+				  	} ?>
+				  </div>
 		</div>
 	<?php }?>
 	</div>
 	<div>
-	<a href="javascript:doPost()">Launch Import</a>
+	<a href="javascript:magmi_import.submit()">Launch Import</a>
 	<a href='magmi.php'>Back to configuration</a>
 	</div>
 	</form>
@@ -104,6 +96,5 @@
 		}
 	}
 	$('mode').observe('change',checkmode);
-	load_ds_panel();
 
 	</script>
