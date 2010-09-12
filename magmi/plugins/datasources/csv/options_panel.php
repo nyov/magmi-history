@@ -5,7 +5,7 @@ File to import:
 	$magdir=$conf->get("MAGENTO","basedir");
 	$files=glob($magdir."/var/import/*.csv");
 ?>
-<select name="csvfile">
+<select name="filename">
 	<?php foreach($files as $fname){ ?>	
 		<option ><?php echo $fname?></option>
 	<?php }?>
