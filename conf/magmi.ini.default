@@ -20,3 +20,5 @@ basedir="../.."
 step=100
 ;---- Uncomment following line to use non comma separators for csv columns
 csv_separator=,
+[PLUGINS:DATASOURCES]
+class=Magmi_CSVDataSource

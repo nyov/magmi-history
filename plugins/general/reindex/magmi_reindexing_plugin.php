@@ -16,6 +16,11 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		$this->updateIndexes($this->_reindex);
 	}
 	
+	public function getIndexList()
+	{
+		return $this->_indexlist;
+	}
+	
 	public function updateIndexes($idxlist)
 	{
 		$indexer="{$this->_mmi->magdir}/shell/indexer.php";

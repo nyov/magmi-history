@@ -1,6 +1,5 @@
 <?php
-require_once("../properties.php");
-$props=new Properties();
-$props->setPropsFromFlatArray($_POST);
-$props->save("../conf/magmi.ini");
+require_once("../inc/magmi_config.php");
+$conf=new Magmi_Config();
+$conf->save($_POST);
 header("Location: magmi.php?run=1");
