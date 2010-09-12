@@ -1,6 +1,6 @@
 <?php
 
-class PluginOptionsPanel
+class Magmi_PluginOptionsPanel
 {
 	private $_plugin;
 	
@@ -106,7 +106,7 @@ abstract class Magmi_Plugin
 	}
 	public function getOptionsPanel()
 	{
-		return new PluginOptionsPanel($this);
+		return new Magmi_PluginOptionsPanel($this);
 	}
 	
 	public function __call($data,$arg)
