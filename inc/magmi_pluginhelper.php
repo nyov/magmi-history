@@ -75,9 +75,6 @@ class Magmi_PluginHelper
 				"datasources"=>self::initPluginInfos("plugins/datasources","Magmi_Datasource"),
 				"general"=>self::initPluginInfos("plugins/general","Magmi_GeneralImportPlugin"));
 		}
-
-		
-		return $plugins;
 	}
 	
 	
@@ -89,7 +86,7 @@ class Magmi_PluginHelper
 			self::scanPlugins();
 		}
 		$plinst=new $pclass();
-		$plinst->pluginInit(null,$params,false);
+		$plinst->pluginInit(null,null,false);
 		return $plinst;
 	}
 	
