@@ -52,7 +52,12 @@ class Magmi_Config extends Properties
 		}
 		else
 		{
-			return explode(",",$this->get("PLUGINS_$type","classes",""));
+			$v=explode(",",$this->get("PLUGINS_$type","classes",""));
+			if(count($v)==1 && $v[0]=="")
+			{
+				return array();
+			}
+			return $v;
 		}
 	}
 	
