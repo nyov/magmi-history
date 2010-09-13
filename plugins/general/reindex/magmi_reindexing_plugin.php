@@ -26,6 +26,10 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		$indexer="{$this->_mmi->magdir}/shell/indexer.php";
 		if(file_exists($indexer))
 		{
+			if($idxlist=="")
+			{
+				return;
+			}
 			$idxlist=explode(",",$idxlist);
 			//reindex using magento command line
 			chdir($this->_mmi->magdir);
@@ -56,7 +60,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 	
 	public function initialize($params)
 	{
-		$this->_reindex=$this->getParam("reindex",$this->_indexlist);
+		$this->_reindex=$this->getParam("indexes",$this->_indexlist);
 		
 	}
 }
