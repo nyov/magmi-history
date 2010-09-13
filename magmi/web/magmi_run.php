@@ -1,15 +1,17 @@
 
 <?php 
+	require_once("../inc/magmi_statemanager.php");
+
 	function initlog()
 	{
 		set_time_limit(0);
-		$f=fopen("../state/tmp_out.txt","w");
+		$f=fopen(dirname(Magmi_StateManager::getStateFile())."/tmp_out.txt","w");
 		fclose($f);
 	}
 	
 	function weblog($data,$type)
 	{
-			$f=fopen("../state/tmp_out.txt","a");
+			$f=fopen(dirname(Magmi_StateManager::getStateFile())."/tmp_out.txt","a");
 			fwrite($f,"$type:$data\n");
 			fclose($f);
 			
@@ -19,7 +21,6 @@
 
 <?php 
 		require_once("../inc/magmi_importer.php");
-		require_once("../inc/magmi_statemanager.php");
 		
 		if(Magmi_StateManager::getState()!=="running")
 		{
