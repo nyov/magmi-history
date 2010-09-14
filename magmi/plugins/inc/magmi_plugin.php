@@ -39,8 +39,9 @@ class Magmi_PluginOptionsPanel
 abstract class Magmi_Plugin
 {
 	protected $_mmi=null;
-	protected $_baseclass;
-	
+	protected $_class;
+	protected $_plugintype;
+		
 	public function getParam($pname,$default)
 	{
 		return isset($this->_params[$pname])?$this->_params[$pname]:$default;
@@ -69,10 +70,17 @@ abstract class Magmi_Plugin
 	{
 		return null;
 	}
+
 	
 	public function getPluginAuthor()
 	{
 		return null;
+	}
+	
+	public function log($data,$type)
+	{
+		
+		$this->_mmi->log($data,"plugin;$this->_class;$type");
 	}
 	
 	public function pluginHello()
@@ -83,7 +91,8 @@ abstract class Magmi_Plugin
 		$hello[]=!isset($info["author"])?"":$info["author"];
 		$hello[]=!isset($info["url"])?"":$info["url"];
 		$hellostr=implode("-",$hello);
-		$this->log("Plugin : $hellostr ","pluginhello:$this->_baseclass");
+		$base=get_parent_class($this);
+		$this->log("$hellostr ","pluginhello");
 		
 	}
 
@@ -92,7 +101,7 @@ abstract class Magmi_Plugin
 	public final function pluginInit($mmi,$params=null,$doinit=true)
 	{		
 		$this->_mmi=$mmi;
-		$this->_baseclass=get_parent_class($this);
+		$this->_class=get_class($this);	
 		$this->_params=$params;
 		if(isset($mmi))
 		{
