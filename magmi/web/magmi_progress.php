@@ -42,14 +42,22 @@ try
 			if($line!="")
 			{
 				list($type,$info)=explode(":",$line,2);
+				if(preg_match_all("/plugin;(\w+);(\w+)$/",$type,$m))
+				{
+					$plclass=$m[1][0];
+					$type=$m[2][0];
+				}
 				switch($type){
 					case "title":
 						break;
+					case "raw":
+						$out.=$info;
+						break;
 					case "pluginhello":
-						list($ptype,$data)=explode(":",$info,2);
-						list($name,$ver,$auth)=explode("-",$data);
+						list($name,$ver,$auth)=explode("-",$info);
 						$out.="<div class='pluginhello'>$name v$ver by $auth</div>";
 						break;
+				
 					case "lookup":
 						list($nlines,$time)=explode(":",$info);
 						break;
