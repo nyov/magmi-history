@@ -11,7 +11,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	protected $_cols;
 	protected $_csep;
 	
-	public function initialize($params=null)
+	public function initialize($params)
 	{
 		$this->_filename=$params["filename"];	
 		if(!isset($this->_filename))
