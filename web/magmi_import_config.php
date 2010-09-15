@@ -79,14 +79,19 @@
 				  <div class="ipp_configpanel">
 				  	<?php if($panel){
 				  		echo $panel->getHtml();
-				  	} ?>
+				  	} else {?>
+				  	<span>No configurable parameters</span>
+				  	<?php }?>
+				  	
 				  </div>
 		</div>
 	<?php }}?>
 	</div>
-	<div>
-	<a href="javascript:importer.submit()">Launch Import</a>
+	<div class="grid_12">
+	<div style="float:right">
 	<a href='magmi.php'>Back to configuration</a>
+	<a href="javascript:importer.submit()">Launch Import</a>
+	</div>
 	</div>
 	</form>
 	</div>

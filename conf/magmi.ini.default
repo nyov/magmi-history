@@ -18,7 +18,4 @@ basedir="../.."
 [GLOBAL]
 ;---- Uncomment the following line to have a custom import report step, defaults to 100 
 step=100
-;---- Uncomment following line to use non comma separators for csv columns
-csv_separator=,
-[PLUGINS:DATASOURCES]
-class=Magmi_CSVDataSource
+
