@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     15 sept. 2010 15:13:44                                                        
+
+     magmi    
+     Magmi project
+                   
+     seb                                                                
+     ====================================================================== -->
+<project name="magmi" default="default">
+    <description>
+            Magmi project
+    </description>
+    <!-- ================================= 
+          target: default              
+         ================================= -->
+    <target name="default" depends="depends" description="Magmi project">
+        <zip destfile="magmi_${target_version}.zip" update="no">
+        	<zipfileset dir=".." excludes="**/build/**,**/state/*,**/conf/magmi.ini" prefix="magmi"></zipfileset>
+        </zip>
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: depends                      
+         - - - - - - - - - - - - - - - - - -->
+    <target name="depends">
+    	<input message="target version" addproperty="target_version"/>		    	
+    </target>
+
+</project>
