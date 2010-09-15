@@ -10,3 +10,7 @@ File to import:
 		<option ><?php echo $fname?></option>
 	<?php }?>
 </select>
+	<div>
+	<span class="">CSV separator:</span><input type="text" maxlength="1" size="1" name="csv_separator" value=","></input>
+	</div>
+

@@ -3,10 +3,12 @@
 class Magmi_PluginOptionsPanel
 {
 	private $_plugin;
+	private $_defaulthtml="";
 	
 	public function __construct($pinst)
 	{
-		$this->_plugin=$pinst;	
+		$this->_plugin=$pinst;
+		$this->initDefaultHtml();
 	}
 	
 	public function getFile()
@@ -14,16 +16,29 @@ class Magmi_PluginOptionsPanel
 		$dir=Magmi_PluginHelper::getPluginDir($this->_plugin);
 		return 	substr($dir."/options_panel.php",1);
 	}
-	
+
+	public final function initDefaultHtml()
+	{
+		$panelfile=dirname(__FILE__)."/magmi_default_options_panel.php";
+		ob_start();
+		require($panelfile);
+		$this->_defaulthtml = ob_get_contents();
+		ob_end_clean();		
+		
+	}
 	public function getHtml()
 	{
 		$plugin=$this->_plugin;
 		$panelfile=$this->getFile();
 		$content="";
-		if(file_exists($panelfile))
+		if(!file_exists($panelfile))
+		{
+			$content=$this->_defaulthtml;
+		}
+		else
 		{
 			ob_start();
-			require_once($panelfile);
+			require($panelfile);
 			$content = ob_get_contents();
 			ob_end_clean();
 		}
@@ -77,7 +92,7 @@ abstract class Magmi_Plugin
 		return null;
 	}
 	
-	public function log($data,$type)
+	public function log($data,$type='std')
 	{
 		
 		$this->_mmi->log($data,"plugin;$this->_class;$type");
