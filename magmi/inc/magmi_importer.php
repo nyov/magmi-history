@@ -250,9 +250,11 @@ class MagentoMassImporter extends DBHelper
 			$this->imgsourcedir=$this->_conf->get("IMAGES","sourcedir",$this->magdir."/media/import");
 			$this->tprefix=$this->_conf->get("DATABASE","table_prefix");
 			$this->enabled_label=$this->_conf->get("MAGENTO","enabled_status_label","Enabled");
-			$this->_pluginclasses["processors"]=array_intersect(explode(",",$this->_conf->get("PLUGINS:PROCESSORS","classes",implode(",",$pluginclasses["itemprocessors"]))),$pluginclasses["itemprocessors"]);
-			$this->datasource_class=$this->_conf->get("PLUGINS:DATASOURCE","class",$pluginclasses["datasources"][0]);
-			$this->_pluginclasses["general"]=array_intersect(explode(",",$this->_conf->get("PLUGINS:GENERAL","classes",implode(",",$pluginclasses["general"]))),$pluginclasses["general"]);
+			$enproc=explode(",",$this->_conf->get("PLUGINS_ITEMPROCESSORS","classes",implode(",",$pluginclasses["itemprocessors"])));
+			$this->_pluginclasses["processors"]=array_intersect($enproc,$pluginclasses["itemprocessors"]);
+			$this->datasource_class=$this->_conf->get("PLUGINS_DATASOURCES","class",$pluginclasses["datasources"][0]);
+			$engen=explode(",",$this->_conf->get("PLUGINS_GENERAL","classes",implode(",",$pluginclasses["general"])));
+			$this->_pluginclasses["general"]=array_intersect($engen,$pluginclasses["general"]);
 			$this->_initialized=true;
 		}
 		catch(Exception $e)

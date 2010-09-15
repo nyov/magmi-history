@@ -5,18 +5,19 @@ try
 	//read whole file
 	$data=false;
 	$out="";
+	$sout="";
 	$skipped=0;
 	//avoid warning
 	$out="initializing...";
 	if(Magmi_StateManager::getState()=="canceled")
 	{
-		$out="";
-		$out.="<div class='log_warning'>Canceled by user</div>";
-		$out.="<div class='log_warning'>";
-		$out.="<span><a href='magmi.php'>Back to Configuration Page</a></span>";
-		$out.="<span><a href='magmi.php?run=1'>Back to Import</a></span>";
-		$out.="</div>";
-		$out.="<script type=\"text/javascript\">endImport();</script>";
+		$sout="";
+		$sout.="<div class='log_warning'>Canceled by user</div>";
+		$sout.="<div class='log_warning'>";
+		$sout.="<span><a href='magmi.php'>Back to Configuration Page</a></span>";
+		$sout.="<span><a href='magmi.php?run=1'>Back to Import</a></span>";
+		$sout.="</div>";
+		$sout.="<script type=\"text/javascript\">endImport();</script>";
 	}
 	else
 	{
@@ -57,7 +58,9 @@ try
 						list($name,$ver,$auth)=explode("-",$info);
 						$out.="<div class='pluginhello'>$name v$ver by $auth</div>";
 						break;
-				
+					case "startup":
+						$out.="<div class='log_standard'>$info</div>";
+						break;
 					case "lookup":
 						list($nlines,$time)=explode(":",$info);
 						break;
@@ -105,27 +108,26 @@ try
 				$out.="imported $count items ($percent %) in $elapsed secs (last $step in $lastinc secs) - avg speed : $speed rec/min </div>";
 			}
 		}
-	}
-	foreach($errors as $error)
-	{
-		$out.="<div class='log_error'>$error</div>";
-	}
-	foreach($warnings as $warning)
-	{
-		$out.="<div class='log_warning'>$warning</div>";
-	}
-	if($skipped>0)
-	{
-		$out.="<div class='log_info'>Skipped $skipped records</div>";
-	}
-	if($ended)
-	{
-		$out.="<script type=\"text/javascript\">setProgress(100);</script>";
-		$out.="<div class='log_end".(count($errors)>0?" log_error":"")."'>";
-		$out.="<span><a href='magmi.php'>Back to Configuration Page</a></span>";
-		$out.="<span><a href='magmi.php?run=1'>Back to Import</a></span>";
-		$out.="</div>";
-		$out.="<script type=\"text/javascript\">endImport();</script>";
+		foreach($errors as $error)
+		{
+			$out.="<div class='log_error'>$error</div>";
+		}
+		foreach($warnings as $warning)
+		{
+			$out.="<div class='log_warning'>$warning</div>";
+		}
+		if($skipped>0)
+		{
+			$out.="<div class='log_info'>Skipped $skipped records</div>";
+		}
+		if($ended)
+		{
+			$sout.="<div class='log_end".(count($errors)>0?" log_error":"")."'>";
+			$sout.="<span><a href='magmi.php'>Back to Configuration Page</a></span>";
+			$sout.="<span><a href='magmi.php?run=1'>Back to Import</a></span>";
+			$sout.="</div>";
+			$sout.="<script type=\"text/javascript\">endImport();</script>";
+		}
 	}
 
 	echo $out.$sout;

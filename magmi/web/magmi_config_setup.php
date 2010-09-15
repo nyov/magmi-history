@@ -123,8 +123,7 @@ $order=array("datasources","general","itemprocessors");
 	<?php }?>
 </div>
 <div class="container_12">
-
-	<div class="grid_4 omega push_11">
+	<div style="float:right">
 		<input type="submit" value="Apply Configuration"></input>
 	</div>
 </div>

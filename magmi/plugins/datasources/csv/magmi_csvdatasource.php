@@ -13,7 +13,8 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function initialize($params)
 	{
-		$this->_filename=$params["filename"];	
+		$this->_filename=$params["filename"];
+		$this->_csep=$this->getParam("csv_separator",",");
 		if(!isset($this->_filename))
 		{
 			throw new CSVException("No csv file set");
@@ -22,14 +23,14 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		{
 			throw new CSVException("{$this->_filename} not found");
 		}
-		$this->_csep=$this->getParam("csv_separator",",");
+		
 	}
 	
 	public function getPluginInfo()
 	{
 		return array("name"=>"CSV Datasource",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0");
+					 "version"=>"1.0.1");
 	}
 	
 	public function getRecordsCount()
@@ -53,7 +54,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function beforeImport()
 	{
-		
+		$this->log("Importing CSV : $this->_filename using separator [ $this->_csep ]","startup");
 	}
 	
 	public function afterImport()
