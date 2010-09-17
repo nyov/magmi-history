@@ -27,12 +27,12 @@
 	endImport=function(t)
 	{
 		window.upd.stop();
+		window.upd=null;
 	}
 
 	startProgress=function()
 	{
 		window.upd=new Ajax.PeriodicalUpdater("runlog","./magmi_progress.php",{frequency:1,evalScripts:true});
-		window.clearTimeout(window._dp);
 	}
 	
 	startImport=function(filename)
@@ -40,10 +40,9 @@
 		if(window._sr==null)
 		{
 			var rq=$('import_params').request({method:'get',
-									onCreate:function(r){window._sr=r;}});
+									onCreate:function(r){window._sr=r;startProgress();}});
 			
 		}
-		window._dp=window.setTimeout(startProgress,500);
 	}
 	
 	setProgress=function(pc)
