@@ -101,7 +101,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 					//get option id for value, create it if does not already exist
 					//do not insert if empty
 				default:
-					$ovalue=($ivalue!=""?$this->_mmi->getOptionId($attid,$ivalue):false);
+					$ovalue=($ivalue!=""?$this->_mmi->getOptionId($attid,$storeid,$ivalue):false);
 					break;
 			}
 		}
@@ -135,7 +135,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 			//return value
 			$ovalue=$imagefile;
 			//add to gallery as excluded
-			$this->_mmi->addImageToGallery($pid,$imagefile,true);
+			$this->_mmi->addImageToGallery($pid,$attrdesc,$imagefile,true);
 				
 		}
 		//if it's a gallery
@@ -156,7 +156,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 				//copy it from source dir to product media dir
 				$imagefile=$this->_mmi->copyImageFile($imagefile);
 				//add to gallery
-				$this->_mmi->addImageToGallery($pid,$imagefile);
+				$this->_mmi->addImageToGallery($pid,$attrdesc,$imagefile);
 			}
 			//we don't want to insert after that
 			$ovalue=false;
@@ -177,10 +177,15 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 			}
 			//magento uses "," as separator for different multiselect values
 			$multiselectvalues=explode(",",$ivalue);
-			//use optimized function to get multiple option ids from an array of values
-			$oids=$this->_mmi->getMultipleOptionIds($attid,$multiselectvalues);
+			$oids=array();
+			foreach($multiselectvalues as $opt)
+			{
+				//use optimized function to get multiple option ids from an array of values
+				$oids[]=$this->_mmi->getOptionId($attid,$storeid,$opt);
+			}
 			// ovalue is set to the option id's, seperated by a colon and all multiselect values will be inserted
 			$ovalue=implode(",",$oids);
+			unset($oids);
 		}
 		return $ovalue;
 	}
@@ -196,6 +201,7 @@ class MagentoMassImporter extends DBHelper
 	public $store_ids=array();
 	public $status_id=array();
 	public $attribute_sets=array();
+	public $ws_store_map=array();
 	public $reset=false;
 	public $magdir;
 	public $imgsourcedir;
@@ -311,6 +317,16 @@ class MagentoMassImporter extends DBHelper
 		}
 	}
 
+	public function getWebsitesStoreIds($wsstr)
+	{
+		$sids=array();
+		$wsarr=explode(",",$wsstr);
+		foreach($wsarr as $ws)
+		{
+			$sids=array_merge($sids,$this->ws_store_map[$this->website_ids[$ws]]);
+		}
+		return array_unique($sids);
+	}
 	/**
 	 * logging function
 	 * @param string $data : string to log
@@ -335,12 +351,20 @@ class MagentoMassImporter extends DBHelper
 	public function initStores()
 	{
 		$tname=$this->tablename("core_store");
-		$sql="SELECT code,store_id FROM $tname";
+		$sql="SELECT code,store_id,website_id FROM $tname";
 		$result=$this->selectAll($sql);
+		$wsm=array();
 		foreach($result as $r)
 		{
 			$this->store_ids[$r["code"]]=$r["store_id"];
+			$wsid=$r["website_id"];
+			if(!isset($wsm[$wsid]))
+			{
+				$wsm[$wsid]=array();
+			}	
+			$wsm[$wsid][]=$r["store_id"];
 		}
+		$this->ws_store_map=$wsm;
 	}
 
 
@@ -399,8 +423,10 @@ class MagentoMassImporter extends DBHelper
 		//create statement parameter string ?,?,?.....
 		$qcolstr=substr(str_repeat("?,",count($cols)),0,-1);
 		$tname=$this->tablename("eav_attribute");
+		$extra=$this->tablename("catalog_eav_attribute");
 		//SQL for selecting attribute properties for all wanted attributes
-		$sql="SELECT `$tname`.* FROM `$tname`
+		$sql="SELECT `$tname`.*,$extra.is_global FROM `$tname`
+		LEFT JOIN $extra ON $tname.attribute_id=$extra.attribute_id
 		WHERE  ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=$this->prod_etype)";		
 		$result=$this->selectAll($sql,$cols);
 		//create an attribute code based array for the wanted columns
@@ -501,43 +527,22 @@ class MagentoMassImporter extends DBHelper
 	 * @param mixed $optval : value to get option id for
 	 * @return : null if not found or option id corresponding to attribute value
 	 */
-	function getOptionIdFromValue($attid,$optval)
+	function getOptionFromValue($attid,$store_id,$optval)
 	{
 		$t1=$this->tablename('eav_attribute_option_value');
 		$t2=$this->tablename('eav_attribute_option');
-		$sql="SELECT optval.option_id FROM $t1 AS optval
-			  JOIN $t2 AS opt ON optval.option_id=opt.option_id AND opt.attribute_id=?
-			  WHERE optval.value=?";
-		return $this->selectone($sql,array($attid,$optval),'option_id');
+		$sql="SELECT opt.option_id as opt_id,optval.option_id as optval_id FROM $t1 AS optval
+			  JOIN $t2 AS opt ON opt.option_id=optval.option_id AND opt.attribute_id=?
+			  WHERE optval.value=?  AND optval.store_id=?";
+		return $this->selectone($sql,array($attid,$optval,$store_id),'opt_id');
 	}
 
-	/**
-	 * Get Option ids from values - multiple option ids for multiple values
-	 * optimized SQL in unique request
-	 * @param int $attid
-	 * @param array $optvalarr
-	 * @return array with following structure:
-	 * 		"opt_ids"=>array( option ids)
-	 * 	    "opt_values"=>array(option values)
-	 * 		both arrays have same indexes
-	 * it enables to find which values
-	 */
-	function getOptionIdsFromValues($attid,$optvalarr)
+	
+	function createOption($attid)
 	{
-		$qcolstr=substr(str_repeat("?,",count($optvalarr)),0,-1);
-		$t1=$this->tablename('eav_attribute_option_value');
-		$t2=$this->tablename('eav_attribute_option');
-		$sql="SELECT optval.option_id,optval.value FROM $t1 AS optval
-			  LEFT JOIN $t2 AS opt ON optval.option_id=opt.option_id AND opt.attribute_id=?
-			  WHERE optval.value IN ($qcolstr)";
-		$result=$this->selectAll($sql,array_merge(array($attid),$optvalarr));
-		$out=array("ids"=>array(),"opt_values"=>array());
-		foreach($result as $row)
-		{
-			$out["opt_ids"][]=$row["option_id"];
-			$out["opt_values"][]=$row["value"];
-		}
-		return $out;
+		$t=$this->tablename('eav_attribute_option');
+		$optid=$this->insert("INSERT INTO $t (attribute_id) VALUES (?)",$attid);
+		return $optid;
 	}
 	/**
 	 * Creates a new option value for an attribute
@@ -545,14 +550,11 @@ class MagentoMassImporter extends DBHelper
 	 * @param mixed $optval : new option value to add
 	 * @return : option id for new created value
 	 */
-	function  createOptionValue($attid,$optval)
+	function  createOptionValue($optid,$store_id,$optval)
 	{
-		$t=$this->tablename('eav_attribute_option');
-		$optid=$this->insert("INSERT INTO $t (attribute_id) VALUES (?)",$attid);
 		$t=$this->tablename('eav_attribute_option_value');
-		$this->insert("INSERT INTO $t (option_id,value) VALUES (?,?)",
-		array($optid,$optval));
-		return $optid;
+		$optval_id=$this->insert("INSERT INTO $t (option_id,store_id,value) VALUES (?,?,?)",array($optid,$store_id,$optval));
+		return $optval_id;
 	}
 
 	/**
@@ -562,31 +564,17 @@ class MagentoMassImporter extends DBHelper
 	 * @param mixed $value : value to get option id for
 	 *
 	 */
-	public function getOptionId($attid,$value)
+	public function getOptionId($attid,$storeid,$value)
 	{
-		$optid=$this->getOptionIdFromValue($attid,$value);
+		$optid=$this->getOptionFromValue($attid,$storeid,$value);
 		if($optid==null)
 		{
-			$optid=$this->createOptionValue($attid,$value);
+			$optid=$this->createOption($attid);
+			$this->createOptionValue($optid,$storeid,$value);
 		}
 		return $optid;
 	}
 
-	/**
-	 *
-	 */
-	public function getMultipleOptionIds($attid,$optvals)
-	{
-		$opt_table=$this->getOptionIdsFromValues($attid,$optvals);
-		//get values to create
-		$notfound=array_diff($optvals,$opt_table["opt_values"]);
-		foreach($notfound as $optval)
-		{
-			$optid=$this->createOptionValue($attid,$optval);
-			$opt_table["opt_ids"][]=$optid;
-		}
-		return $opt_table["opt_ids"];
-	}
 	/**
 	 * returns tax class id for a given tax class value
 	 * @param $tcvalue : tax class value
@@ -628,6 +616,7 @@ class MagentoMassImporter extends DBHelper
 	/**
 	 * adds an image to product image gallery only if not already exists
 	 * @param int $pid  : product id to test image existence in gallery
+	 * @param array $attrdesc : product attribute description
 	 * @param string $imgname : image file name (relative to /products/media in magento dir)
 	 */
 	public function addImageToGallery($pid,$imgname,$excluded=false)
@@ -638,14 +627,15 @@ class MagentoMassImporter extends DBHelper
 		}
 		$tg=$this->tablename('catalog_product_entity_media_gallery');
 
+		
 		// insert image in media_gallery
 		$sql="INSERT INTO $tg
 			(attribute_id,entity_id,value)
 			VALUES
 			(?,?,?)";
-
-		//77 is the id for media_gallery attribute
-		$vid=$this->insert($sql,array(77,$pid,$imgname));
+	
+		//use attrbute description to find attribute id for gallery
+		$vid=$this->insert($sql,array($attrdesc["attribute_id"],$pid,$imgname));
 
 		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
 		#get maximum current position in the product gallery
@@ -795,21 +785,16 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function createAttributes($pid,$item)
 	{
-		/*
-		 * if we did not wipe all products , delete attribute entries for current product
-		 */
-
-
 		/**
 		 * get all store ids
 		 */
 		if(isset($item["store"]))
 		{
-			$store_ids=$this->getStoreIds($item["store"]);
+			$bstore_ids=$this->getStoreIds($item["store"]);
 		}
 		else
 		{
-			$store_ids=array(0,1);
+			$bstore_ids=array(0,1);
 		}
 
 		/* now is the interesring part */
@@ -840,16 +825,34 @@ class MagentoMassImporter extends DBHelper
 				$ivalue=$item[$attrdesc["attribute_code"]];
 
 					
+				$store_ids=array();
+				switch($attrdesc["is_global"])
+				{
+					//store_view scope
+					case 0:
+						//use all store values from item
+						$store_ids=$bstore_ids;
+						break;
+						//global scope
+					case 1:
+						//all values impact store 0
+						$store_ids=array(0);
+						break;
+					case 2:
+						//website scope
+						$store_ids=$this->getWebsitesStoreIds($item["websites"]);
+				}
+				
 				//use reflection to find special handlers
 				$handler="handle".ucfirst($tp)."Attribute";
-				//if we have a handler for the current type
+			
 				foreach($store_ids as $store_id)
 				{
 			
 					if(in_array($handler,get_class_methods($this)))
 					{
 						//call it and get its output value for the current attribute
-						$ovalue=$this->$handler($pid,$store_ids,$ivalue,$attrdesc);
+						$ovalue=$this->$handler($pid,$store_id,$ivalue,$attrdesc);
 	
 					}
 					else
@@ -870,6 +873,7 @@ class MagentoMassImporter extends DBHelper
 					}
 				}
 			}
+			unset($store_ids);
 			if(!empty($inserts))
 			{
 			//now perform insert for all values of the the current backend type in one
@@ -948,8 +952,20 @@ class MagentoMassImporter extends DBHelper
 		$this->insert($sql);
 		$sql="TRUNCATE TABLE `".$this->tablename("catalog_product_entity")."`;\n";
 		$this->insert($sql);
+		$optv=$this->tablename("eav_attribute_option_value");
+		$opt=$this->tablename("eav_attribute_option");	
+		$et=$this->tablename("eav_attribute");
 		$sql="SET FOREIGN_KEY_CHECKS = 1";
+		
+		$sql="DELETE $opt FROM $opt
+			JOIN $et ON $et.attribute_id=$opt.attribute_id AND $et.entity_type_id=4";
 		$this->exec_stmt($sql);
+
+		$sql="DELETE $optv FROM $optv
+		LEFT JOIN $opt ON $opt.option_id=$opt.option_id
+		WHERE $opt.option_id=NULL";
+		$this->exec_stmt($sql);
+		
 		$this->log("OK","reset");
 	}
 
@@ -979,7 +995,8 @@ class MagentoMassImporter extends DBHelper
 		$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>0?1:0);
 		if($this->mode!=="update")
 		{
-			$lsdate=nullifempty($item["low_stock_date"]);
+			
+			$lsdate=nullifempty(isset($item["low_stock_date"])?$item["low_stock_date"]:"");
 			$sql="INSERT INTO `$csit`
 			(`product_id`, 
  			 `stock_id`,
