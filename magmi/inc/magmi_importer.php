@@ -152,8 +152,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 			//add to gallery as excluded
 			if($imagefile!==false)
 			{
-				//return value
-				$this->_mmi->addImageToGallery($pid,$attrdesc,$imagefile,true);
+				$vid=$this->_mmi->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,true);
 			}	
 		}
 		//if it's a gallery
@@ -164,11 +163,15 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 			{
 				return false;
 			}
+			//if store id=0, reset product gallery
+			if($storeid==0)
+			{
+				$this->_mmi->resetGallery($pid);
+			}
 			//use ";" as image separator
 			$images=explode(";",$ivalue);
 			$imgnames=array();
 			//for each image
-			$this->_mmi->resetGallery($pid);
 			foreach($images as $imagefile)
 			{
 				//copy it from source dir to product media dir
@@ -176,7 +179,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 				if($imagefile!==false)
 				{
 					//add to gallery
-					$this->_mmi->addImageToGallery($pid,$attrdesc,$imagefile);
+					$vid=$this->_mmi->addImageToGallery($pid,$storeid,$attrdesc,$imagefile);
 				}
 			}
 			//we don't want to insert after that
@@ -661,7 +664,7 @@ class MagentoMassImporter extends DBHelper
 	 * @param array $attrdesc : product attribute description
 	 * @param string $imgname : image file name (relative to /products/media in magento dir)
 	 */
-	public function addImageToGallery($pid,$attrdesc,$imgname,$excluded=false)
+	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$excluded=false)
 	{
 		
 		if($this->imageInGallery($pid,$imgname))
@@ -685,14 +688,15 @@ class MagentoMassImporter extends DBHelper
 		$sql="SELECT MAX( position ) as maxpos
 				 FROM $tgv AS emgv
 				 JOIN $tg AS emg ON emg.value_id = emgv.value_id AND emg.entity_id = ?
+				 WHERE emgv.store_id=?
 		 		 GROUP BY emg.entity_id";
-		$pos=$this->selectone($sql,array($pid),'maxpos');
+		$pos=$this->selectone($sql,array($pid,$storeid),'maxpos');
 		$pos=($pos==null?0:$pos+1);
 		#insert new value
 		$sql="INSERT INTO $tgv
-			(value_id,position,disabled)
-			VALUES(?,?,?)";
-		$this->insert($sql,array($vid,$pos,$excluded?1:0));
+			(value_id,store_id,position,disabled)
+			VALUES(?,?,?,?)";
+		$this->insert($sql,array($vid,$storeid,$pos,$excluded?1:0));
 	}
 
 	/**
