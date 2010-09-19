@@ -7,6 +7,7 @@ class DBHelper
 	protected $_db;
 	protected $_debug;
 	protected $_laststmt;
+	protected $_use_stmt_cache=true;
 	/**
 	 * Intializes database connection
 	 * @param string $host : hostname
@@ -31,8 +32,13 @@ class DBHelper
 			$this->_db->query("SET GLOBAL general_log='ON' ")->execute();
 		}
 		$this->prepared=array();
+		
 	}
 
+	public function usestmtcache($uc)
+	{
+		$this->_use_stmt_cache=$uc;
+	}
 	/**
 	 * releases database connection
 	 */
@@ -57,6 +63,8 @@ class DBHelper
 	 */
 	public function exec_stmt($sql,$params=null,$close=true)
 	{
+		if($this->_use_stmt_cache)
+		{
 		//if sql not in statement cache
 		if(!isset($this->prepared[$sql]))
 		{
@@ -69,6 +77,12 @@ class DBHelper
 		{
 			//get from statement cache
 			$stmt=$this->prepared[$sql];
+		}
+		}
+		else
+		{
+			//create new prepared statement
+			$stmt=$this->_db->prepare($sql);
 		}
 		$this->_laststmt=$stmt;
 		if($params!=null)
