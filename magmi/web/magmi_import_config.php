@@ -4,7 +4,7 @@
 	<script type="text/javascript">
 		var magmi_import=Class.create({
 			bsfcallbacks:[],
-			register_before_submit:function(cb){this.bsfcallbacks.push(cb)},
+			registerBeforeSubmit:function(cb){this.bsfcallbacks.push(cb)},
 			submit:function(){
 				var context={results:[]};
 				this.bsfcallbacks.each(function(bsc,o){this.results.push(bsc())},context);
