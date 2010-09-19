@@ -1391,7 +1391,7 @@ class MagentoMassImporter extends DBHelper
 					}
 					else
 					{
-						$this->log("ERROR - LINE $this->current_row - INVALID ROW :".count($row)."/".count($this->attrinfo)." cols found","error");
+						$this->log("ERROR - LINE $this->current_row - INVALID ROW :".count($item)."/".count($this->attrinfo)." cols found","error");
 					}
 					//intermediary measurement
 					if($this->current_row%$mstep==0)
