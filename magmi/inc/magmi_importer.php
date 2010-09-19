@@ -35,6 +35,15 @@ function testempty($val)
 
 class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 {
+	
+	protected $_curpid=null;
+	protected $_attropts=null;
+	
+	public function setCurrentPid($pid)
+	{
+		$this->_curpid=$pid;
+		$this->_attropts=array();
+	}	
 	/**
 	 * attribute handler for decimal attributes
 	 * @param int $pid	: product id
@@ -43,7 +52,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 	 * @return mixed : false if no further processing is needed,
 	 * 					string (magento value) for the decimal attribute otherwise
 	 */
-	public function handleDecimalAttribute($pid,$storeid,$ivalue,$attrdesc)
+	public function handleDecimalAttribute($storeid,$ivalue,$attrdesc)
 	{
 		$ovalue=falseifempty($ivalue);
 		return $ovalue;
@@ -57,7 +66,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 	 * @return mixed : false if no further processing is needed,
 	 * 					string (magento value) for the datetime attribute otherwise
 	 */	
-	public function handleDatetimeAttribute($pid,$storeid,$ivalue,$attrdesc)
+	public function handleDatetimeAttribute($storeid,$ivalue,$attrdesc)
 	{
 		$ovalue=nullifempty($ivalue);
 		return $ovalue;
@@ -71,7 +80,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 	 * @return mixed : false if no further processing is needed,
 	 * 					int (magento value) for the int attribute otherwise
 	 */
-	public function handleIntAttribute($pid,$storeid,$ivalue,$attrdesc)
+	public function handleIntAttribute($storeid,$ivalue,$attrdesc)
 	{
 		$ovalue=$ivalue;
 		$attid=$attrdesc["attribute_id"];
@@ -101,7 +110,11 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 					//get option id for value, create it if does not already exist
 					//do not insert if empty
 				default:
-					$ovalue=($ivalue!=""?$this->_mmi->getOptionId($attid,$storeid,$ivalue):false);
+					if($ivalue=="")
+					{
+						return false;
+					}
+					$ovalue=$this->_mmi->getOptionId($attid,$storeid,$ivalue);
 					break;
 			}
 		}
@@ -115,13 +128,16 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 	 * @param string $ivalue : attribute value
 	 * @param array $attrdesc : attribute description
 	 */
-	public function handleVarcharAttribute($pid,$storeid,$ivalue,$attrdesc)
+	public function handleVarcharAttribute($storeid,$ivalue,$attrdesc)
 	{
+		
 		if($storeid!==0 && empty($ivalue))
 		{
 			return false;
 		}
+		
 		$ovalue=$ivalue;
+		$pid=$this->_curpid;
 		//if it's an image attribute (image,small_image or thumbnail)
 		if($attrdesc["frontend_input"]=="media_image")
 		{
@@ -177,13 +193,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 			}
 			//magento uses "," as separator for different multiselect values
 			$multiselectvalues=explode(",",$ivalue);
-			$oids=array();
-			foreach($multiselectvalues as $opt)
-			{
-				//use optimized function to get multiple option ids from an array of values
-				$oids[]=$this->_mmi->getOptionId($attid,$storeid,$opt);
-			}
-			// ovalue is set to the option id's, seperated by a colon and all multiselect values will be inserted
+			$oids=$this->_mmi->getOptionIds($attid,$storeid,$multiselectvalues);
 			$ovalue=implode(",",$oids);
 			unset($oids);
 		}
@@ -222,6 +232,10 @@ class MagentoMassImporter extends DBHelper
 	private $_initialized=false;
 	private $_attributehandlers;
 	private $current_row;
+	private $_optidcache=null;
+	private $_currentsku=null;
+	private $_dstore;
+	private $_same;
 	
 	public function setLoggingCallback($cb)
 	{
@@ -382,19 +396,9 @@ class MagentoMassImporter extends DBHelper
 			{
 				
 				$sid=$this->store_ids[$scode];
-				//if we did not find default store
-				if(!$bfound)
-				{
-					//update value for default store found
-					$bfound=($sid==0);
-				}
+				
 				//add store id to id list
 				$sids[]=$sid;
-			}
-			//if we didn't met default store, add it
-			if(!$bfound)
-			{
-				$sids[]=0;
 			}
 			//fill id cache list for store list
 			$this->sidcache[$storestr]=$sids;
@@ -525,19 +529,22 @@ class MagentoMassImporter extends DBHelper
 	 * Get Option id for select attributes based on value
 	 * @param int $attid : attribute id to find option id from value
 	 * @param mixed $optval : value to get option id for
-	 * @return : null if not found or option id corresponding to attribute value
+	 * @return : array of lines (should be as much as values found),"opvd"=>option_id for value on store 0,"opvs" option id for value on current store
 	 */
-	function getOptionFromValue($attid,$store_id,$optval)
+	function getOptionsFromValues($attid,$store_id,$optvals)
 	{
-		$t1=$this->tablename('eav_attribute_option_value');
-		$t2=$this->tablename('eav_attribute_option');
-		$sql="SELECT opt.option_id as opt_id,optval.option_id as optval_id FROM $t1 AS optval
-			  JOIN $t2 AS opt ON opt.option_id=optval.option_id AND opt.attribute_id=?
-			  WHERE optval.value=?  AND optval.store_id=?";
-		return $this->selectone($sql,array($attid,$optval,$store_id),'opt_id');
+		
+		$t1=$this->tablename('eav_attribute_option');
+		$t2=$this->tablename('eav_attribute_option_value');		
+		$sql="SELECT optvals.option_id as opvs FROM mag_eav_attribute as att";
+		$sql.=" LEFT JOIN $t1 AS opt ON att.attribute_id=opt.attribute_id";
+		$sql.=" LEFT JOIN $t2 AS optvals ON opt.option_id=optvals.option_id AND optvals.store_id=? AND optvals.value IN (?)";
+		$sql.=" WHERE att.attribute_id=? AND optvals.option_id IS NOT NULL";			
+		return $this->selectAll($sql,array_merge(array($store_id),$optvals,array($attid)));
 	}
 
 	
+	/* create a new option entry for an attribute */
 	function createOption($attid)
 	{
 		$t=$this->tablename('eav_attribute_option');
@@ -545,8 +552,9 @@ class MagentoMassImporter extends DBHelper
 		return $optid;
 	}
 	/**
-	 * Creates a new option value for an attribute
-	 * @param int $attid : attribute id for create new value for
+	 * Creates a new option value for an option entry for a store
+	 * @param int $optid : option entry id
+	 * @param int $store_id : store id to add value for
 	 * @param mixed $optval : new option value to add
 	 * @return : option id for new created value
 	 */
@@ -557,6 +565,28 @@ class MagentoMassImporter extends DBHelper
 		return $optval_id;
 	}
 
+	function getOptionIds($attid,$storeid,$values)
+	{
+		
+		$oids=array();
+		foreach($values as $value)
+		{
+			$oids[]=$this->getOptionId($attid,$storeid,$value);
+		}
+		return $oids;
+		
+	}
+	
+	function cacheOptId($attid,$optid)
+	{
+		$this->_optidcache[$attid]=$optid;
+	}
+	
+	function getCachedOptId($attid)
+	{
+		return $this->_optidcache[$attid];	
+	}
+	
 	/**
 	 * returns option id for a given select attribute value
 	 * creates new option value if does not already exists
@@ -566,10 +596,18 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function getOptionId($attid,$storeid,$value)
 	{
-		$optid=$this->getOptionFromValue($attid,$storeid,$value);
-		if($optid==null)
+		$optids=$this->getOptionsFromValues($attid,$storeid,array($value));
+		if($storeid==0)
 		{
-			$optid=$this->createOption($attid);
+			$optid=(count($optids)==0 || !isset($optids[0]["opvs"]))?$this->createOption($attid):$optids[0]["opvs"];
+			$this->cacheOptId($attid,$optid);
+		}
+		else
+		{
+			$optid=$this->getCachedOptId($attid);
+		}
+		if(count($optids)==0 || $optids[0]["opvs"]==null)
+		{
 			$this->createOptionValue($optid,$storeid,$value);
 		}
 		return $optid;
@@ -619,8 +657,9 @@ class MagentoMassImporter extends DBHelper
 	 * @param array $attrdesc : product attribute description
 	 * @param string $imgname : image file name (relative to /products/media in magento dir)
 	 */
-	public function addImageToGallery($pid,$imgname,$excluded=false)
+	public function addImageToGallery($pid,$attrdesc,$imgname,$excluded=false)
 	{
+		
 		if($this->imageInGallery($pid,$imgname))
 		{
 			return;
@@ -699,85 +738,7 @@ class MagentoMassImporter extends DBHelper
 	}
 
 
-	/**
-	 * attribute handler for decimal attributes
-	 * @param int $pid	: product id
-	 * @param int $ivalue : initial value of attribute
-	 * @param array $attrdesc : attribute description
-	 * @return mixed : false if no further processing is needed,
-	 * 					string (magento value) for the decimal attribute otherwise
-	 */
-	public function handleDecimalAttribute($pid,$storeid,$ivalue,$attrdesc)
-	{
-		foreach($this->_attributehandlers as $ah)
-		{
-			if(method_exists($ah,"handleDecimalAttribute"))
-			{
-				$ovalue=$ah->handleDecimalAttribute($pid,$storeid,$ivalue,$attrdesc);				
-			}
-		}
-		return $ovalue;
-	}
-
-	/**
-	 * attribute handler for datetime attributes
-	 * @param int $pid	: product id
-	 * @param int $ivalue : initial value of attribute
-	 * @param array $attrdesc : attribute description
-	 * @return mixed : false if no further processing is needed,
-	 * 					string (magento value) for the datetime attribute otherwise
-	 */	
-	public function handleDatetimeAttribute($pid,$storeid,$ivalue,$attrdesc)
-	{
-		foreach($this->_attributehandlers as $ah)
-		{
-			if(method_exists($ah,"handleDatetimeAttribute"))
-			{
-				$ovalue=$ah->handleDatetimeAttribute($pid,$storeid,$ivalue,$attrdesc);				
-			}
-		}
-		return $ovalue;
-	}
-
-	/**
-	 * attribute handler for int typed attributes
-	 * @param int $pid	: product id
-	 * @param int $ivalue : initial value of attribute
-	 * @param array $attrdesc : attribute description
-	 * @return mixed : false if no further processing is needed,
-	 * 					int (magento value) for the int attribute otherwise
-	 */
-	public function handleIntAttribute($pid,$storeid,$ivalue,$attrdesc)
-	{
-		foreach($this->_attributehandlers as $ah)
-		{
-			if(method_exists($ah,"handleIntAttribute"))
-			{
-				$ovalue=$ah->handleIntAttribute($pid,$storeid,$ivalue,$attrdesc);				
-			}
-		}
-		return $ovalue;
-	}
-
-
-	/**
-	 * attribute handler for varchar based attributes
-	 * @param int $pid : product id
-	 * @param string $ivalue : attribute value
-	 * @param array $attrdesc : attribute description
-	 */
-	public function handleVarcharAttribute($pid,$storeid,$ivalue,$attrdesc)
-	{
-		foreach($this->_attributehandlers as $ah)
-		{
-			if(method_exists($ah,"handleVarcharAttribute"))
-			{
-				$ovalue=$ah->handleVarcharAttribute($pid,$storeid,$ivalue,$attrdesc);				
-			}
-		}
-		return $ovalue;
-	}
-
+	
 	/**
 	 * Create product attribute from values for a given product id
 	 * @param $pid : product id to create attribute values for
@@ -791,12 +752,19 @@ class MagentoMassImporter extends DBHelper
 		if(isset($item["store"]))
 		{
 			$bstore_ids=$this->getStoreIds($item["store"]);
+			$bstore_ids=array_unique(array_merge($this->_dstore,$bstore_ids));
 		}
 		else
 		{
 			$bstore_ids=array(0,1);
 		}
 
+		//set pid for attribute handlers, useful for cache effects	
+		foreach($this->_attributehandlers as $ah)
+		{
+			$ah->setCurrentPid($pid);
+		}
+			
 		/* now is the interesring part */
 		/* iterate on attribute backend type index */
 		foreach($this->attrbytype as $tp=>$a)
@@ -813,7 +781,9 @@ class MagentoMassImporter extends DBHelper
 			$data=array();
 			//inserts to perform on backend type eav
 			$inserts=array();
-
+			//use reflection to find special handlers
+			$handler="handle".ucfirst($tp)."Attribute";
+			
 			//iterate on all attribute descriptions for the given backend type
 			foreach($a["data"] as $attrdesc)
 			{
@@ -841,26 +811,21 @@ class MagentoMassImporter extends DBHelper
 					case 2:
 						//website scope
 						$store_ids=$this->getWebsitesStoreIds($item["websites"]);
+						//force default store
+						$store_ids=array_unique(array_merge($this->_dstore,$store_ids));
 				}
 				
-				//use reflection to find special handlers
-				$handler="handle".ucfirst($tp)."Attribute";
-			
+				
 				foreach($store_ids as $store_id)
 				{
-			
-					if(in_array($handler,get_class_methods($this)))
+					$ovalue=$ivalue;
+					foreach($this->_attributehandlers as $ah)
 					{
-						//call it and get its output value for the current attribute
-						$ovalue=$this->$handler($pid,$store_id,$ivalue,$attrdesc);
-	
+						if(method_exists($ah,$handler))
+						{
+							$ovalue=$ah->$handler($store_id,$ivalue,$attrdesc);				
+						}
 					}
-					else
-					//if not, use value
-					{
-						$ovalue=$ivalue;
-					}
-
 					
 					if($ovalue!==false)
 					{
@@ -889,7 +854,10 @@ class MagentoMassImporter extends DBHelper
 			}
 			else
 			{
-				$this->log("No $tp Attributes created for sku ".$item["sku"],"warning");
+				if(!$this->_same)
+				{
+					$this->log("No $tp Attributes created for sku ".$item["sku"],"warning");
+				}
 			}
 		}
 	}
@@ -956,16 +924,20 @@ class MagentoMassImporter extends DBHelper
 		$opt=$this->tablename("eav_attribute_option");	
 		$et=$this->tablename("eav_attribute");
 		$sql="SET FOREIGN_KEY_CHECKS = 1";
-		
+		//clearing all product options
 		$sql="DELETE $opt FROM $opt
 			JOIN $et ON $et.attribute_id=$opt.attribute_id AND $et.entity_type_id=4";
 		$this->exec_stmt($sql);
-
+		//clearing all option values for products
 		$sql="DELETE $optv FROM $optv
-		LEFT JOIN $opt ON $opt.option_id=$opt.option_id
-		WHERE $opt.option_id=NULL";
+		LEFT JOIN $opt ON $optv.option_id=$opt.option_id
+		WHERE $opt.option_id IS NULL";
 		$this->exec_stmt($sql);
-		
+		//reinit auto_increment
+		$sql="ALTER TABLE $opt auto_increment=3";
+		$this->exec_stmt($sql);
+		$sql="ALTER TABLE $optv auto_increment=3";
+		$this->exec_stmt($sql);
 		$this->log("OK","reset");
 	}
 
@@ -1171,6 +1143,36 @@ class MagentoMassImporter extends DBHelper
 		return true;
 	
 	}
+
+	public function clearOptCache()
+	{
+		$this->_optidcache=array();
+	}
+	public function onNewSku($sku)
+	{
+		$this->clearOptCache();
+		$this->_dstore=array(0);
+		$this->_same=false;
+		
+	}
+	
+	public function onSameSku($sku)
+	{
+		$this->_dstore=array();
+		$this->_same=true;
+	}
+	public function handleSku($sku)
+	{
+		if($sku!=$this->_currentsku)
+		{
+			$this->onNewSku($sku);
+			$this->_currentsku=$sku;
+		}
+		else
+		{
+			$this->onSameSku($sku);
+		}
+	}
 	/**
 	 * full import workflow for item
 	 * @param array $item : attribute values for product indexed by attribute_code
@@ -1202,6 +1204,7 @@ class MagentoMassImporter extends DBHelper
 			$asid=$this->attribute_sets[$asname];
 		}
 
+		$this->handleSku($sku);
 		//first get product id
 		$pid=$this->getProductId($sku);
 		$isnew=false;		
@@ -1242,7 +1245,7 @@ class MagentoMassImporter extends DBHelper
 			{
 				$this->updateWebSites($pid,$item);
 			}
-			if(!testempty($item["qty"]))
+			if(!testempty($item["qty"]) && !$this->_same)
 			{
 				//update stock
 				$this->updateStock($pid,$item);
@@ -1253,7 +1256,7 @@ class MagentoMassImporter extends DBHelper
 		catch(Exception $e)
 		{
 			$this->callProcessors("exception",$item,array("exception"=>$e),"processItem");
-			$this->log($e->getMessage(),"error");
+			$this->log($e->getMessage()." - {$this->_laststmt->queryString}","error");
 			//if anything got wrong, rollback
 			$this->rollbackTransaction();
 		}
