@@ -148,11 +148,13 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 			}
 			//else copy image file
 			$imagefile=$this->_mmi->copyImageFile($ivalue);
-			//return value
 			$ovalue=$imagefile;
 			//add to gallery as excluded
-			$this->_mmi->addImageToGallery($pid,$attrdesc,$imagefile,true);
-				
+			if($imagefile!==false)
+			{
+				//return value
+				$this->_mmi->addImageToGallery($pid,$attrdesc,$imagefile,true);
+			}	
 		}
 		//if it's a gallery
 		if($attrdesc["frontend_input"]=="gallery")
@@ -171,8 +173,11 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 			{
 				//copy it from source dir to product media dir
 				$imagefile=$this->_mmi->copyImageFile($imagefile);
-				//add to gallery
-				$this->_mmi->addImageToGallery($pid,$attrdesc,$imagefile);
+				if($imagefile!==false)
+				{
+					//add to gallery
+					$this->_mmi->addImageToGallery($pid,$attrdesc,$imagefile);
+				}
 			}
 			//we don't want to insert after that
 			$ovalue=false;
@@ -699,38 +704,41 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function copyImageFile($imgfile)
 	{
-		$magdir=$this->magdir;
-		$sep=($imgfile[0]!="/"?"/":"");
-		$te="$magdir/media/catalog/product$sep$imgfile";
-		/* test if imagefile comes from export */
-		if(file_exists("$te"))
-		{
-			return $imgfile;
-		}
-		$this->log("copying new image:$imgfile","warning");
 		$srcdir=$this->imgsourcedir;
 		$bimgfile=basename($imgfile);
-		$fname=$srcdir."/".$bimgfile;
+		$fname="$srcdir/$bimgfile";
+		if(!file_exists("$fname"))
+		{
+			$this->log("$fname not found, skipping image","warning");
+			return false;
+		}
+		//source file exists
+		$magdir=$this->magdir;
 		$i1=$bimgfile[0];
 		$i2=$bimgfile[1];
 		$l1d="$magdir/media/catalog/product/$i1";
 		$l2d="$l1d/$i2";
+		$te="$l2d/$bimgfile";
+		
+		/* test if imagefile comes from export */
+		if(!file_exists("$te"))
+		{
+			/* test if 1st level product media dir exists , create it if not */
+			if(!file_exists("$l1d"))
+			{
+				mkdir($l1d);
+			}
+			/* test if 2nd level product media dir exists , create it if not */
+			if(!file_exists("$l2d"))
+			{
+				mkdir($l2d);
+			}
 
-		/* test if 1st level product media dir exists , create it if not */
-		if(!file_exists("$l1d"))
-		{
-			mkdir($l1d);
-		}
-		/* test if 2nd level product media dir exists , create it if not */
-		if(!file_exists("$l2d"))
-		{
-			mkdir($l2d);
-		}
-
-		/* test if image already exists ,if not copy from source to media dir*/
-		if(!file_exists("$l2d/$bimgfile"))
-		{
-			copy($fname,"$l2d/$bimgfile");
+			/* test if image already exists ,if not copy from source to media dir*/
+			if(!file_exists("$l2d/$bimgfile"))
+			{
+				copy($fname,"$l2d/$bimgfile");
+			}
 		}
 		/* return image file name relative to media dir (with leading / ) */
 		return "/$i1/$i2/$bimgfile";
