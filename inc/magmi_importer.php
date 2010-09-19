@@ -536,11 +536,10 @@ class MagentoMassImporter extends DBHelper
 		
 		$t1=$this->tablename('eav_attribute_option');
 		$t2=$this->tablename('eav_attribute_option_value');		
-		$sql="SELECT optvals.option_id as opvs FROM mag_eav_attribute as att";
-		$sql.=" LEFT JOIN $t1 AS opt ON att.attribute_id=opt.attribute_id";
-		$sql.=" LEFT JOIN $t2 AS optvals ON opt.option_id=optvals.option_id AND optvals.store_id=? AND optvals.value IN (?)";
-		$sql.=" WHERE att.attribute_id=? AND optvals.option_id IS NOT NULL";			
-		return $this->selectAll($sql,array_merge(array($store_id),$optvals,array($attid)));
+		$sql="SELECT optvals.option_id as opvs FROM $t2 as optvals";
+		$sql.=" JOIN $t1 as opt ON opt.option_id=optvals.option_id AND opt.attribute_id=?";			
+		$sql.=" WHERE optvals.store_id=? AND optvals.value IN (?)";
+		return $this->selectAll($sql,array_merge(array($attid,$store_id),$optvals));
 	}
 
 	
@@ -708,7 +707,7 @@ class MagentoMassImporter extends DBHelper
 		{
 			return $imgfile;
 		}
-
+		$this->log("copying new image:$imgfile","warning");
 		$srcdir=$this->imgsourcedir;
 		$bimgfile=basename($imgfile);
 		$fname=$srcdir."/".$bimgfile;
