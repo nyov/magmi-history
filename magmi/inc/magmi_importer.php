@@ -711,7 +711,7 @@ class MagentoMassImporter extends DBHelper
 		$srcdir=$this->imgsourcedir;
 		$bimgfile=basename($imgfile);
 		$fname="$srcdir/$bimgfile";
-		if(!file_exists("$fname"))
+		if(!file_exists($fname))
 		{
 			$this->log("$fname not found, skipping image","warning");
 			return false;
