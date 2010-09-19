@@ -6,7 +6,7 @@ class DBHelper
 {
 	protected $_db;
 	protected $_debug;
-
+	protected $_laststmt;
 	/**
 	 * Intializes database connection
 	 * @param string $host : hostname
@@ -70,7 +70,7 @@ class DBHelper
 			//get from statement cache
 			$stmt=$this->prepared[$sql];
 		}
-		
+		$this->_laststmt=$stmt;
 		if($params!=null)
 		{
 			$params=is_array($params)?$params:array($params);
@@ -78,6 +78,7 @@ class DBHelper
 		}
 		else
 		{
+		
 			$stmt->execute();
 		}
 		if($close)
