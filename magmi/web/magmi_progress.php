@@ -58,6 +58,7 @@ try
 						list($name,$ver,$auth)=explode("-",$info);
 						$out.="<div class='pluginhello'>$name v$ver by $auth</div>";
 						break;
+					case "reset":
 					case "startup":
 						$out.="<div class='log_standard'>$info</div>";
 						break;

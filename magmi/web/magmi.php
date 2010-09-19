@@ -32,7 +32,7 @@
 	<div class="clear"></div>
 </div>
 <?php
-	if(FSHelper::isDirWritable("../state"))
+	if(FSHelper::isDirWritable("../state") && FSHelper::isDirWritable("../conf"))
 	{
 	
 		if(isset($_REQUEST["run"]) && file_exists("../conf/magmi.ini"))
@@ -58,7 +58,7 @@
 	<div class="container_12 config_error">
 		Directory permissions not compatible with Mass Importer operations
 		<br/>
-		PHP/Web Server must have write permissions to magmi/state directory
+		PHP/Web Server must have write permissions to magmi/state & magmi/conf directory
 	</div>
 		<?php 
 	}
