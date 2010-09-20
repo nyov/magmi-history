@@ -114,7 +114,8 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 					{
 						return false;
 					}
-					$ovalue=$this->_mmi->getOptionId($attid,$storeid,$ivalue);
+					$oids=$this->_mmi->getOptionIds($attid,$storeid,array($ivalue));
+					$ovalue=$oids[0];
 					break;
 			}
 		}
@@ -541,12 +542,12 @@ class MagentoMassImporter extends DBHelper
 	 */
 	function getOptionsFromValues($attid,$store_id,$optvals)
 	{
-		
+		$ovstr=substr(str_repeat("?,",count($optvals)),0,-1);
 		$t1=$this->tablename('eav_attribute_option');
 		$t2=$this->tablename('eav_attribute_option_value');		
-		$sql="SELECT optvals.option_id as opvs FROM $t2 as optvals";
+		$sql="SELECT optvals.option_id as opvs,optvals.value FROM $t2 as optvals";
 		$sql.=" JOIN $t1 as opt ON opt.option_id=optvals.option_id AND opt.attribute_id=?";			
-		$sql.=" WHERE optvals.store_id=? AND optvals.value IN (?)";
+		$sql.=" WHERE optvals.store_id=? AND optvals.value IN ($ovstr)";
 		return $this->selectAll($sql,array_merge(array($attid,$store_id),$optvals));
 	}
 
@@ -574,51 +575,59 @@ class MagentoMassImporter extends DBHelper
 
 	function getOptionIds($attid,$storeid,$values)
 	{
-		
-		$oids=array();
-		foreach($values as $value)
+		$optids=array();
+		$existing=$this->getOptionsFromValues($attid,$storeid,$values);
+		$exvals=array();
+		foreach($existing as $optdesc)
 		{
-			$oids[]=$this->getOptionId($attid,$storeid,$value);
+			$exvals[]=$optdesc["value"];			
 		}
-		return $oids;
+		$new=array_merge(array_diff($values,$exvals));
+		if($storeid==0)
+		{
+			foreach($new as $nval)
+			{
+				$row=array("opvs"=>$this->createOption($attid),"value"=>$nval);
+				$this->createOptionValue($row["opvs"],$storeid,$nval);
+				$existing[]=$row;
+			}
+			$this->cacheOptIds($attid,$existing);
+
+		}
+		else
+		{
+			
+			$brows=$this->getCachedOptIds($attid);
+			foreach($existing as $ex)
+			{
+				array_shift($brows);
+			}
+			for($i=0;$i<count($new);$i++)
+			{
+				$row=$brows[$i];
+				$this->createOptionValue($row["opvs"],$storeid,$new[$i]);
+				$existing[]=$row;
+			}
+		}
+		$optids=array();
+		foreach($existing as $row)
+		{
+			$optids[]=$row["opvs"];
+		}
+		return $optids;
 		
 	}
 	
-	function cacheOptId($attid,$optid)
+	function cacheOptIds($attid,$row)
 	{
-		$this->_optidcache[$attid]=$optid;
+		$this->_optidcache[$attid]=$row;
 	}
 	
-	function getCachedOptId($attid)
+	function getCachedOptIds($attid)
 	{
 		return $this->_optidcache[$attid];	
 	}
 	
-	/**
-	 * returns option id for a given select attribute value
-	 * creates new option value if does not already exists
-	 * @param int $attid : attribute to get option id for
-	 * @param mixed $value : value to get option id for
-	 *
-	 */
-	public function getOptionId($attid,$storeid,$value)
-	{
-		$optids=$this->getOptionsFromValues($attid,$storeid,array($value));
-		if($storeid==0)
-		{
-			$optid=(count($optids)==0 || !isset($optids[0]["opvs"]))?$this->createOption($attid):$optids[0]["opvs"];
-			$this->cacheOptId($attid,$optid);
-		}
-		else
-		{
-			$optid=$this->getCachedOptId($attid);
-		}
-		if(count($optids)==0 || $optids[0]["opvs"]==null)
-		{
-			$this->createOptionValue($optid,$storeid,$value);
-		}
-		return $optid;
-	}
 
 	/**
 	 * returns tax class id for a given tax class value
@@ -741,6 +750,7 @@ class MagentoMassImporter extends DBHelper
 			/* test if image already exists ,if not copy from source to media dir*/
 			if(!file_exists("$l2d/$bimgfile"))
 			{
+				$this->log("copy image $l2d/$bimgfile","warning");
 				copy($fname,"$l2d/$bimgfile");
 			}
 		}
