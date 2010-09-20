@@ -750,7 +750,6 @@ class MagentoMassImporter extends DBHelper
 			/* test if image already exists ,if not copy from source to media dir*/
 			if(!file_exists("$l2d/$bimgfile"))
 			{
-				$this->log("copy image $l2d/$bimgfile","warning");
 				copy($fname,"$l2d/$bimgfile");
 			}
 		}
