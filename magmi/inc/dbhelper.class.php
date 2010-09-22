@@ -8,6 +8,8 @@ class DBHelper
 	protected $_debug;
 	protected $_laststmt;
 	protected $_use_stmt_cache=true;
+	protected $_nreq;
+	protected $_indbtime;
 	/**
 	 * Intializes database connection
 	 * @param string $host : hostname
@@ -54,6 +56,16 @@ class DBHelper
 			
 	}
 	
+	public function initDbqStats()
+	{
+		$this->_nreq=0;
+		$this->_indbtime=0;
+	}
+	
+	public function collectDbqStats(&$nbreq)
+	{
+		return $this->_nreq;
+	}
 	/**
 	 * executes an sql statement
 	 * @param string $sql : sql statement (may include ? placeholders)
@@ -63,6 +75,8 @@ class DBHelper
 	 */
 	public function exec_stmt($sql,$params=null,$close=true)
 	{
+		$this->_nreq++;
+		$t0=microtime(true);
 		if($this->_use_stmt_cache)
 		{
 		//if sql not in statement cache
@@ -89,6 +103,7 @@ class DBHelper
 		{
 			$params=is_array($params)?$params:array($params);
 			$stmt->execute($params);
+			unset($params);
 		}
 		else
 		{
@@ -99,6 +114,8 @@ class DBHelper
 		{
 			$stmt->closeCursor();
 		}
+		$t1=microtime(true);
+		$this->_indbtime+=$t1-$t0;
 		return $stmt;
 	}
 	
@@ -150,9 +167,14 @@ class DBHelper
 	public function selectone($sql,$params,$col)
 	{
 		$stmt=$this->select($sql,$params);
+		$t0=microtime(true);
+		
 		$r=$stmt->fetch();
 		$stmt->closeCursor();
+		$t1=microtime(true);
+		$this->_indbtime+=$t1-$t0;
 		$v=(is_array($r)?$r[$col]:null);
+		unset($r);
 		return $v;
 	}
 	
@@ -164,8 +186,12 @@ class DBHelper
 	public function selectAll($sql,$params=null)
 	{
 		$stmt=$this->select($sql,$params);
+		$t0=microtime(true);
+	
 		$r=$stmt->fetchAll();
 		$stmt->closeCursor();
+		$t1=microtime(true);
+		$this->_indbtime+=$t1-$t0;
 		return $r;
 	}
 	
