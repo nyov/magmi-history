@@ -61,7 +61,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function beforeImport()
 	{
-		$this->log("Importing CSV : $this->_filename using separator [ $this->_csep ]","startup");
+		$this->log("Importing CSV : $this->_filename using separator [ $this->_csep ] enclosing [ $this->_cenc ]","startup");
 	}
 	
 	public function afterImport()
