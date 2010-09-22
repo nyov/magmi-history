@@ -482,7 +482,7 @@ class MagentoMassImporter extends DBHelper
 		 ids => list of attribute ids of the backend type */
 	}
 
-	public getAttrInfo($col)
+	public function getAttrInfo($col)
 	{
 		return isset($this->attrinfo[$col])?$this->attrinfo[$col]:null;
 	}
@@ -523,19 +523,25 @@ class MagentoMassImporter extends DBHelper
 	public function createProduct($item,$asid)
 	{
 		$tname=$this->tablename('catalog_product_entity');
-		$values=array($item['type'],$asid,$item['sku'],$this->prod_etype,null);
+		$values=array($item['type'],$asid,$item['sku'],$this->prod_etype,null,strftime("%Y-%m-%d %H:%M:%S"));
 		$sql="INSERT INTO `$tname`
 				(`type_id`, 
 				`attribute_set_id`,
 	 			`sku`, 
 	 			`entity_type_id`, 
-	 			`entity_id` 
+	 			`entity_id`,
+	 			`created_at`
 	 			) 
-	 			VALUES ( ?,?,?,?,?)";
+	 			VALUES ( ?,?,?,?,?,?)";
 		$lastid=$this->insert($sql,$values);
 		return $lastid;
 	}
 
+	public function touchProduct($pid)
+	{
+		$tname=$this->tablename('catalog_product_entity');
+		$this->update("UPDATE $tname SET updated_at=? WHERE entity_id=?",array(strftime("%Y-%m-%d %H:%M:%S"),$pid));
+	}
 
 	/**
 	 * Get Option id for select attributes based on value
@@ -737,7 +743,6 @@ class MagentoMassImporter extends DBHelper
 		/* test if imagefile comes from export */
 		if(!file_exists("$te"))
 		{
-			$this->log("copy image : $te","warning");
 			/* test if 1st level product media dir exists , create it if not */
 			if(!file_exists("$l1d"))
 			{
@@ -753,7 +758,12 @@ class MagentoMassImporter extends DBHelper
 			if(!file_exists("$l2d/$bimgfile"))
 			{
 				
-				copy($fname,"$l2d/$bimgfile");
+				if(!@copy($fname,"$l2d/$bimgfile"))
+				{
+					$errors= error_get_last();
+					
+					$this->log("error copying $l2d/$bimgfile : ${$errors["type"]},${$errors["message"]}","warning");
+				}
 			}
 		}
 		/* return image file name relative to media dir (with leading / ) */
@@ -1291,6 +1301,7 @@ class MagentoMassImporter extends DBHelper
 				//update stock
 				$this->updateStock($pid,$item);
 			}
+			$this->touchProduct($pid);
 			//ok,we're done
 			$this->commitTransaction();
 		}
