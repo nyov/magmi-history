@@ -60,7 +60,7 @@ try
 						break;
 					case "reset":
 					case "startup":
-						$out.="<div class='log_standard'>$info</div>";
+						$out.="<div class='log_standard'>".htmlspecialchars($info)."</div>";
 						break;
 					case "lookup":
 						list($nlines,$time)=explode(":",$info);
@@ -96,7 +96,7 @@ try
 						$skipped+=1;
 						break;
 					default:
-						$sout.="<div class='log_standard'>$info</div>";
+						$sout.="<div class='log_standard'>".htmlspecialchars($info)."</div>";
 						break;
 				}
 
@@ -119,16 +119,17 @@ try
 			if($dcount)
 			{
 				$out.="<div class='log_itime'>";
-				$out.="DB STATS:$dcount requests in $delapsed secs - avg speed : $dspeed reqs/min ,avg reqs ".round($dcount/$count,2)."/item - global efficiency: ".round(($delapsed*100/$elapsed),2)."% - last $step items: $dlastcount reqs (".($dlastcount/$step)." reqs/item) </div>";
+				$out.="DB STATS:$dcount requests in $delapsed secs - avg speed : $dspeed reqs/min ,avg reqs ".round($dcount/$count,2)."/item - global efficiency: ".round(($delapsed*100/$elapsed),2)."% - last $step items: $dlastcount reqs (".($dlastcount/$step)." reqs/item)";
+				$out.="</div>";
 			}
 		}
 		foreach($errors as $error)
 		{
-			$out.="<div class='log_error'>$error</div>";
+			$out.="<div class='log_error'>".htmlspecialchars($error)."</div>";
 		}
 		foreach($warnings as $warning)
 		{
-			$out.="<div class='log_warning'>$warning</div>";
+			$out.="<div class='log_warning'>".htmlspecialchars($warning)."</div>";
 		}
 		if($skipped>0)
 		{
