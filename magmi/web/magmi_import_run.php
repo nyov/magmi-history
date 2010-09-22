@@ -1,10 +1,10 @@
 	<div class="clear"></div>
-	<form name="import_params" id="import_params" action="./magmi_run.php">
+	<form name="import_params" id="import_params" method="post" action="./magmi_run.php">
 	<?php
 		foreach($_POST as $k=>$v)
 		{
 			?>
-			<input type="hidden" value="<?php echo $v?>" name="<?php echo $k?>"></input>
+			<input type="hidden" value="<?php echo htmlspecialchars($v)?>" name="<?php echo $k?>"></input>
 			<?php
 		}
 	?>
