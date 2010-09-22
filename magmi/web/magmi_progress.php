@@ -68,6 +68,13 @@ try
 					case "step":
 						list($label,$step)=explode(":",$info);
 						break;
+					case "dbtime":
+						$parts=explode("-",$info);
+						list($dcount,$delapsed,$dlastinc,$dlastcount)=array(trim($parts[0]),trim($parts[1]),trim($parts[2]),trim($parts[3]));
+						$dspeed = ceil(($dcount*60)/$delapsed);
+						$delapsed=round($delapsed,4);
+						$dlastinc=round($dlastinc,4);
+						break;
 					case "itime":
 						$parts=explode("-",$info);
 						list($count,$elapsed,$lastinc)=array(trim($parts[0]),trim($parts[1]),trim($parts[2]));
@@ -75,6 +82,7 @@ try
 						$elapsed=round($elapsed,4);
 						$lastinc=round($lastinc,4);
 						break;
+						
 					case "error":
 						$errors[]=$info;
 						break;
@@ -107,6 +115,11 @@ try
 					$step=$lstep;
 				}
 				$out.="imported $count items ($percent %) in $elapsed secs (last $step in $lastinc secs) - avg speed : $speed rec/min </div>";
+			}
+			if($dcount)
+			{
+				$out.="<div class='log_itime'>";
+				$out.="DB STATS:$dcount requests in $delapsed secs - avg speed : $dspeed reqs/min ,avg reqs ".round($dcount/$count,2)."/item - global efficiency: ".round(($delapsed*100/$elapsed),2)."% - last $step items: $dlastcount reqs (".($dlastcount/$step)." reqs/item) </div>";
 			}
 		}
 		foreach($errors as $error)
