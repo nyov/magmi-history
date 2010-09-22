@@ -37,12 +37,10 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 {
 	
 	protected $_curpid=null;
-	protected $_attropts=null;
 	
 	public function setCurrentPid($pid)
 	{
-		$this->_curpid=$pid;
-		$this->_attropts=array();
+		$this->_curpid=$pid;		
 	}	
 	/**
 	 * attribute handler for decimal attributes
@@ -116,6 +114,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 					}
 					$oids=$this->_mmi->getOptionIds($attid,$storeid,array($ivalue));
 					$ovalue=$oids[0];
+					unset($oids);
 					break;
 			}
 		}
@@ -139,9 +138,11 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 		
 		$ovalue=$ivalue;
 		$pid=$this->_curpid;
+		$attid=$attrdesc["attribute_id"];
 		//if it's an image attribute (image,small_image or thumbnail)
 		if($attrdesc["frontend_input"]=="media_image")
 		{
+			$this->_mmi->resetGallery($pid,$storeid,$attid);
 			//do nothing if empty
 			if($ivalue=="")
 			{
@@ -160,18 +161,13 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 		if($attrdesc["frontend_input"]=="gallery")
 		{
 			//do nothing if empty
+			$this->_mmi->resetGallery($pid,$storeid,$attid);
 			if($ivalue=="")
 			{
 				return false;
 			}
-			//if store id=0, reset product gallery
-			if($storeid==0)
-			{
-				$this->_mmi->resetGallery($pid);
-			}
 			//use ";" as image separator
 			$images=explode(";",$ivalue);
-			$imgnames=array();
 			//for each image
 			foreach($images as $imagefile)
 			{
@@ -183,6 +179,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 					$vid=$this->_mmi->addImageToGallery($pid,$storeid,$attrdesc,$imagefile);
 				}
 			}
+			unset($images);
 			//we don't want to insert after that
 			$ovalue=false;
 		}
@@ -193,8 +190,6 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 		//if it's a multiselect value
 		if($attrdesc["frontend_input"]=="multiselect")
 		{
-			$attid=$attrdesc["attribute_id"];
-
 			//do nothing if empty
 			if($ivalue=="")
 			{
@@ -232,7 +227,7 @@ class MagentoMassImporter extends DBHelper
 	public $mode="update";
 	public static $state=null;
 	protected static $_statefile=null;
-	public static $version="0.6";
+	public static $version="0.6.3";
 	public $customip=null;
 	public  static $_script=__FILE__;
 	private $_pluginclasses=array();
@@ -245,6 +240,7 @@ class MagentoMassImporter extends DBHelper
 	private $_currentsku=null;
 	private $_dstore;
 	private $_same;
+	private $_currentpid;
 	
 	public function setLoggingCallback($cb)
 	{
@@ -338,6 +334,7 @@ class MagentoMassImporter extends DBHelper
 		{
 			$this->website_ids[$r["code"]]=$r["website_id"];
 		}
+		unset($result);
 	}
 
 	public function getWebsitesStoreIds($wsstr)
@@ -387,6 +384,7 @@ class MagentoMassImporter extends DBHelper
 			}	
 			$wsm[$wsid][]=$r["store_id"];
 		}
+		unset($result);
 		$this->ws_store_map=$wsm;
 	}
 
@@ -447,6 +445,7 @@ class MagentoMassImporter extends DBHelper
 		{
 			$this->attrinfo[$r["attribute_code"]]=$r;
 		}
+		unset($result);
 		//create a backend_type based array for the wanted columns
 		//this will greatly help for optimizing inserts when creating attributes
 		//since eav_ model for attributes has one table per backend type
@@ -463,7 +462,7 @@ class MagentoMassImporter extends DBHelper
 		//now add a fast index in the attrbytype array to store id list in a comma separated form
 		foreach($this->attrbytype as $bt=>$test)
 		{
-			$idlist=array();
+			$idlist;
 			foreach($test["data"] as $it)
 			{
 				$idlist[]=$it["attribute_id"];
@@ -483,6 +482,10 @@ class MagentoMassImporter extends DBHelper
 		 ids => list of attribute ids of the backend type */
 	}
 
+	public getAttrInfo($col)
+	{
+		return isset($this->attrinfo[$col])?$this->attrinfo[$col]:null;
+	}
 
 	/**
 	 * retrieves attribute set id for a given attribute set name
@@ -614,6 +617,8 @@ class MagentoMassImporter extends DBHelper
 		{
 			$optids[]=$row["opvs"];
 		}
+		unset($existing);
+		unset($exvals);
 		return $optids;
 		
 	}
@@ -645,26 +650,36 @@ class MagentoMassImporter extends DBHelper
 	 * @param string $imgname : image file name (relative to /products/media in magento dir)
 	 * @return bool : if image is already present in gallery for a given product id
 	 */
-	public function imageInGallery($pid,$imgname)
+	public function getImageId($pid,$attid,$imgname)
 	{
 		$t=$this->tablename('catalog_product_entity_media_gallery');
-		return $this->testexists(
-			"SELECT value_id FROM $t
-			  WHERE value = ? AND entity_id=?",
-		array($imgname,$pid),
-			'value_id');
+		$imgid=$this->selectone("SELECT value_id FROM $t WHERE value=? AND entity_id=? AND attribute_id=?" ,
+								array($imgname,$pid,$attid),
+								'value_id');
+		if($imgid==null)
+		{
+				// insert image in media_gallery
+			$sql="INSERT INTO $t
+				(attribute_id,entity_id,value)
+				VALUES
+				(?,?,?)";
+	
+			$imgid=$this->insert($sql,array($attid,$pid,$imgname));			
+		}
+		return $imgid;
 	}
 
 	/**
 	 * reset product gallery
 	 * @param int $pid : product id
 	 */
-	public function resetGallery($pid)
+	public function resetGallery($pid,$storeid,$attid)
 	{
 		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
 		$tg=$this->tablename('catalog_product_entity_media_gallery');
-		$sql="DELETE emgv,emg FROM `$tgv` as emgv JOIN `$tg` AS emg ON emgv.value_id = emg.value_id AND emg.entity_id =?";
-		$this->delete($sql,$pid);
+		$sql="DELETE emgv,emg FROM `$tgv` as emgv JOIN `$tg` AS emg ON emgv.value_id = emg.value_id AND emgv.store_id=? 
+		WHERE emg.entity_id=? AND emg.attribute_id=?";
+		$this->delete($sql,array($storeid,$pid,$attid));
 
 	}
 	/**
@@ -676,22 +691,8 @@ class MagentoMassImporter extends DBHelper
 	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$excluded=false)
 	{
 		
-		if($this->imageInGallery($pid,$imgname))
-		{
-			return;
-		}
+		$vid=$this->getImageId($pid,$attrdesc["attribute_id"],$imgname);
 		$tg=$this->tablename('catalog_product_entity_media_gallery');
-
-		
-		// insert image in media_gallery
-		$sql="INSERT INTO $tg
-			(attribute_id,entity_id,value)
-			VALUES
-			(?,?,?)";
-	
-		//use attrbute description to find attribute id for gallery
-		$vid=$this->insert($sql,array($attrdesc["attribute_id"],$pid,$imgname));
-
 		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
 		#get maximum current position in the product gallery
 		$sql="SELECT MAX( position ) as maxpos
@@ -736,6 +737,7 @@ class MagentoMassImporter extends DBHelper
 		/* test if imagefile comes from export */
 		if(!file_exists("$te"))
 		{
+			$this->log("copy image : $te","warning");
 			/* test if 1st level product media dir exists , create it if not */
 			if(!file_exists("$l1d"))
 			{
@@ -750,6 +752,7 @@ class MagentoMassImporter extends DBHelper
 			/* test if image already exists ,if not copy from source to media dir*/
 			if(!file_exists("$l2d/$bimgfile"))
 			{
+				
 				copy($fname,"$l2d/$bimgfile");
 			}
 		}
@@ -879,6 +882,8 @@ class MagentoMassImporter extends DBHelper
 					$this->log("No $tp Attributes created for sku ".$item["sku"],"warning");
 				}
 			}
+			unset($data);
+			unset($inserts);
 		}
 	}
 
@@ -985,6 +990,7 @@ class MagentoMassImporter extends DBHelper
 		$css=$this->tablename("cataloginventory_stock_status");
 		$stockid=1; //Default stock id , not found how to relate product to a specific stock id
 		$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>0?1:0);
+		
 		if($this->mode!=="update")
 		{
 			
@@ -1006,8 +1012,10 @@ class MagentoMassImporter extends DBHelper
 			$this->insert($sql,$data);
 			$sql="INSERT INTO `$css` (`website_id`,`product_id`,`stock_id`,`qty`,`stock_status`)";
 			$wscodes=explode(",",$item["websites"]);
+			unset($data);
 			$data=array();
 			$inserts=array();
+			
 			//for each website code
 			foreach($wscodes as $wscode)
 			{
@@ -1020,9 +1028,12 @@ class MagentoMassImporter extends DBHelper
 			}
 			$sql.=" VALUES ".implode(",",$inserts);
 			$this->insert($sql,$data);
+			unset($data);
+			unset($inserts);
 		}
 		else
 		{
+			$data=array();
 			//Fast stock update
 			$data[]=$item["qty"];
 			$data[]=$is_in_stock;
@@ -1030,10 +1041,13 @@ class MagentoMassImporter extends DBHelper
 			$sql="UPDATE `$csit` SET qty=?,is_in_stock=? WHERE product_id=?";
 			$this->update($sql,$data);
 			$sql="UPDATE `$css` SET qty=? WHERE product_id=?";
+			unset($data);
 			$data=array($item["qty"],$pid);
 			$this->update($sql,$data);
-			
+			unset($data);
 		}
+		unset($data);
+		unset($inserts);
 	}
 	/**
 	 * assign categories for a given product id from values
@@ -1076,6 +1090,8 @@ class MagentoMassImporter extends DBHelper
 			 VALUES ";
 		$sql.=implode(",",$inserts);
 		$this->insert($sql,$data);
+		unset($data);
+		unset($inserts);
 	}
 
 	
@@ -1106,6 +1122,8 @@ class MagentoMassImporter extends DBHelper
 		$sql="INSERT IGNORE INTO `$cpst` (`product_id`, `website_id`)
 					VALUES ".implode(",",$inserts);
 		$this->insert($sql,$data);
+		unset($data);
+		unset($inserts);
 	}
 
 	
@@ -1166,6 +1184,7 @@ class MagentoMassImporter extends DBHelper
 
 	public function clearOptCache()
 	{
+		unset($this->_optidcache);
 		$this->_optidcache=array();
 	}
 	public function onNewSku($sku)
@@ -1173,11 +1192,11 @@ class MagentoMassImporter extends DBHelper
 		$this->clearOptCache();
 		$this->_dstore=array(0);
 		$this->_same=false;
-		
 	}
 	
 	public function onSameSku($sku)
 	{
+		unset($this->_dstore);
 		$this->_dstore=array();
 		$this->_same=true;
 	}
@@ -1185,13 +1204,17 @@ class MagentoMassImporter extends DBHelper
 	{
 		if($sku!=$this->_currentsku)
 		{
+			//first get product id
+			$pid=$this->getProductId($sku);			
 			$this->onNewSku($sku);
 			$this->_currentsku=$sku;
+			$this->_currentpid=$pid;
 		}
 		else
 		{
 			$this->onSameSku($sku);
 		}
+		return $this->_currentpid;
 	}
 	/**
 	 * full import workflow for item
@@ -1224,9 +1247,7 @@ class MagentoMassImporter extends DBHelper
 			$asid=$this->attribute_sets[$asname];
 		}
 
-		$this->handleSku($sku);
-		//first get product id
-		$pid=$this->getProductId($sku);
+		$pid=$this->handleSku($sku);
 		$isnew=false;		
 		if(!isset($pid))
 		{
@@ -1392,16 +1413,20 @@ class MagentoMassImporter extends DBHelper
 			//differential
 			$tdiff=$tstart;
 			//intermediary report step
+			$this->initDbqStats();
 			$mstep=$this->getProp("GLOBAL","step",100);
 			if(!isset($mstep))
 			{
 				$mstep=100;
 			}
 			//read each line
+			$lastrec=0;
+			$lastdbtime=0;
 			while($item=$this->datasource->getNextRecord())
 			{
 				//counter
 				$this->current_row++;
+				
 				try
 				{
 					if(is_array($item))
@@ -1411,21 +1436,24 @@ class MagentoMassImporter extends DBHelper
 					}
 					else
 					{
-						$this->log("ERROR - LINE $this->current_row - INVALID ROW :".count($item)."/".count($this->attrinfo)." cols found","error");
+						$this->log("ERROR - RECORD #$this->current_row - INVALID RECORD","error");
 					}
 					//intermediary measurement
 					if($this->current_row%$mstep==0)
 					{
 						$tend=microtime(true);
 						$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
+						$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
+						$lastrec=$this->_nreq;
+						$lastdbtime=$this->_indbtime;
 						$tdiff=microtime(true);
 					}
 				}
 				catch(Exception $e)
 				{
-					$this->log("ERROR - RECORD NUMBER $this->current_row - ".$e->getMessage(),"error");
+					$this->log("ERROR - RECORD #$this->current_row - ".$e->getMessage(),"error");
 				}
-					
+				unset($item);
 			}
 
 			$this->datasource->endImport();
@@ -1445,8 +1473,6 @@ class MagentoMassImporter extends DBHelper
 			$this->log($e->getMessage(),"error");
 			$this->log("Import Ended","end");
 			MagentoMassImporter::setState("idle");
-			
-
 		}
 	}
 
