@@ -431,6 +431,11 @@ class MagentoMassImporter extends DBHelper
 		//Find product entity type
 		$tname=$this->tablename("eav_entity_type");
 		$this->prod_etype=$this->selectone("SELECT entity_type_id FROM $tname WHERE entity_type_code=?","catalog_product","entity_type_id");
+		//force info retrieval for media_gallery
+		if(!in_array($cols,"media_gallery"))
+		{
+			$cols[]="media_gallery";
+		}
 		//create statement parameter string ?,?,?.....
 		$qcolstr=substr(str_repeat("?,",count($cols)),0,-1);
 		$tname=$this->tablename("eav_attribute");
@@ -697,7 +702,7 @@ class MagentoMassImporter extends DBHelper
 	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$excluded=false)
 	{
 		
-		$vid=$this->getImageId($pid,$attrdesc["attribute_id"],$imgname);
+		$vid=$this->getImageId($pid,$this->attrinfo["media_gallery"]["attribute_id"],$imgname);
 		$tg=$this->tablename('catalog_product_entity_media_gallery');
 		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
 		#get maximum current position in the product gallery
@@ -708,11 +713,13 @@ class MagentoMassImporter extends DBHelper
 		 		 GROUP BY emg.entity_id";
 		$pos=$this->selectone($sql,array($pid,$storeid),'maxpos');
 		$pos=($pos==null?0:$pos+1);
-		#insert new value
-		$sql="INSERT INTO $tgv
+		#insert new value (ingnore duplicates)
+		$sql="INSERT IGNORE INTO $tgv
 			(value_id,store_id,position,disabled)
-			VALUES(?,?,?,?)";
-		$this->insert($sql,array($vid,$storeid,$pos,$excluded?1:0));
+			VALUES(?,?,?,?)";	
+		$data=array($vid,$storeid,$pos,$excluded?1:0);		
+		$this->insert($sql,$data);
+		unset($data);
 	}
 
 	/**
