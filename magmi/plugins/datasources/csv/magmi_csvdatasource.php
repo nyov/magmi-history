@@ -89,20 +89,19 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function getNextRecord()
 	{
-		$row=array();
+		$row=null;
 		while($row!==false && count($row)!=count($this->_cols))
 		{
 			$row=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,'"');
-			$this->_curline++;
+			$this->_curline++;			
 			$rcols=count($row);
-			if($rcols!=$this->_nhcols)
-			{
-				
+			if($rcols>0 && $rcols!=$this->_nhcols)
+			{				
 				$this->log("warning: line $this->curline , wrong column number : $rcols found over $this->_nhcols, line skipped","warning");
-			}
+			}			
 		}
 		//create product attributes values array indexed by attribute code
-		$record=array_combine($this->_cols,$row);
+		$record=(is_array($row)?array_combine($this->_cols,$row):false);
 		unset($row);
 		return $record;
 	}
