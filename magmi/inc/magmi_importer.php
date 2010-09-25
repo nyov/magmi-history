@@ -17,7 +17,7 @@ require_once("magmi_pluginhelper.php");
 require_once("magmi_config.php");
 require_once("magmi_attributehandler.php");
 
-
+ini_set("allow_url_fopen",true);
 function nullifempty($val)
 {
 	return (isset($val)?(strlen($val)==0?null:$val):null);
@@ -237,7 +237,7 @@ class MagentoMassImporter extends DBHelper
 	private $_attributehandlers;
 	private $current_row;
 	private $_optidcache=null;
-	private $_currentsku=null;
+	private $_curitemids=array("sku"=>null);
 	private $_dstore;
 	private $_same;
 	private $_currentpid;
@@ -432,7 +432,7 @@ class MagentoMassImporter extends DBHelper
 		$tname=$this->tablename("eav_entity_type");
 		$this->prod_etype=$this->selectone("SELECT entity_type_id FROM $tname WHERE entity_type_code=?","catalog_product","entity_type_id");
 		//force info retrieval for media_gallery
-		if(!in_array($cols,"media_gallery"))
+		if(!in_array("media_gallery",$cols))
 		{
 			$cols[]="media_gallery";
 		}
@@ -499,11 +499,16 @@ class MagentoMassImporter extends DBHelper
 	public function getAttributeSetId($asname)
 	{
 		
-		$tname=$this->tablename("eav_attribute_set");
-		return $this->selectone(
-		"SELECT attribute_set_id FROM $tname WHERE attribute_set_name=? AND entity_type_id=?",
-		array($asname,$this->prod_etype),
-		'attribute_set_id');
+		if(!isset($this->attribute_sets[$asname]))
+		{
+			$tname=$this->tablename("eav_attribute_set");
+			$asid=$this->selectone(
+				"SELECT attribute_set_id FROM $tname WHERE attribute_set_name=? AND entity_type_id=?",
+				array($asname,$this->prod_etype),
+				'attribute_set_id');
+			$this->attribute_sets[$asname]=$asid;
+		}
+		return $this->attribute_sets[$asname];
 	}
 
 	/**
@@ -731,25 +736,39 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function copyImageFile($imgfile)
 	{
-		$srcdir=$this->imgsourcedir;
 		$bimgfile=basename($imgfile);
-		$fname="$srcdir/$bimgfile";
-		if(!file_exists($fname))
-		{
-			$this->log("$fname not found, skipping image","warning");
-			return false;
-		}
 		//source file exists
-		$magdir=$this->magdir;
 		$i1=$bimgfile[0];
 		$i2=$bimgfile[1];
-		$l1d="$magdir/media/catalog/product/$i1";
+		$l1d="$this->magdir/media/catalog/product/$i1";
 		$l2d="$l1d/$i2";
 		$te="$l2d/$bimgfile";
+		$fname="$this->imgsourcedir/$bimgfile";
 		
 		/* test if imagefile comes from export */
 		if(!file_exists("$te"))
 		{
+			$exists=false;
+			if(preg_match("|.*?://.*|",$imgfile))
+			{
+				$fname=$imgfile;
+				$h=@fopen($fname,"r");
+				if($h!==false)
+				{
+					$exists=true;
+					fclose($h);
+				}		
+				unset($h);
+			}
+			else
+			{
+				$exists=file_exists($fname);
+			}
+			if(!$exists)
+			{
+				$this->log("$fname not found, skipping image","warning");
+				return false;
+			}	
 			/* test if 1st level product media dir exists , create it if not */
 			if(!file_exists("$l1d"))
 			{
@@ -1217,21 +1236,25 @@ class MagentoMassImporter extends DBHelper
 		$this->_dstore=array();
 		$this->_same=true;
 	}
-	public function handleSku($sku)
+	
+	public function getItemIds($item)
 	{
-		if($sku!=$this->_currentsku)
+		$sku=$item["sku"];
+		if($sku!=$this->_curitemids["sku"])
 		{
+			$this->_curitemids["sku"]=$sku;
 			//first get product id
-			$pid=$this->getProductId($sku);			
+			$this->_curitemids["pid"]=$this->getProductId($sku);
+			$this->_curitemids["asid"]=$this->getAttributeSetId($item["attribute_set"]);				
 			$this->onNewSku($sku);
-			$this->_currentsku=$sku;
-			$this->_currentpid=$pid;
+		//retrieve attribute set from given name
+		//if not in cache, add to cache
 		}
 		else
 		{
 			$this->onSameSku($sku);
 		}
-		return $this->_currentpid;
+		return $this->_curitemids;
 	}
 	/**
 	 * full import workflow for item
@@ -1249,22 +1272,9 @@ class MagentoMassImporter extends DBHelper
 		{
 			return;
 		}
-		//retrieve sku
-		$sku=$item["sku"];
-		$asname=$item["attribute_set"];
-		//retrieve attribute set from given name
-		//if not in cache, add to cache
-		if(!isset($this->attribute_sets[$asname]))
-		{
-			$asid=$this->getAttributeSetId($asname);
-			$this->attribute_sets[$asname]=$asid;
-		}
-		else
-		{
-			$asid=$this->attribute_sets[$asname];
-		}
-
-		$pid=$this->handleSku($sku);
+		$itemids=$this->getItemIds($item);
+		$pid=$itemids["pid"];
+		$asid=$itemids["asid"];
 		$isnew=false;		
 		if(!isset($pid))
 		{
@@ -1272,6 +1282,7 @@ class MagentoMassImporter extends DBHelper
 			if($this->mode!=='update')
 			{
 				$pid=$this->createProduct($item,$asid);
+				$this->_curitemids["pid"]=$pid;
 				$isnew=true;
 			}
 			else
