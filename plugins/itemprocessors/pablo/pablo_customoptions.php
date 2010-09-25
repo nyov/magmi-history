@@ -142,8 +142,8 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 
 		// create new custom options
 		if(count($custom_options)>0) {
-
-			$item['options_container'] = $this->_containerMap[$item['options_container']];
+			$oc=isset($item['options_container'])?$item['options_container']:"container2";
+			$item['options_container'] = $this->_containerMap[$oc];
 
 			$optionTitleSql = "INSERT INTO $t2 (option_id, store_id, title) VALUES ";
 			$optionTitleValues = array();
