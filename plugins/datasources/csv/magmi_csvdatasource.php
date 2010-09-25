@@ -37,7 +37,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	{
 		return array("name"=>"CSV Datasource",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.2");
+					 "version"=>"1.0.3");
 	}
 	
 	public function getRecordsCount()
@@ -92,7 +92,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		$row=null;
 		while($row!==false && count($row)!=count($this->_cols))
 		{
-			$row=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,'"');
+			$row=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
 			$this->_curline++;			
 			$rcols=count($row);
 			if($rcols>0 && $rcols!=$this->_nhcols)
