@@ -1,155 +1,172 @@
+
 <?php
 require_once("../inc/magmi_statemanager.php");
-try
-{
-	//read whole file
-	$data=false;
-	$out="";
-	$sout="";
-	$skipped=0;
-	//avoid warning
-	$out="initializing...";
-	if(Magmi_StateManager::getState()=="canceled")
+require_once("progress_parser.php");
+	if(file_exists("../state/tmp_out.txt"))
 	{
-		$sout="";
-		$sout.="<div class='log_warning'>Canceled by user</div>";
-		$sout.="<div class='log_warning'>";
-		$sout.="<span><a href='magmi.php'>Back to Configuration Page</a></span>";
-		$sout.="<span><a href='magmi.php?run=1'>Back to Import</a></span>";
-		$sout.="</div>";
-		$sout.="<script type=\"text/javascript\">endImport();</script>";
+		$parser=new DefaultProgressParser();
+		$parser->setFile("../state/tmp_out.txt");
+		$parser->parse();
+		
+		$count=$parser->getData("itime:count");
+		if($count)
+		{
+			$lu=$parser->getData("lookup");
+			$percent=round(((float)$count*100/$lu["nlines"]),2);
+			$stepd=$parser->getData("step");
+			$step=$stepd["value"];
+			$lstep=$count%$step;
+			if($lstep!=0)
+			{
+				$step=$lstep;
+			}
+		}
+		else
+		{
+			$percent=0;
+		}
+		$errors=$parser->getData("error");
+		$warnings=$parser->getData("warning");
+			session_start();
+			$_SESSION["log_error"]=$errors;
+			$_SESSION["log_warning"]=$warnings;
+			session_write_close();
 	}
 	else
 	{
-		if(file_exists("../state/tmp_out.txt"))
-		{
-			$data=file_get_contents("../state/tmp_out.txt");
-		}
+		die("NO FILE");
 	}
-	if($data)
-	{
-		$out.="<div class='log_start'>Import Started</div>";
-		$lines=explode("\n",$data);
-		$errors=array();
-		$warnings=array();
-		$indexes=array();
-		$step=100;
-		$ended=false;
-		$count=0;
-		$nlines=-1;
-		$sout="";
-		foreach($lines as $line)
+	?>	
+	<script type="text/javascript">
+		loadDetails=function(dtype)
 		{
-			if($line!="")
+			var detdiv='log_'+dtype+'_details';
+			if($(detdiv).hasClassName("loaded"))
 			{
-				list($type,$info)=explode(":",$line,2);
-				if(preg_match_all("/plugin;(\w+);(\w+)$/",$type,$m))
-				{
-					$plclass=$m[1][0];
-					$type=$m[2][0];
-				}
-				switch($type){
-					case "title":
-						break;
-					case "raw":
-						$out.=$info;
-						break;
-					case "pluginhello":
-						list($name,$ver,$auth)=explode("-",$info);
-						$out.="<div class='pluginhello'>$name v$ver by $auth</div>";
-						break;
-					case "reset":
-					case "startup":
-						$out.="<div class='log_standard'>".htmlspecialchars($info)."</div>";
-						break;
-					case "lookup":
-						list($nlines,$time)=explode(":",$info);
-						break;
-					case "step":
-						list($label,$step)=explode(":",$info);
-						break;
-					case "dbtime":
-						$parts=explode("-",$info);
-						list($dcount,$delapsed,$dlastinc,$dlastcount)=array(trim($parts[0]),trim($parts[1]),trim($parts[2]),trim($parts[3]));
-						$dspeed = ceil(($dcount*60)/$delapsed);
-						$delapsed=round($delapsed,4);
-						$dlastinc=round($dlastinc,4);
-						break;
-					case "itime":
-						$parts=explode("-",$info);
-						list($count,$elapsed,$lastinc)=array(trim($parts[0]),trim($parts[1]),trim($parts[2]));
-						$speed = ceil(($count*60)/$elapsed);
-						$elapsed=round($elapsed,4);
-						$lastinc=round($lastinc,4);
-						break;
-						
-					case "error":
-						$errors[]=$info;
-						break;
-					case "warning":
-						$warnings[]=$info;
-						break;
-					case "end":
-						$ended=true;
-						break;
-					case "skip":
-						$skipped+=1;
-						break;
-					default:
-						$sout.="<div class='log_standard'>".htmlspecialchars($info)."</div>";
-						break;
-				}
-
+				$(detdiv).hide();
+				$(detdiv).removeClassName("loaded");
+				$(dtype+'_link').update("Show Details");
 			}
-		}
-		if($nlines>0)
-		{
-			$percent=round(((float)$count*100)/$nlines,2);
-			$out.="<script type=\"text/javascript\">setProgress($percent);</script>";
-			if($count)
+			else
 			{
-				$out.="<div class='log_itime'>";
-				$lstep=$count%$step;
-				if($lstep!=0)
-				{
-					$step=$lstep;
-				}
-				$out.="imported $count items ($percent %) in $elapsed secs (last $step in $lastinc secs) - avg speed : $speed rec/min </div>";
+				new Ajax.Updater(detdiv,'./progress_details.php',
+						{parameters:{'key':dtype,'PHPSESSID':'<?php echo session_id()?>'},
+						 onComplete:function(f){var sb = new ScrollBox($(detdiv),{auto_hide:true});
+							$(detdiv).addClassName("loaded");
+							$(dtype+'_link').update("Hide Details");
+							$(detdiv).show();
+							}});
+		
 			}
-			if($dcount)
-			{
-				$out.="<div class='log_itime'>";
-				$out.="DB STATS:$dcount requests in $delapsed secs - avg speed : $dspeed reqs/min ,avg reqs ".round($dcount/$count,2)."/item - global efficiency: ".round(($delapsed*100/$elapsed),2)."% - last $step items: $dlastcount reqs (".($dlastcount/$step)." reqs/item)";
-				$out.="</div>";
-			}
-		}
-		foreach($errors as $error)
-		{
-			$out.="<div class='log_error'>".htmlspecialchars($error)."</div>";
-		}
-		foreach($warnings as $warning)
-		{
-			$out.="<div class='log_warning'>".htmlspecialchars($warning)."</div>";
-		}
-		if($skipped>0)
-		{
-			$out.="<div class='log_info'>Skipped $skipped records</div>";
-		}
-		if($ended)
-		{
-			$sout.="<div class='log_end".(count($errors)>0?" log_error":"")."'>";
-			$sout.="<span><a href='magmi.php'>Back to Configuration Page</a></span>";
-			$sout.="<span><a href='magmi.php?run=1'>Back to Import</a></span>";
-			$sout.="</div>";
-			$sout.="<script type=\"text/javascript\">endImport();</script>";
-		}
-	}
+		};
+	</script>
+	<div class='log_info'>Import Started</div>
 
-	echo $out.$sout;
-	flush();
+	<div class="col"><h3>Plugins</h3>
 
-}
-catch(Exception $e)
-{
-	header("Status : 304",true,304);
-}
+	<?php foreach($parser->getData("plugins") as $pinfo):?>
+	<div class="log_standard"><?php echo $pinfo["name"]?> (<?php echo $pinfo["ver"]?>) by <?php echo $pinfo["auth"]?></div>
+	<?php endforeach?>
+	</div>
+
+	<div class="col"><h3>Startup</h3>
+		
+	<?php foreach($parser->getData("startup") as $sinfo):?>
+	<div class="log_standard"><?php echo $sinfo?></div>
+	<?php endforeach?>
+	</div>
+
+	<script type="text/javascript">setProgress(<?php echo $percent?>);</script>
+	
+	<?php if($count):?>
+		<div class="col"><h3>Global Stats</h3>
+		<div class='log_itime' >
+			<table>
+				<thead>
+				<tr>
+					<td>Imported</td>
+					<td>Elapsed</td>
+					<td>Recs/min</td>
+					<td>Attrs/min</td>
+					<td>Last <?php echo $step?></td>
+			</tr>	</thead>
+				<tr>
+					<td><?php echo $count?> items (<?php echo $percent?>%)</td>
+					<td><?php echo $parser->getData("itime:elapsed")?></td>
+					<td><?php echo $parser->getData("itime:speed")?></td>
+					<td><?php echo $parser->getData("itime:speed")*$parser->getData("columns")?></td>
+					<td><?php echo $parser->getData("itime:incelapsed")?></td>
+				</tr>
+			</table>
+		</div>
+		</div>
+		<div class="col"><h3>DB Stats</h3>
+		<div class='log_dbtime' >
+		<table>
+			<thead>
+			<tr>
+					<td>Requests</td>
+					<td>Elapsed</td>
+					<td>Speed</td>
+					<td>Avg Reqs</td>
+					<td>Efficiency</td>
+					<td>Last <?php echo $step?></td>				
+			</tr>
+			</thead>
+				<tbody>
+					<tr><td><?php echo $parser->getData("dbtime:count")?></td>
+					<td><?php echo $parser->getData("dbtime:elapsed")?></td>
+					<td><?php echo $parser->getData("dbtime:speed")?> reqs/min</td>
+					<td><?php echo round($parser->getData("dbtime:count")/$parser->getData("itime:count"),2)?>/item</td>
+					<td><?php echo round(($parser->getData("dbtime:elapsed")*100/$parser->getData("itime:elapsed")),2)?>%</td>
+					<td><?php echo $parser->getData("dbtime:lastcount")?> reqs</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		</div>	
+	<?php endif?>
+	
+	
+	<?php foreach(array("error","warning") as $gtype):
+			$arr=$parser->getData($gtype);
+		   if(count($arr)>0){
+	?>
+	<div class="log_<?php echo $gtype?>"  >
+		<?php echo count($arr)." $gtype(s) found"?>
+		<a href="javascript:loadDetails('<?php echo $gtype?>');" id="<?php echo $gtype?>_link">Show Details</a>
+	</div>
+		<div id="log_<?php echo $gtype?>_details">
+		</div>
+	
+	<?php }?>
+	<?php endforeach?>
+	<?php if(count($parser->getData("info")>0)):?>
+	<div class="col">
+	<h3>Runtime infos</h3>
+	<?php  foreach($parser->getData("info") as $info):?>
+		<div class="log_standard"><?php echo $info?></div>
+	<?php endforeach?>
+	</div>
+	<?php endif?>
+	
+	<?php if($parser->getData("skipped")>0):?>
+	<div class='log_info'>Skipped <?php echo $parser->getData("skipped")?> records</div>
+	<?php endif?>
+	<?php if(Magmi_StateManager::getState()=="canceled"):?>
+	<div class='log_warning'>Canceled by user</div>
+	<div class='log_warning'>
+	<span><a href='magmi.php'>Back to Configuration Page</a></span>
+	<span><a href='magmi.php?run=1'>Back to Import</a></span>
+	</div>
+	<script type="text/javascript">endImport();</script>
+	<?php else:?>
+	
+	<?php if($parser->getData("ended")):?>
+		<div class='log_end <?php if(count($parser->getData("error"))>0){?> log_error<?php }?>'>
+		<span><a href='magmi.php'>Back to Configuration Page</a></span>
+		<span><a href='magmi.php?run=1'>Back to Import</a></span>
+		</div>
+		<script type="text/javascript">endImport();</script>
+	<?php endif?>
+	<?php endif?>
