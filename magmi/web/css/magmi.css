@@ -29,6 +29,8 @@ ul.formline li.value
 {
 	border:1px solid #cccccc;
 	font-size: small;
+	margin-top:3px;
+	margin-bottom:5px;
 }
 
 .col h3
@@ -91,6 +93,14 @@ span.version
 	
 }
 
+.log_standard
+{
+	font-size: 10pt;
+	font-weight: normal;
+	padding-top:2px;
+	padding-bottom:2px;
+	
+}
 
 .log_indexing
 {
@@ -118,7 +128,7 @@ span.version
 	
 }
 
-.log_itime
+/*.log_itime,.log_dbtime
 {
 	border:1px solid #cccccc;
 	background: #eeeeee;
@@ -127,7 +137,7 @@ span.version
 	font-size: 10pt;
 	padding-top:2px;
 	padding-bottom:2px;
-}
+}*/
 
 .log_end
 {
@@ -235,7 +245,6 @@ span.version
 #runlog
 {
 	height:280px;
-	overflow: auto;
 	clear:both;
 	background-color:#ffffff;
 }
@@ -250,3 +259,41 @@ span.version
 	font-size: 10pt;
 	font-weight: normal;
 }
+
+.scrollbox
+{
+	height:200px;
+	position:relative;
+}
+.scrollbox_content {
+	margin-right: 8px;
+}
+
+.scrollbox_scrollbar {
+	background-color: silver;
+	border-left: solid black 1px;
+	height: 100%;
+	width: 8px;
+}
+.scrollbox_handle {
+	background-color: #888888;
+}
+
+.log_itime table,.log_dbtime table
+{
+	width:100%;
+}
+.log_itime table td,.log_dbtime table td
+{
+	border:1px solid #eeeeee;
+}
+
+div.log_warning
+{
+ clear:both;
+}
+div.log_error
+{
+ clear:both;
+}
+

@@ -211,7 +211,18 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 
 	public function processColumnList(&$cols,$params=null)
 	{
-		if(!in_array('options_container', $cols)) {
+		//detect if we have at least one custom option
+		$hasopt=false;
+		foreach($cols as $k)
+		{
+			$hasopt=count(explode(":",$k))>1;
+			if($hasopt)
+			{
+				break;
+			}
+		}
+		//if we have at least one custom option, add options_container if not exist
+		if($hasopt && !in_array('options_container', $cols)) {
 			$cols[] = 'options_container';
 		}
 		return true;
