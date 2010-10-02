@@ -13,7 +13,12 @@
 			
 		}
 
-		magmi_import.registerBeforeSubmit(getIndexes);
+		updateIndexes=function()
+		{
+			$('indexes').value=getIndexes();
+		}
+		
+		magmi_import.registerBeforeSubmit(updateIndexes);
 				
 	</script>
 	
