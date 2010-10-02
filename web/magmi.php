@@ -16,6 +16,8 @@
 <link rel="stylesheet" href="css/reset.css"></link>
 <link rel="stylesheet" href="css/magmi.css"></link>
 <script type="text/javascript" src="../../js/prototype/prototype.js"></script>
+<script type="text/javascript" src="../../js/ScrollBox.js"></script>
+
 <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
 <META HTTP-EQUIV="Expires" CONTENT="-1">
 </head>
@@ -58,7 +60,7 @@
 	<div class="container_12 config_error">
 		Directory permissions not compatible with Mass Importer operations
 		<br/>
-		PHP/Web Server must have write permissions to magmi/state & magmi/conf directory
+		PHP/Web Server must have write permissions to magmi/state &amp; magmi/conf directory
 	</div>
 		<?php 
 	}
