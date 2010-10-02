@@ -2,7 +2,7 @@
 	<?php require_once("../inc/magmi_config.php");?>
 	
 	<script type="text/javascript">
-		var magmi_import=Class.create({
+		var MagmiImporter=Class.create({
 			bsfcallbacks:[],
 			registerBeforeSubmit:function(cb){this.bsfcallbacks.push(cb)},
 			submit:function(){
@@ -10,18 +10,17 @@
 				this.bsfcallbacks.each(function(bsc,o){this.results.push(bsc())},context);
 				for(i=0;i<context.results.length;i++)
 				{
-					if(context.result[i]==false)
+					if(context.results[i]!="" && context.results[i]==false)
 					{
 						return false;
 					}
 				}
 				$('import_form').submit();}
 		});
-		var importer=new magmi_import();
+		var magmi_import=new MagmiImporter();
 	</script>
 	<div class="container_12">
 	<div class="import_params">
-
 	<form id="import_form" method="post" action="magmi.php?run=2">
 	<h2>import parameters</h2>
 	Mode:<select name="mode" id="mode">
@@ -90,7 +89,7 @@
 	<div class="grid_12">
 	<div style="float:right">
 	<a href='magmi.php'>Back to configuration</a>
-	<a href="javascript:importer.submit()">Launch Import</a>
+	<a href="javascript:magmi_import.submit()">Launch Import</a>
 	</div>
 	</div>
 	</form>

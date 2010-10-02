@@ -38,10 +38,10 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 			foreach($idxlist as $idx)
 			{
 				$tstart=microtime(true);
-				$this->log("Reindexing $idx....","indexing");
+				$this->log("Reindexing $idx....","info");
 				exec("php {$this->_mmi->magdir}/shell/indexer.php --reindex $idx");
 				$tend=microtime(true);
-				$this->log("done in ".round($tend-$tstart,2). " secs","indexing");
+				$this->log("done in ".round($tend-$tstart,2). " secs","info");
 				if(Magmi_StateManager::getState()=="canceled")
 				{
 					chdir($cur);
@@ -50,7 +50,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 				
 				flush();
 			}
-			cwd($cur);
+			chdir($cur);
 		}
 		else
 		{

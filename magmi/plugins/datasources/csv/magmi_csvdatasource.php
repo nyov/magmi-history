@@ -79,6 +79,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	{
 		$this->_cols=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
 		$this->_nhcols=count($this->_cols);
+		$this->log("$this->_nhcols CSV headers columns found","startup");
 		return $this->_cols;
 	}
 	
@@ -86,7 +87,10 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	{
 		fclose($this->_fh);	
 	}
-	
+
+	public function isemptyline($row) {
+  		return ( !isset($row[1]) && empty($row[0]) );
+	}
 	public function getNextRecord()
 	{
 		$row=null;
@@ -94,10 +98,9 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		{
 			$row=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
 			$this->_curline++;			
-			$rcols=count($row);
-			if($rcols>0 && $rcols!=$this->_nhcols)
+			if(!$this->isemptyline($row) && count($row)!=$this->_nhcols)
 			{				
-				$this->log("warning: line $this->curline , wrong column number : $rcols found over $this->_nhcols, line skipped","warning");
+				$this->log("warning: line $this->_curline , wrong column number : $rcols found over $this->_nhcols, line skipped","warning");
 			}			
 		}
 		//create product attributes values array indexed by attribute code

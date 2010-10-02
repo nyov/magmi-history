@@ -1,33 +1,33 @@
-	<div class="clear"></div>
-	<form name="import_params" id="import_params" method="post" action="./magmi_run.php">
-	<?php
-		foreach($_POST as $k=>$v)
-		{
-			?>
-			<input type="hidden" value="<?php echo htmlspecialchars($v)?>" name="<?php echo $k?>"></input>
-			<?php
-		}
+	<?php 
+	ini_set('magic_gpc_quotes',0);
+	$_SESSION["magmi_import_params"]=$_POST;
+	session_write_close();
 	?>
-	</form>
-	<div id="import_log" class="col">
-	
-		<div class="section_title">
+	<div class="clear"></div>
+	<div id="import_log" class="container_12">
+		<div class="section_title grid_12">
 			<span>Importing...</span>
-			<span><input type="button" value="cancel" onclick="cancelImport()"></input></span>
+			<span><input id="cancel_button" type="button" value="cancel" onclick="cancelImport()"></input></span>
 			<div id="progress_container">
 				&nbsp;
 				<div id="import_progress"></div>
 				<div id="import_current">&nbsp;</div>
 			</div>
 		</div>
-		<div id="runlog">
+		<div id="runlog" class="grid_12">
 		</div>
 	</div>
 <script type="text/javascript">
 	endImport=function(t)
 	{
+		$('cancel_button').hide();
 		window.upd.stop();
 		window.upd=null;
+		if(window._sr!=null)
+		{
+			window._sr.transport.abort();
+			window._sr=null;
+		}
 	}
 
 	startProgress=function()
@@ -39,9 +39,10 @@
 	{
 		if(window._sr==null)
 		{
-			var rq=$('import_params').request({method:'get',
-									onCreate:function(r){window._sr=r;startProgress();}});
-			
+			var rq=new Ajax.Request('./magmi_run.php',{method:'get',
+									 parameters:{'PHPSESSID':'<?php echo session_id();?>'},
+									onCreate:function(r){window._sr=r}});
+			startProgress.delay(0.5);
 		}
 	}
 	

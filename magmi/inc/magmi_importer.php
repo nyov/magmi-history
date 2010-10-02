@@ -28,9 +28,9 @@ function falseifempty($val)
 	return (isset($val)?(strlen($val)==0?false:$val):false);
 }
 
-function testempty($val)
+function testempty($arr,$val)
 {
-	return !isset($val) || strlen($val)==0;
+	return !isset($arr[$val]) || strlen($val)==0;
 }
 
 class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
@@ -82,7 +82,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 	{
 		$ovalue=$ivalue;
 		$attid=$attrdesc["attribute_id"];
-		if($ivalue=="")
+		if($ivalue=="" && $this->_mmi->mode=="create")
 		{
 			return false;	
 		}
@@ -108,9 +108,9 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 					//get option id for value, create it if does not already exist
 					//do not insert if empty
 				default:
-					if($ivalue=="")
+					if($ivalue=="" && $this->_mmi->mode=="update")
 					{
-						return false;
+						return "__MAGMI_DELETE__";
 					}
 					$oids=$this->_mmi->getOptionIds($attid,$storeid,array($ivalue));
 					$ovalue=$oids[0];
@@ -131,7 +131,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 	public function handleVarcharAttribute($storeid,$ivalue,$attrdesc)
 	{
 		
-		if($storeid!==0 && empty($ivalue))
+		if($storeid!==0 && empty($ivalue) && $this->_mmi->mode=="create")
 		{
 			return false;
 		}
@@ -142,11 +142,10 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 		//if it's an image attribute (image,small_image or thumbnail)
 		if($attrdesc["frontend_input"]=="media_image")
 		{
-			$this->_mmi->resetGallery($pid,$storeid,$attid);
 			//do nothing if empty
 			if($ivalue=="")
 			{
-				return false;
+				return null;
 			}
 			//else copy image file
 			$imagefile=$this->_mmi->copyImageFile($ivalue);
@@ -157,6 +156,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 				$vid=$this->_mmi->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,true);
 			}	
 		}
+		else
 		//if it's a gallery
 		if($attrdesc["frontend_input"]=="gallery")
 		{
@@ -183,17 +183,17 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 			//we don't want to insert after that
 			$ovalue=false;
 		}
-
+		else
 		//--- Contribution From mennos , optimized by dweeves ----
 		//Added to support multiple select attributes
 		//(as far as i could figure out) always stored as varchars
 		//if it's a multiselect value
 		if($attrdesc["frontend_input"]=="multiselect")
 		{
-			//do nothing if empty
+			//if empty delete entry
 			if($ivalue=="")
 			{
-				return false;
+				return "__MAGMI_DELETE__";
 			}
 			//magento uses "," as separator for different multiselect values
 			$multiselectvalues=explode(",",$ivalue);
@@ -227,7 +227,7 @@ class MagentoMassImporter extends DBHelper
 	public $mode="update";
 	public static $state=null;
 	protected static $_statefile=null;
-	public static $version="0.6.5";
+	public static $version="0.6.6";
 	public $customip=null;
 	public  static $_script=__FILE__;
 	private $_pluginclasses=array();
@@ -431,20 +431,16 @@ class MagentoMassImporter extends DBHelper
 		//Find product entity type
 		$tname=$this->tablename("eav_entity_type");
 		$this->prod_etype=$this->selectone("SELECT entity_type_id FROM $tname WHERE entity_type_code=?","catalog_product","entity_type_id");
-		//force info retrieval for media_gallery
-		if(!in_array("media_gallery",$cols))
-		{
-			$cols[]="media_gallery";
-		}
+		$gcols=array_unique(array_merge($cols,array("media_gallery")));
 		//create statement parameter string ?,?,?.....
-		$qcolstr=substr(str_repeat("?,",count($cols)),0,-1);
+		$qcolstr=substr(str_repeat("?,",count($gcols)),0,-1);
 		$tname=$this->tablename("eav_attribute");
 		$extra=$this->tablename("catalog_eav_attribute");
 		//SQL for selecting attribute properties for all wanted attributes
 		$sql="SELECT `$tname`.*,$extra.is_global FROM `$tname`
 		LEFT JOIN $extra ON $tname.attribute_id=$extra.attribute_id
 		WHERE  ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=$this->prod_etype)";		
-		$result=$this->selectAll($sql,$cols);
+		$result=$this->selectAll($sql,$gcols);
 		//create an attribute code based array for the wanted columns
 		foreach($result as $r)
 		{
@@ -456,6 +452,11 @@ class MagentoMassImporter extends DBHelper
 		//since eav_ model for attributes has one table per backend type
 		foreach($this->attrinfo as $k=>$a)
 		{
+			//do not index attributes that are not in header (media_gallery may have been inserted for other purposes)
+			if(!in_array($k,$cols))
+			{
+				continue;
+			}
 			$bt=$a["backend_type"];
 			if(!isset($this->attrbytype[$bt]))
 			{
@@ -474,7 +475,7 @@ class MagentoMassImporter extends DBHelper
 			}
 			$this->attrbytype[$bt]["ids"]=implode(",",$idlist);
 		}
-
+		
 		/*now we have 2 index arrays
 		 1. $this->attrinfo  which has the following structure:
 		 key : attribute_code
@@ -591,6 +592,7 @@ class MagentoMassImporter extends DBHelper
 		$optval_id=$this->insert("INSERT INTO $t (option_id,store_id,value) VALUES (?,?,?)",array($optid,$store_id,$optval));
 		return $optval_id;
 	}
+	
 
 	function getOptionIds($attid,$storeid,$values)
 	{
@@ -772,12 +774,12 @@ class MagentoMassImporter extends DBHelper
 			/* test if 1st level product media dir exists , create it if not */
 			if(!file_exists("$l1d"))
 			{
-				mkdir($l1d);
+				mkdir($l1d,0777);
 			}
 			/* test if 2nd level product media dir exists , create it if not */
 			if(!file_exists("$l2d"))
 			{
-				mkdir($l2d);
+				mkdir($l2d,0777);
 			}
 
 			/* test if image already exists ,if not copy from source to media dir*/
@@ -895,6 +897,13 @@ class MagentoMassImporter extends DBHelper
 						$data[]=$pid;
 						$data[]=$ovalue;
 					}
+					if($ovalue=="__MAGMI_DELETE__")
+					{
+						$ddata=array($this->prod_etype,$attid,$store_id,$pid);
+						$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id=? AND entity_id=?";
+						$this->delete($sql,$ddata);
+						unset($ddata);
+					}
 				}
 			}
 			unset($store_ids);
@@ -910,6 +919,10 @@ class MagentoMassImporter extends DBHelper
 			//smart one :)
 			$sql.=" ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)";
 			$this->insert($sql,$data);
+			}
+			else
+			if(!empty($deletes))
+			{
 			}
 			else
 			{
@@ -1288,7 +1301,7 @@ class MagentoMassImporter extends DBHelper
 			else
 			{
 				//mode is update, do nothing
-				$this->log("skipping unknown sku:$sku - update mode set","skip");
+				$this->log("skipping unknown sku:{$item["sku"]} - update mode set","skip");
 				return;
 			}
 		}
@@ -1304,17 +1317,17 @@ class MagentoMassImporter extends DBHelper
 			
 			//create new ones
 			$this->createAttributes($pid,$item);
-			if(!testempty($item["category_ids"]))
+			if(!testempty($item,"category_ids"))
 			{
 				//assign categories
 				$this->assignCategories($pid,$item);
 			}
 			//update websites
-			if(!testempty($item["websites"]))
+			if(!testempty($item,"websites"))
 			{
 				$this->updateWebSites($pid,$item);
 			}
-			if(!testempty($item["qty"]) && !$this->_same)
+			if(!testempty($item,"qty") && !$this->_same)
 			{
 				//update stock
 				$this->updateStock($pid,$item);
@@ -1431,6 +1444,7 @@ class MagentoMassImporter extends DBHelper
 			$this->createItemProcessors($params);
 			
 			$cols=$this->datasource->getColumnNames();
+			$this->log(count($cols),"columns");
 			$this->callProcessors("columnList",$cols,null,"process");
 			//initialize attribute infos & indexes from column names
 			
@@ -1501,7 +1515,7 @@ class MagentoMassImporter extends DBHelper
 		{
 			$this->log($e->getMessage(),"error");
 			$this->log("Import Ended","end");
-			MagentoMassImporter::setState("idle");
+			Magmi_StateManager::setState("idle");
 		}
 	}
 
