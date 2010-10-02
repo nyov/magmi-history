@@ -145,7 +145,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 			//do nothing if empty
 			if($ivalue=="")
 			{
-				return null;
+				return false;
 			}
 			//else copy image file
 			$imagefile=$this->_mmi->copyImageFile($ivalue);
@@ -161,11 +161,11 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 		if($attrdesc["frontend_input"]=="gallery")
 		{
 			//do nothing if empty
-			$this->_mmi->resetGallery($pid,$storeid,$attid);
 			if($ivalue=="")
 			{
 				return false;
 			}
+			$this->_mmi->resetGallery($pid,$storeid,$attid);
 			//use ";" as image separator
 			$images=explode(";",$ivalue);
 			//for each image
