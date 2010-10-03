@@ -1,41 +1,50 @@
 <?php 
 	session_start();
-	$params=$_SESSION["magmi_import_params"];
-	session_write_close();
-	//if called from wget or curl , try to get params from request
-	if(!isset($params))
+	if(isset($_SESSION["magmi_import_params"]))
+	{
+		$params=$_SESSION["magmi_import_params"];
+	}
+	else
 	{
 		$params=$_REQUEST;
 	}
-	if(!isset($params))
+	session_write_close();
+	if(count($params)==0)
 	{
-		die("No Parameters set, abort import")
+		die("No Parameters set, abort import");
 	}
 	ini_set("display_errors",1);
 	require_once("../inc/magmi_statemanager.php");
 	require_once("../inc/magmi_importer.php");
 
-	function initlog()
+	class FileLogger
 	{
-		set_time_limit(0);
-		$f=fopen(dirname(Magmi_StateManager::getStateFile())."/tmp_out.txt","w");
-		fclose($f);
-	}
-	
-	function weblog($data,$type)
-	{
-			$f=fopen(dirname(Magmi_StateManager::getStateFile())."/tmp_out.txt","a");
+		protected $_fname;
+		
+		public function __construct($fname)
+		{
+			$this->_fname=$fname;
+			$f=fopen($this->_fname,"w");
+			fclose($f);
+		}
+
+		public function log($data,$type)
+		{
+			
+			$f=fopen($this->_fname,"a");
 			fwrite($f,"$type:$data\n");
 			fclose($f);
-			
+		}
+		
 	}
-
+	
 	if(Magmi_StateManager::getState()!=="running")
 	{
 		Magmi_StateManager::setState("idle");
-		initlog();
+		set_time_limit(0);
 		$mmi_imp=new MagentoMassImporter();
-		$mmi_imp->setLoggingCallback("weblog");
+		$logfile=isset($params["logfile"])?$params["logfile"]:dirname(Magmi_StateManager::getStateFile())."/tmp_out.txt";
+		$mmi_imp->setLogger(new FileLogger($logfile));		
 		$mmi_imp->import($params);
 		
 	}
