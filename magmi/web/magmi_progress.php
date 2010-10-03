@@ -1,4 +1,3 @@
-
 <?php
 require_once("../inc/magmi_statemanager.php");
 require_once("progress_parser.php");
