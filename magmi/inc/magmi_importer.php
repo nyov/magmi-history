@@ -227,7 +227,7 @@ class MagentoMassImporter extends DBHelper
 	public $mode="update";
 	public static $state=null;
 	protected static $_statefile=null;
-	public static $version="0.6.6";
+	public static $version="0.6.7";
 	public $customip=null;
 	public  static $_script=__FILE__;
 	private $_pluginclasses=array();
