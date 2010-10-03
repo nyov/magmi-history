@@ -220,7 +220,7 @@ class MagentoMassImporter extends DBHelper
 	public $magdir;
 	public $imgsourcedir;
 	public $tprefix;
-	public $logcb=null;
+	public $logger=null;
 	public $enabled_label;
 	public $prod_etype;
 	public $sidcache=array();
@@ -242,9 +242,9 @@ class MagentoMassImporter extends DBHelper
 	private $_same;
 	private $_currentpid;
 	
-	public function setLoggingCallback($cb)
+	public function setLogger($logger)
 	{
-		$this->logcb=$cb;
+		$this->logger=$logger;
 	}
 
 	/**
@@ -354,10 +354,9 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function log($data,$type="default")
 	{
-		if(isset($this->logcb))
+		if(isset($this->logger))
 		{
-			$func=$this->logcb;
-			$func($data,$type);
+			$this->logger->log($data,$type);
 		}
 		else
 		{
