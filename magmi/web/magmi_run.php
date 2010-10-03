@@ -2,7 +2,15 @@
 	session_start();
 	$params=$_SESSION["magmi_import_params"];
 	session_write_close();
-	
+	//if called from wget or curl , try to get params from request
+	if(!isset($params))
+	{
+		$params=$_REQUEST;
+	}
+	if(!isset($params))
+	{
+		die("No Parameters set, abort import")
+	}
 	ini_set("display_errors",1);
 	require_once("../inc/magmi_statemanager.php");
 	require_once("../inc/magmi_importer.php");
