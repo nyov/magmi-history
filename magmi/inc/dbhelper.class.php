@@ -16,11 +16,11 @@ class DBHelper
 	 * @param string $dbname : database name
 	 * @param string $user : username
 	 * @param string $pass : password
-	 * @param bool $debug : debug mode 
+	 * @param bool $debug : debug mode
 	 */
 	public function initDb($host,$dbname,$user,$pass,$debug=false)
 	{
-		//intialize connection with PDO 
+		//intialize connection with PDO
 		//fix by Mr Lei for UTF8 special chars
 		$this->_db=new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass,array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
 		//use exception error mode
@@ -34,7 +34,7 @@ class DBHelper
 			$this->_db->query("SET GLOBAL general_log='ON' ")->execute();
 		}
 		$this->prepared=array();
-		
+
 	}
 
 	public function usestmtcache($uc)
@@ -55,13 +55,13 @@ class DBHelper
 		$this->_db=NULL;
 			
 	}
-	
+
 	public function initDbqStats()
 	{
 		$this->_nreq=0;
 		$this->_indbtime=0;
 	}
-	
+
 	public function collectDbqStats(&$nbreq)
 	{
 		return $this->_nreq;
@@ -79,19 +79,19 @@ class DBHelper
 		$t0=microtime(true);
 		if($this->_use_stmt_cache)
 		{
-		//if sql not in statement cache
-		if(!isset($this->prepared[$sql]))
-		{
-			//create new prepared statement
-			$stmt=$this->_db->prepare($sql);
-			//cache prepare statement
-			$this->prepared[$sql]=$stmt;
-		}
-		else
-		{
-			//get from statement cache
-			$stmt=$this->prepared[$sql];
-		}
+			//if sql not in statement cache
+			if(!isset($this->prepared[$sql]))
+			{
+				//create new prepared statement
+				$stmt=$this->_db->prepare($sql);
+				//cache prepare statement
+				$this->prepared[$sql]=$stmt;
+			}
+			else
+			{
+				//get from statement cache
+				$stmt=$this->prepared[$sql];
+			}
 		}
 		else
 		{
@@ -107,7 +107,7 @@ class DBHelper
 		}
 		else
 		{
-		
+
 			$stmt->execute();
 		}
 		if($close)
@@ -118,7 +118,7 @@ class DBHelper
 		$this->_indbtime+=$t1-$t0;
 		return $stmt;
 	}
-	
+
 	/**
 	 * Perform a delete statement, sql should be "DELETE"
 	 * @param string $sql : DELETE statement sql (placeholders allowed)
@@ -128,7 +128,7 @@ class DBHelper
 	{
 		$this->exec_stmt($sql,$params);
 	}
-	
+
 	public function update($sql,$params=null)
 	{
 		$this->exec_stmt($sql,$params);
@@ -145,7 +145,7 @@ class DBHelper
 		$liid=$this->_db->lastInsertId();
 		return $liid;
 	}
-	
+
 	/**
 	 * Perform a select ,sql should be "SELECT"
 	 * @param string $sql :SELECT statement SQL (placeholders allowed)
@@ -156,7 +156,7 @@ class DBHelper
 	{
 		return $this->exec_stmt($sql,$params,false);
 	}
-	
+
 	/**
 	 * Selects one unique value from one single row
 	 * @param $sql : SELECT statement SQL (placeholders allowed)
@@ -168,7 +168,7 @@ class DBHelper
 	{
 		$stmt=$this->select($sql,$params);
 		$t0=microtime(true);
-		
+
 		$r=$stmt->fetch();
 		$stmt->closeCursor();
 		$t1=microtime(true);
@@ -177,7 +177,7 @@ class DBHelper
 		unset($r);
 		return $v;
 	}
-	
+
 	/**
 	 * Selects all values from a statement into a php array
 	 * @param unknown_type $sql sql select to execute
@@ -187,14 +187,14 @@ class DBHelper
 	{
 		$stmt=$this->select($sql,$params);
 		$t0=microtime(true);
-	
+
 		$r=$stmt->fetchAll();
 		$stmt->closeCursor();
 		$t1=microtime(true);
 		$this->_indbtime+=$t1-$t0;
 		return $r;
 	}
-	
+
 	/**
 	 * test if value exists (test should be compatible with unique select)
 	 * @param $sql : SELECT statement SQL (placeholders allowed)
@@ -206,7 +206,7 @@ class DBHelper
 	{
 		return $this->selectone($sql,$params,$col)!=null;
 	}
-	
+
 	/**
 	 * begins a transaction
 	 */
@@ -214,7 +214,7 @@ class DBHelper
 	{
 		$this->_db->beginTransaction();
 	}
-	
+
 	/**
 	 * commits the current transaction
 	 */
