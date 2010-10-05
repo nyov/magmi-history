@@ -1501,7 +1501,8 @@ class MagentoMassImporter extends DBHelper
 			$this->datasource->endImport();
 			$tend=microtime(true);
 			$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
-			$this->log("Imported $this->current_row recs in ".round($tend-$tstart,2)." secs - ".ceil(($this->current_row*60)/($tend-$tstart))." rec/mn","report");
+			$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
+			
 			$this->disconnectFromMagento();
 			$this->datasource->afterImport();
 			$this->callGeneral("afterImport");
