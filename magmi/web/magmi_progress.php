@@ -156,7 +156,10 @@ else
 	</div>
 <?php endif?>
 	
-<?php if($parser->getData("skipped")>0):?>
+	
+<?php 
+	$skipped=$parser->getData("skipped");
+	if(!is_array($skipped) && $skipped>0):?>
 	<div class='log_info'>Skipped <?php echo $parser->getData("skipped")?> records</div>
 <?php endif?>
 
