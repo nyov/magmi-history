@@ -35,12 +35,7 @@ foreach($argv as $option)
 }
 $options["filename"]=$csvfile;
 
-function clilog($data,$type)
-{
-	print $data."\n";
-}
 
 $importer=new MagentoMassImporter();
-$importer->setLoggingCallback("clilog");
 $importer->import($options);
 ?>
