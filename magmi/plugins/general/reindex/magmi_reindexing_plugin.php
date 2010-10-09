@@ -65,7 +65,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 	
 	public function initialize($params)
 	{
-		$this->_reindex=$this->getParam("indexes",$this->_indexlist);
+		$this->_reindex=$this->getParam("REINDEX:indexes",$this->_indexlist);
 		
 	}
 }
