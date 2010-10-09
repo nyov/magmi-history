@@ -16,6 +16,11 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		$this->updateIndexes($this->_reindex);
 	}
 	
+	public function getPluginParamNames()
+	{
+		return array("REINDEX:indexes");
+	}
+	
 	public function getIndexList()
 	{
 		return $this->_indexlist;

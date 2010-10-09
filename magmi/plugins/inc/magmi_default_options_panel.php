@@ -1,1 +1,1 @@
-<span>No configurable options</span>
+<span>Plugin has no configurable parameters</span>

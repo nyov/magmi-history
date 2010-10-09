@@ -16,10 +16,10 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function initialize($params)
 	{
-		$this->_filename=$params["filename"];
-		$this->_csep=$this->getParam("csv_separator",",");
-		$this->_cenc=$this->getParam("csv_enclosure",'"');
-		$this->_buffersize=$this->getParam("csv_buffer",0);
+		$this->_filename=$this->getParam("CSV:filename");
+		$this->_csep=$this->getParam("CSV:separator",",");
+		$this->_cenc=str_replace('DQUOTE','"',$this->getParam("CSV:enclosure",'"'));
+		$this->_buffersize=$this->getParam("CSV:buffer",0);
 		$this->_curline=0;
 		ini_set("auto_detect_line_endings",true);
 		if(!isset($this->_filename))
@@ -33,6 +33,10 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		
 	}
 	
+	public function getPluginParamNames()
+	{
+		return array('CSV:filename','CSV:enclosure','CSV:separator');
+	}
 	public function getPluginInfo()
 	{
 		return array("name"=>"CSV Datasource",

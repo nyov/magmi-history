@@ -6,6 +6,7 @@
 			return outs.join(",");
 		};
 
+		
 	
 		fcheck=function(t)
 		{
@@ -22,15 +23,17 @@
 				
 	</script>
 	
-	<input type="hidden" name="indexes" id="indexes"></input>
+	<input type="hidden" name="REINDEX:indexes" id="indexes" value="<?php echo $this->getParam("REINDEX:indexes")?>"></input>
 	<div>
+	<span>Indexing:</span><a href="#" onclick="fcheck(1);">All</a>&nbsp;<a href="#" onclick="fcheck(0)">None</a>
 	<ul>
-	Indexing:<a href="#" onclick="fcheck(1);">All</a>&nbsp;<a href="#" onclick="fcheck(0)">None</a>
 	<?php 
 	    $idxarr=explode(",",$this->_plugin->getIndexList());
-		foreach($idxarr as $indexname)
+		$indexes=explode(",",$this->getParam("REINDEX:indexes"));
+	    foreach($idxarr as $indexname)
 		{
 	?>
-		<li><input type="checkbox" name="<?php echo $indexname?>" class="_magindex"><?php echo $indexname?></input></li>
+		<li><input type="checkbox" name="<?php echo $indexname?>" class="_magindex" <?php if(in_array($indexname,$indexes)){?>checked=checked<?php }?>><?php echo $indexname?></input></li>
 	<?php }?>
 	</ul>
+	</div>

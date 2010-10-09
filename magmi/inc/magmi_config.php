@@ -5,11 +5,18 @@ class Magmi_Config extends Properties
 	private static $_instance=null;
 	private $_configname=null;
 	private $_defaultconfigname=null;
+	public static $conffile=null;
+	private static $_script=__FILE__;
+	
+	public static function getConfDir()
+	{
+		return realpath(dirname(self::$_script)."/../conf");
+	}
 	
 	public function __construct()
 	{
-		$this->_configname=dirname(__FILE__)."/../conf/magmi.ini";
-		$this->_defaultconfigname=dirname(__FILE__)."/../conf/magmi.ini.default";
+		$this->_configname=self::getConfDir()."/magmi.ini";
+		$this->_defaultconfigname=self::getConfDir()."/magmi.ini.default";
 	}
 	
 	public function getConfigFilename()
