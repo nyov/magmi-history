@@ -15,8 +15,8 @@
 <link rel="stylesheet" href="css/960.css"></link>
 <link rel="stylesheet" href="css/reset.css"></link>
 <link rel="stylesheet" href="css/magmi.css"></link>
-<script type="text/javascript" src="../../js/prototype/prototype.js"></script>
-<script type="text/javascript" src="../../js/ScrollBox.js"></script>
+<script type="text/javascript" src="js/prototype/prototype.js"></script>
+<script type="text/javascript" src="js/ScrollBox.js"></script>
 
 <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
 <META HTTP-EQUIV="Expires" CONTENT="-1">
