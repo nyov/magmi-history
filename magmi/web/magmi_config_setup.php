@@ -71,23 +71,7 @@ $conf->load();
 		<li class="label">Reporting step:</li>
 		<li class="value"><input type="text" name="GLOBAL:step" value="<?php echo $conf->get("GLOBAL","step")?>"></input></li>
 	</ul>
-	<ul class="formline">
-		<li class="label">Default store:</li>
-		<li class="value"><input type="text" name="DEFAULT:store" value="<?php echo $conf->get("DEFAULT","store")?>"></input></li>
-	</ul>
-	<ul class="formline">
-		<li class="label">Default websites:</li>
-		<li class="value"><input type="text" name="DEFAULT:websites" value="<?php echo $conf->get("DEFAULT","websites")?>"></input></li>
-	</ul>
-	<ul class="formline">
-		<li class="label">Default product type:</li>
-		<li class="value"><input type="text" name="DEFAULT:type" value="<?php echo $conf->get("DEFAULT","type")?>"></input></li>
-	</ul>
-	<ul class="formline">
-		<li class="label">Default attribute_set:</li>
-		<li class="value"><input type="text" name="DEFAULT:attribute_set" value="<?php echo $conf->get("DEFAULT","attribute_set")?>"></input></li>
-	</ul>
-
+	
 	</div>
 	<div class="clear"></div>
 	

@@ -37,13 +37,13 @@
 		$dsinst=Magmi_PluginHelper::createInstance($ds);
 		$dsinfo=$dsinst->getPluginInfo();
 	?>
+	<div class="datasource_plugin_config">
 	<h2>Data Source - <?php echo $dsinfo["name"] . " -v".$dsinfo["version"]?></h2>
 	<div id="dsp_option_panel">
 		<?php 
 		echo $dsinst->getOptionsPanel()->getHtml();?>
 	</div>
-	
-	<div>
+	</div>
 	<?php 
 		if($conf->getEnabledPluginClasses("GENERAL"))
 		{
@@ -53,9 +53,7 @@
 				  $plinfo=$plinst->getPluginInfo();
 				  $panel=$plinst->getOptionsPanel();
 				  ?>
-				  
 				  <h2><?php echo "{$plinfo["name"]} - v{$plinfo["version"]}"?></h2>
-				  
 				  <div class="gp_configpanel">
 				  	<?php if($panel){
 				  		echo $panel->getHtml();
@@ -66,26 +64,19 @@
 	<?php 
 		if($conf->getEnabledPluginClasses("ITEMPROCESSORS"))
 		{
-		foreach($conf->getEnabledPluginClasses("ITEMPROCESSORS") as $plc){?>
-		<div class="itemprocessor_plugin_config">
+			foreach($conf->getEnabledPluginClasses("ITEMPROCESSORS") as $plc){?>
+			<div class="itemprocessor_plugin_config">
 			<?php $plinst=Magmi_PluginHelper::createInstance($plc); 
 				  $plinfo=$plinst->getPluginInfo();
 				  $panel=$plinst->getOptionsPanel();
 				  ?>
 				  
 				  <h2><?php echo "{$plinfo["name"]} - v{$plinfo["version"]}"?></h2>
-				  
 				  <div class="ipp_configpanel">
-				  	<?php if($panel){
-				  		echo $panel->getHtml();
-				  	} else {?>
-				  	<span>No configurable parameters</span>
-				  	<?php }?>
-				  	
-				  </div>
-		</div>
+				  		<?php echo $panel->getHtml();?>
+				 </div>
+			</div>
 	<?php }}?>
-	</div>
 	<div class="grid_12">
 	<div style="float:right">
 	<a href='magmi.php'>Back to configuration</a>
