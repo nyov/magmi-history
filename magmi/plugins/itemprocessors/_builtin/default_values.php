@@ -8,13 +8,8 @@
 class DefaultValuesItemProcessor extends Magmi_ItemProcessor
 {
 
-	protected $_dset;
+	protected $_dset=array();
 	protected $_dcols=array();
-	public function __construct()
-	{
-		$conf=Magmi_Config::getInstance();
-		$this->_dset=$conf->getsection("DEFAULT");
-	}
 	
     public function getPluginInfo()
     {
@@ -58,7 +53,19 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
 	
 	public function initialize($params)
 	{
-		return true;
+		$pp=$this->getPluginParams($params);
+		foreach($pp as $k=>$v)
+		{
+			if(preg_match_all("/^DEFAULT:(.*)$/",$k,$m))
+			{
+				$this->_dset[$m[1][0]]=$pp[$k];
+			}
+		}
+	}
+	
+	public function getPluginParamNames()
+	{
+		return array("DEFAULT:store","DEFAULT:websites","DEFAULT:type","DEFAULT:attribute_set");
 	}
 	
 	public function processColumnList(&$cols,$params=null)
