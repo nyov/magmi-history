@@ -28,7 +28,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 	
 	public function updateIndexes($idxlist)
 	{
-		$indexer="{$this->_mmi->magdir}/shell/indexer.php";
+		$indexer=realpath("{$this->_mmi->magdir}/shell/indexer.php");
 		if(file_exists($indexer))
 		{
 			if($idxlist=="")
@@ -44,7 +44,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 			{
 				$tstart=microtime(true);
 				$this->log("Reindexing $idx....","info");
-				exec("php {$this->_mmi->magdir}/shell/indexer.php --reindex $idx");
+				exec("php $indexer --reindex $idx");
 				$tend=microtime(true);
 				$this->log("done in ".round($tend-$tstart,2). " secs","info");
 				if(Magmi_StateManager::getState()=="canceled")
