@@ -1,5 +1,5 @@
 <?php
-	ini_set('include_path',ini_get('include_path').":../inc");
+	set_include_path(get_include_path().PATH_SEPARATOR."../inc");
 	ini_set("display_errors",1);
 	ini_set("error_reporting",E_ALL);
 	require_once("magmi_importer.php");

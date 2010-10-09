@@ -1,7 +1,7 @@
 <?php
 $base_dir=dirname(__FILE__);
-$plugin_dir=dirname(__FILE__)."/../plugins";
-ini_set("include_path",ini_get("include_path").":$plugin_dir/inc:$base_dir");
+$plugin_dir=realpath(dirname(__FILE__)."/../plugins");
+set_include_path(ini_get("include_path").PATH_SEPARATOR."$plugin_dir/inc".PATH_SEPARATOR."$base_dir");
 
 require_once("magmi_item_processor.php");
 require_once("magmi_datasource.php");
