@@ -45,6 +45,11 @@ input[type=text]
 	border:1px solid #888888;
 }
 
+input[type=password]
+{
+	border:1px solid #888888;
+}
+
 body
 {
 	font-family: sans-serif;
