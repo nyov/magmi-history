@@ -128,5 +128,17 @@ class Properties
 		}
 	}
 	
+	public function getsection($secname)
+	{
+		if(isset($this->_props[$secname]))
+		{
+			return $this->_props[$secname];
+		}
+		else
+		{
+			return array();
+		}
+	}
+	
 	
 }

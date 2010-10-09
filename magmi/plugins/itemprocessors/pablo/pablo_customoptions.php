@@ -120,28 +120,30 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 			}
 		}
 
-		$pid = $params['product_id'];
-
-		$tname=$this->tablename('catalog_product_entity');
-		$data = array($hasOptions, $requiredOptions, $pid);
-		$sql="UPDATE `$tname` SET has_options=?,required_options=? WHERE entity_id=?";
-		$this->update($sql,$data);
-
-		$t1 = $this->tablename('catalog_product_option');
-		$t2 = $this->tablename('catalog_product_option_title');
-		$t3 = $this->tablename('catalog_product_option_price');
-		$t4 = $this->tablename('catalog_product_option_type_value');
-		$t5 = $this->tablename('catalog_product_option_type_title');
-		$t6 = $this->tablename('catalog_product_option_type_price');
-
-		// delete old custom options
-		if(!$params['new']) {
-			$sql = "DELETE $t1 FROM $t1 WHERE $t1.product_id=$pid";
-			$this->delete($sql);
-		}
 
 		// create new custom options
 		if(count($custom_options)>0) {
+			
+			$pid = $params['product_id'];
+
+			$tname=$this->tablename('catalog_product_entity');
+			$data = array($hasOptions, $requiredOptions, $pid);
+			$sql="UPDATE `$tname` SET has_options=?,required_options=? WHERE entity_id=?";
+			$this->update($sql,$data);
+
+			$t1 = $this->tablename('catalog_product_option');
+			$t2 = $this->tablename('catalog_product_option_title');
+			$t3 = $this->tablename('catalog_product_option_price');
+			$t4 = $this->tablename('catalog_product_option_type_value');
+			$t5 = $this->tablename('catalog_product_option_type_title');
+			$t6 = $this->tablename('catalog_product_option_type_price');
+
+			// delete old custom options
+			if(!$params['new']) {
+				$sql = "DELETE $t1 FROM $t1 WHERE $t1.product_id=$pid";
+				$this->delete($sql);
+			}
+			
 			$oc=isset($item['options_container'])?$item['options_container']:"container2";
 			$item['options_container'] = $this->_containerMap[$oc];
 

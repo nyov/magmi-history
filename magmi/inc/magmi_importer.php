@@ -343,7 +343,17 @@ class MagentoMassImporter extends DBHelper
 		$wsarr=explode(",",$wsstr);
 		foreach($wsarr as $ws)
 		{
-			$sids=array_merge($sids,$this->ws_store_map[$this->website_ids[$ws]]);
+			if(!isset($this->website_ids[$ws]))
+			{
+				$this->log("unknown store code:$ws","warning");
+			}
+			else
+			{
+				if(isset($this->ws_store_map[$this->website_ids[$ws]]))
+				{
+					$sids=array_merge($sids,$this->ws_store_map[$this->website_ids[$ws]]);
+				}
+			}
 		}
 		return array_unique($sids);
 	}
@@ -818,7 +828,9 @@ class MagentoMassImporter extends DBHelper
 		{
 			$bstore_ids=array(0,1);
 		}
-
+		//websites related store_ids
+		$ws_store_ids=$this->getWebsitesStoreIds($item["websites"]);
+		$bstore_ids=array_unique(array_merge($bstore_ids,$ws_store_ids));
 		//set pid for attribute handlers, useful for cache effects	
 		foreach($this->_attributehandlers as $ah)
 		{
@@ -869,16 +881,15 @@ class MagentoMassImporter extends DBHelper
 						$store_ids=array(0);
 						break;
 					case 2:
-						//website scope
-						$store_ids=$this->getWebsitesStoreIds($item["websites"]);
 						//force default store
-						$store_ids=array_unique(array_merge($this->_dstore,$store_ids));
+						$store_ids=array_unique(array_merge($this->_dstore,$ws_store_ids));
 				}
-				
+				$deletes=array();				
 				
 				foreach($store_ids as $store_id)
 				{
 					$ovalue=$ivalue;
+
 					foreach($this->_attributehandlers as $ah)
 					{
 						if(method_exists($ah,$handler))
@@ -887,6 +898,15 @@ class MagentoMassImporter extends DBHelper
 						}
 					}
 					
+					if($ovalue=="__MAGMI_DELETE__")
+					{
+						$deletes[]=array($attid,$store_id,$pid);
+						$ddata=array($this->prod_etype,$attid,$store_id,$pid);
+						$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id=? AND entity_id=?";
+						$this->delete($sql,$ddata);
+						unset($ddata);
+					}
+					else
 					if($ovalue!==false)
 					{
 						$inserts[]="(?,?,?,?,?)";
@@ -895,13 +915,6 @@ class MagentoMassImporter extends DBHelper
 						$data[]=$store_id;
 						$data[]=$pid;
 						$data[]=$ovalue;
-					}
-					if($ovalue=="__MAGMI_DELETE__")
-					{
-						$ddata=array($this->prod_etype,$attid,$store_id,$pid);
-						$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id=? AND entity_id=?";
-						$this->delete($sql,$ddata);
-						unset($ddata);
 					}
 				}
 			}
@@ -922,6 +935,7 @@ class MagentoMassImporter extends DBHelper
 			else
 			if(!empty($deletes))
 			{
+				unset($deletes);
 			}
 			else
 			{
