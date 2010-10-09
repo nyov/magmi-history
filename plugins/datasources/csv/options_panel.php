@@ -1,3 +1,6 @@
+<div class="plugin_description">
+This plugin enables magmi import from csv files 
+</div>
 File to import:
 <?php 
 	$conf=Magmi_Config::getInstance();
