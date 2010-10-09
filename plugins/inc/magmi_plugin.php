@@ -1,4 +1,52 @@
 <?php
+require_once("../inc/magmi_config.php");
+
+class Magmi_PluginConfig extends Properties
+{
+	protected $_prefix;
+	protected $_conffile;
+	public function __construct($pname)
+	{
+		$this->_prefix=$pname;
+		$this->_conffile=Magmi_Config::getConfDir()."/$this->_prefix.conf";
+	}
+	
+	public function getIniStruct($arr)
+	{
+		$conf=array();
+		foreach($arr as $k=>$v)
+		{
+			$k=$this->_prefix.":".$k;
+			list($section,$value)=explode(":",$k,2);
+			if(!isset($conf[$section]))
+			{
+				$conf[$section]=array();
+			}
+			$conf[$section][$value]=$v;
+		}
+		return $conf;
+	}
+	
+	public function save()
+	{
+		parent::save(Magmi_Config::getConfDir()."/$this->_prefix.conf");
+	}
+	
+	public function load()
+	{
+		
+		
+		if(file_exists($this->_conffile))
+		{
+			parent::load($this->_conffile);
+		}
+	}
+	
+	public function getConfig()
+	{
+		return parent::getsection($this->_prefix);
+	}
+}
 
 class Magmi_PluginOptionsPanel
 {
@@ -56,11 +104,22 @@ abstract class Magmi_Plugin
 	protected $_mmi=null;
 	protected $_class;
 	protected $_plugintype;
-		
-	public function getParam($pname,$default)
+	protected $_config;
+	
+	public function __construct()
+	{
+		$this->_config=new Magmi_PluginConfig(get_class($this));	
+	}
+	
+	public function getParam($pname,$default=null)
 	{
 		return isset($this->_params[$pname])?$this->_params[$pname]:$default;
 		
+	}
+	
+	public function getPluginParamNames()
+	{
+		return array();
 	}
 	
 	public function getPluginInfo()
@@ -116,8 +175,9 @@ abstract class Magmi_Plugin
 	public final function pluginInit($mmi,$params=null,$doinit=true)
 	{		
 		$this->_mmi=$mmi;
-		$this->_class=get_class($this);	
-		$this->_params=$params;
+		$this->_class=get_class($this);
+		$this->_config->load();
+		$this->_params=isset($params)?array_merge($this->_config->getConfig(),$params):$this->_config->getConfig();
 		if(isset($mmi))
 		{
 			$this->pluginHello();		
@@ -126,8 +186,31 @@ abstract class Magmi_Plugin
 		{
 			$this->initialize($params);
 			
+			$this->persistParams($this->getPluginParams($params));
 		}
 	}
+	
+	
+	public function getPluginParams($params)
+	{
+		$arr=array();
+		$paramkeys=array_intersect(array_keys($params),$this->getPluginParamNames());
+		foreach($paramkeys as $pk)
+		{
+			$arr[$pk]=$params[$pk];	
+		}
+		return $arr;
+	}
+	
+	public function persistParams($plist)
+	{
+		if(count($plist)>0)
+		{
+			$this->_config->setPropsFromFlatArray($plist);
+			$this->_config->save();
+		}
+	}
+	
 	public function getOptionsPanel()
 	{
 		return new Magmi_PluginOptionsPanel($this);
