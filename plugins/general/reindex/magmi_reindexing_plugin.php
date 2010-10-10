@@ -8,7 +8,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 	{
 		return array("name"=>"Magmi Magento Reindexer",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0");
+					 "version"=>"1.0.1");
 	}
 	
 	public function afterImport()
@@ -59,7 +59,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		}
 		else
 		{
-			$this->log("Magento 1.4 indexer not found, you should reindex manually using magento admin","warning");
+			$this->log("Magento indexer not found, you should reindex manually using magento admin","warning");
 		}
 	}
 	
