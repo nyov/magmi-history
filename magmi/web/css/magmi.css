@@ -302,3 +302,9 @@ div.log_error
  clear:both;
 }
 
+.plugin_description
+{
+	border: 1px solid #eeeeee;
+	background-color:#dddddd;
+	margin:2px;
+}
