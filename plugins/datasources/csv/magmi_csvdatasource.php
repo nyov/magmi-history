@@ -18,7 +18,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	{
 		$this->_filename=$this->getParam("CSV:filename");
 		$this->_csep=$this->getParam("CSV:separator",",");
-		$this->_cenc=str_replace('DQUOTE','"',$this->getParam("CSV:enclosure",'"'));
+		$this->_cenc=$this->getParam("CSV:enclosure",'"');
 		$this->_buffersize=$this->getParam("CSV:buffer",0);
 		$this->_curline=0;
 		ini_set("auto_detect_line_endings",true);
