@@ -241,6 +241,7 @@ class MagentoMassImporter extends DBHelper
 	private $_dstore;
 	private $_same;
 	private $_currentpid;
+	public $magversion;
 	
 	public function setLogger($logger)
 	{
@@ -271,6 +272,7 @@ class MagentoMassImporter extends DBHelper
 			$this->_activeplugins=array("general"=>array(),"processors"=>array());
 			$this->_conf=Magmi_Config::getInstance();
 			$this->_conf->load();		
+			$this->magversion=$this->_conf->get("MAGENTO","version");
 			$this->magdir=$this->_conf->get("MAGENTO","basedir");
 			$this->imgsourcedir=$this->_conf->get("IMAGES","sourcedir",$this->magdir."/media/import");
 			$this->tprefix=$this->_conf->get("DATABASE","table_prefix");
@@ -444,12 +446,20 @@ class MagentoMassImporter extends DBHelper
 		//create statement parameter string ?,?,?.....
 		$qcolstr=substr(str_repeat("?,",count($gcols)),0,-1);
 		$tname=$this->tablename("eav_attribute");
-		$extra=$this->tablename("catalog_eav_attribute");
-		//SQL for selecting attribute properties for all wanted attributes
-		$sql="SELECT `$tname`.*,$extra.is_global FROM `$tname`
-		LEFT JOIN $extra ON $tname.attribute_id=$extra.attribute_id
-		WHERE  ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=$this->prod_etype)";		
+		if($this->magversion="1.4.x")
+		{
+			$extra=$this->tablename("catalog_eav_attribute");
+			//SQL for selecting attribute properties for all wanted attributes
+			$sql="SELECT `$tname`.*,$extra.is_global FROM `$tname`
+			LEFT JOIN $extra ON $tname.attribute_id=$extra.attribute_id
+			WHERE  ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=$this->prod_etype)";		
+		}
+		else
+		{
+			$sql="SELECT `$tname`.* FROM `$tname` WHERE ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=$this->prod_etype)";
+		}
 		$result=$this->selectAll($sql,$gcols);
+		
 		//create an attribute code based array for the wanted columns
 		foreach($result as $r)
 		{
