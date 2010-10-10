@@ -41,7 +41,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	{
 		return array("name"=>"CSV Datasource",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.3");
+					 "version"=>"1.0.4");
 	}
 	
 	public function getRecordsCount()
