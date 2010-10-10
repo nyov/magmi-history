@@ -57,9 +57,18 @@ $conf->load();
 	<div class="grid_4 col">
 	<h3>Magento</h3>
 	<ul class="formline">
+		<li class="label">Version:</li>
+		<li class="value"><select name="MAGENTO:version">
+			<?php foreach(array("1.4.x","1.3.x") as $ver){?>
+				<option value="<?php echo $ver?>" <?php if($conf->get("MAGENTO","version")==$ver){?>selected=selected<?php }?>><?php echo $ver?></option>
+			<?php }?>
+		</select></li>
+	</ul>
+	<ul class="formline">
 		<li class="label">Base dir:</li>
 		<li class="value"><input type="text" name="MAGENTO:basedir" value="<?php echo $conf->get("MAGENTO","basedir")?>" ></input></li>
 	</ul>
+	
 	<ul class="formline">
 		<li class="label">Enabled Status:</li>
 		<li class="value"><input type="text" name="MAGENTO:enabled_status_label" value="<?php echo $conf->get("MAGENTO","enabled_status_label","Enabled")?>"></input></li>
