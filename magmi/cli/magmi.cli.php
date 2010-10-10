@@ -9,7 +9,7 @@
  * 
  */
 
-require_once("magento_mass_importer.class.php");
+require_once("../inc/magmi_importer.php");
 
 $script=array_shift($argv);
 $csvfile=array_shift($argv);
@@ -33,8 +33,6 @@ foreach($argv as $option)
 		$options[$optname]=$optval;
 	}
 }
-$options["filename"]=$csvfile;
-
 
 $importer=new MagentoMassImporter();
 $importer->import($options);

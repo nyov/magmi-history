@@ -194,10 +194,17 @@ abstract class Magmi_Plugin
 	public function getPluginParams($params)
 	{
 		$arr=array();
-		$paramkeys=array_intersect(array_keys($params),$this->getPluginParamNames());
+		$paramkeys=$this->getPluginParamNames();
 		foreach($paramkeys as $pk)
 		{
-			$arr[$pk]=$params[$pk];	
+			if(isset($params[$pk]))
+			{
+				$arr[$pk]=$params[$pk];
+			}
+			else
+			{
+				$arr[$pk]=$this->_params[$pk];
+			}	
 		}
 		return $arr;
 	}
