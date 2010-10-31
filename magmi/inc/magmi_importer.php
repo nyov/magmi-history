@@ -227,7 +227,7 @@ class MagentoMassImporter extends DBHelper
 	public $mode="update";
 	public static $state=null;
 	protected static $_statefile=null;
-	public static $version="0.6.9";
+	public static $version="0.6.10";
 	public $customip=null;
 	public  static $_script=__FILE__;
 	private $_pluginclasses=array();
@@ -748,6 +748,11 @@ class MagentoMassImporter extends DBHelper
 		unset($data);
 	}
 
+	public function cleanImageName($fname)
+	{
+		$cname=preg_replace("/%[0-9][0-9|A-F]/","_",$fname);
+		return $cname;
+	}
 	/**
 	 * copy image file from source directory to
 	 * product media directory
@@ -757,7 +762,7 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function copyImageFile($imgfile)
 	{
-		$bimgfile=basename($imgfile);
+		$bimgfile=$this->cleanImageName(basename($imgfile));
 		//source file exists
 		$i1=$bimgfile[0];
 		$i2=$bimgfile[1];
@@ -1262,7 +1267,16 @@ class MagentoMassImporter extends DBHelper
 	public function onNewSku($sku)
 	{
 		$this->clearOptCache();
-		$this->_dstore=array(0);
+		//only assign values to store 0 by default in create mode for new sku
+		//for store related options
+		if($this->mode=="create")
+		{
+			$this->_dstore=array(0);
+		}
+		else
+		{
+			$this->_dstore=array();
+		}
 		$this->_same=false;
 	}
 	
@@ -1280,8 +1294,11 @@ class MagentoMassImporter extends DBHelper
 		{
 			$this->_curitemids["sku"]=$sku;
 			//first get product id
-			$this->_curitemids["pid"]=$this->getProductId($sku);
-			$this->_curitemids["asid"]=$this->getAttributeSetId($item["attribute_set"]);				
+			$this->_curitemids["pid"]=$this->getProductId($sku)
+			if($this->_mode!=="update")
+			{
+				$this->_curitemids["asid"]=$this->getAttributeSetId($item["attribute_set"]);				
+			}
 			$this->onNewSku($sku);
 		//retrieve attribute set from given name
 		//if not in cache, add to cache
@@ -1310,13 +1327,13 @@ class MagentoMassImporter extends DBHelper
 		}
 		$itemids=$this->getItemIds($item);
 		$pid=$itemids["pid"];
-		$asid=$itemids["asid"];
 		$isnew=false;		
 		if(!isset($pid))
 		{
 			//if not found & mode !=update
 			if($this->mode!=='update')
 			{
+				$asid=$itemids["asid"];
 				$pid=$this->createProduct($item,$asid);
 				$this->_curitemids["pid"]=$pid;
 				$isnew=true;
@@ -1380,11 +1397,12 @@ class MagentoMassImporter extends DBHelper
 	public function lookup()
 	{
 		$t0=microtime(true);
-		$t1=microtime(true);
+	
+		$count=$this->datasource->getRecordsCount();	
+		$t1=microtime(true);	
 		$time=$t1-$t0;
-		$count=$this->datasource->getRecordsCount();		
 		$this->log("$count:$time","lookup");
-		
+		return $count;
 	}
 
 	/**
@@ -1437,16 +1455,16 @@ class MagentoMassImporter extends DBHelper
 			
 			$this->log("Magento Mass Importer by dweeves - version:".MagentoMassImporter::$version,"title");
 			$this->log("step:".$this->getProp("GLOBAL","step",100),"step");
+			//initialize db connectivity
+			$this->connectToMagento();
 			$this->createDatasource($params);
 			$this->createGeneralPlugins($params);
 			$this->datasource->beforeImport();
 			$this->callGeneral("beforeImport");
 			$this->registerAttributeHandler("Magmi_DefaultAttributeHandler");
 			
-			$this->lookup();
+			$nitems=$this->lookup();
 			Magmi_StateManager::setState("running");
-			//initialize db connectivity
-			$this->connectToMagento();
 			//store reset flag
 			$this->reset=$reset;
 			$this->mode=$mode;
@@ -1456,6 +1474,8 @@ class MagentoMassImporter extends DBHelper
 				//clear all products
 				$this->clearProducts();
 			}
+			if($nitems>0)
+			{
 			//initialize website id cache
 			$this->initWebSites();
 			//intialize store id cache
@@ -1488,14 +1508,14 @@ class MagentoMassImporter extends DBHelper
 			//read each line
 			$lastrec=0;
 			$lastdbtime=0;
-			while($item=$this->datasource->getNextRecord())
+			while(($item=$this->datasource->getNextRecord())!==false)
 			{
 				//counter
 				$this->current_row++;
 				
 				try
 				{
-					if(is_array($item))
+					if(is_array($item) && count($item)>0)
 					{
 						//import item
 						$this->importItem($item);
@@ -1526,7 +1546,7 @@ class MagentoMassImporter extends DBHelper
 			$tend=microtime(true);
 			$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 			$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
-			
+			}
 			$this->disconnectFromMagento();
 			$this->datasource->afterImport();
 			$this->callGeneral("afterImport");
