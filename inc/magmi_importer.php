@@ -1294,7 +1294,7 @@ class MagentoMassImporter extends DBHelper
 		{
 			$this->_curitemids["sku"]=$sku;
 			//first get product id
-			$this->_curitemids["pid"]=$this->getProductId($sku)
+			$this->_curitemids["pid"]=$this->getProductId($sku);
 			if($this->_mode!=="update")
 			{
 				$this->_curitemids["asid"]=$this->getAttributeSetId($item["attribute_set"]);				
