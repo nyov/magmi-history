@@ -10,6 +10,7 @@ class DBHelper
 	protected $_use_stmt_cache=true;
 	protected $_nreq;
 	protected $_indbtime;
+	protected $_intrans=false;
 	/**
 	 * Intializes database connection
 	 * @param string $host : hostname
@@ -213,6 +214,7 @@ class DBHelper
 	public function beginTransaction()
 	{
 		$this->_db->beginTransaction();
+		$this->_intrans=true;
 	}
 
 	/**
@@ -221,6 +223,7 @@ class DBHelper
 	public function commitTransaction()
 	{
 		$this->_db->commit();
+		$this->_intrans=false;
 	}
 
 	/**
@@ -228,6 +231,9 @@ class DBHelper
 	 */
 	public function rollbackTransaction()
 	{
-		$this->_db->rollBack();
+		if($this->_intrans)
+		{
+			$this->_db->rollBack();
+		}
 	}
 }
