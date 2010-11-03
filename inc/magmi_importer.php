@@ -1259,8 +1259,8 @@ return "/$i1/$i2/$bimgfile";
 		{
 			if(method_exists($ip,$methname))
 			{
-				if($prefix=="processItem" || $prefix="process")
-				{
+				if($prefix=="processItem" || $prefix=="process")
+				{				
 					if(!$ip->$methname($data,$params))
 					{
 						return false;
@@ -1503,7 +1503,8 @@ return "/$i1/$i2/$bimgfile";
 					
 				//initializing item processors
 				$this->createItemProcessors($params);
-					
+				$this->callProcessors("importStart",$nodata,null,"on");
+			
 				$cols=$this->datasource->getColumnNames();
 				$this->log(count($cols),"columns");
 				$this->callProcessors("columnList",$cols,null,"process");
@@ -1568,7 +1569,8 @@ return "/$i1/$i2/$bimgfile";
 			$this->disconnectFromMagento();
 			$this->datasource->afterImport();
 			$this->callGeneral("afterImport");
-				
+			$this->callProcessors("importEnd",$nodata,null,"on");
+			
 			$this->log("Import Ended","end");
 			Magmi_StateManager::setState("idle");
 				

@@ -113,7 +113,7 @@ abstract class Magmi_Plugin
 	
 	public function getParam($pname,$default=null)
 	{
-		return isset($this->_params[$pname])?$this->_params[$pname]:$default;
+		return (isset($this->_params[$pname]) && $this->_params[$pname]!="")?$this->_params[$pname]:$default;
 		
 	}
 	
