@@ -35,13 +35,13 @@ function testempty($arr,$val)
 
 class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 {
-	
+
 	protected $_curpid=null;
-	
+
 	public function setCurrentPid($pid)
 	{
-		$this->_curpid=$pid;		
-	}	
+		$this->_curpid=$pid;
+	}
 	/**
 	 * attribute handler for decimal attributes
 	 * @param int $pid	: product id
@@ -63,7 +63,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 	 * @param array $attrdesc : attribute description
 	 * @return mixed : false if no further processing is needed,
 	 * 					string (magento value) for the datetime attribute otherwise
-	 */	
+	 */
 	public function handleDatetimeAttribute($storeid,$ivalue,$attrdesc)
 	{
 		$ovalue=nullifempty($ivalue);
@@ -84,7 +84,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 		$attid=$attrdesc["attribute_id"];
 		if($ivalue=="" && $this->_mmi->mode=="create")
 		{
-			return false;	
+			return false;
 		}
 		//if we've got a select type value
 		if($attrdesc["frontend_input"]=="select")
@@ -130,12 +130,12 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 	 */
 	public function handleVarcharAttribute($storeid,$ivalue,$attrdesc)
 	{
-		
+
 		if($storeid!==0 && empty($ivalue) && $this->_mmi->mode=="create")
 		{
 			return false;
 		}
-		
+
 		$ovalue=$ivalue;
 		$pid=$this->_curpid;
 		$attid=$attrdesc["attribute_id"];
@@ -154,7 +154,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 			if($imagefile!==false)
 			{
 				$vid=$this->_mmi->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,true);
-			}	
+			}
 		}
 		else
 		//if it's a gallery
@@ -203,7 +203,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 		}
 		return $ovalue;
 	}
-	
+
 }
 /* here inheritance from DBHelper is used for syntactic convenience */
 class MagentoMassImporter extends DBHelper
@@ -216,6 +216,7 @@ class MagentoMassImporter extends DBHelper
 	public $status_id=array();
 	public $attribute_sets=array();
 	public $ws_store_map=array();
+	public $store_ws_map=array();
 	public $reset=false;
 	public $magdir;
 	public $imgsourcedir;
@@ -227,7 +228,7 @@ class MagentoMassImporter extends DBHelper
 	public $mode="update";
 	public static $state=null;
 	protected static $_statefile=null;
-	public static $version="0.6.10";
+	public static $version="0.6.10a";
 	public $customip=null;
 	public  static $_script=__FILE__;
 	private $_pluginclasses=array();
@@ -242,7 +243,7 @@ class MagentoMassImporter extends DBHelper
 	private $_same;
 	private $_currentpid;
 	public $magversion;
-	
+
 	public function setLogger($logger)
 	{
 		$this->logger=$logger;
@@ -271,7 +272,7 @@ class MagentoMassImporter extends DBHelper
 			$pluginclasses=Magmi_PluginHelper::getPluginClasses();
 			$this->_activeplugins=array("general"=>array(),"processors"=>array());
 			$this->_conf=Magmi_Config::getInstance();
-			$this->_conf->load();		
+			$this->_conf->load();
 			$this->magversion=$this->_conf->get("MAGENTO","version");
 			$this->magdir=$this->_conf->get("MAGENTO","basedir");
 			$this->imgsourcedir=$this->_conf->get("IMAGES","sourcedir",$this->magdir."/media/import");
@@ -359,6 +360,22 @@ class MagentoMassImporter extends DBHelper
 		}
 		return array_unique($sids);
 	}
+
+	public function getWebsiteIds($storestr)
+	{
+		if(!isset($this->store_ws_map[$storestr]))
+		{
+			$this->store_ws_map[$storestr]=array();
+			$sarr=$this->getStoreIds($storestr);
+			$sql="SELECT DISTINCT website_id FROM ".$this->tablename("core_store")." WHERE store_id IN (".implode(",",$sarr).")";
+			$result=$this->selectAll($sql,null);
+			foreach($result as $r)
+			{
+				$this->store_ws_map[$storestr][]=$r["website_id"];
+			}
+		}
+		return $this->store_ws_map[$storestr];
+	}
 	/**
 	 * logging function
 	 * @param string $data : string to log
@@ -392,7 +409,7 @@ class MagentoMassImporter extends DBHelper
 			if(!isset($wsm[$wsid]))
 			{
 				$wsm[$wsid]=array();
-			}	
+			}
 			$wsm[$wsid][]=$r["store_id"];
 		}
 		unset($result);
@@ -412,9 +429,9 @@ class MagentoMassImporter extends DBHelper
 			//find store id for store list
 			foreach($stores as $scode)
 			{
-				
+
 				$sid=$this->store_ids[$scode];
-				
+
 				//add store id to id list
 				$sids[]=$sid;
 			}
@@ -459,7 +476,7 @@ class MagentoMassImporter extends DBHelper
 			$sql="SELECT `$tname`.* FROM `$tname` WHERE ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=$this->prod_etype)";
 		}
 		$result=$this->selectAll($sql,$gcols);
-		
+
 		//create an attribute code based array for the wanted columns
 		foreach($result as $r)
 		{
@@ -494,7 +511,7 @@ class MagentoMassImporter extends DBHelper
 			}
 			$this->attrbytype[$bt]["ids"]=implode(",",$idlist);
 		}
-		
+
 		/*now we have 2 index arrays
 		 1. $this->attrinfo  which has the following structure:
 		 key : attribute_code
@@ -518,13 +535,13 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function getAttributeSetId($asname)
 	{
-		
+
 		if(!isset($this->attribute_sets[$asname]))
 		{
 			$tname=$this->tablename("eav_attribute_set");
 			$asid=$this->selectone(
 				"SELECT attribute_set_id FROM $tname WHERE attribute_set_name=? AND entity_type_id=?",
-				array($asname,$this->prod_etype),
+			array($asname,$this->prod_etype),
 				'attribute_set_id');
 			$this->attribute_sets[$asname]=$asid;
 		}
@@ -583,14 +600,14 @@ class MagentoMassImporter extends DBHelper
 	{
 		$ovstr=substr(str_repeat("?,",count($optvals)),0,-1);
 		$t1=$this->tablename('eav_attribute_option');
-		$t2=$this->tablename('eav_attribute_option_value');		
+		$t2=$this->tablename('eav_attribute_option_value');
 		$sql="SELECT optvals.option_id as opvs,optvals.value FROM $t2 as optvals";
-		$sql.=" JOIN $t1 as opt ON opt.option_id=optvals.option_id AND opt.attribute_id=?";			
+		$sql.=" JOIN $t1 as opt ON opt.option_id=optvals.option_id AND opt.attribute_id=?";
 		$sql.=" WHERE optvals.store_id=? AND optvals.value IN ($ovstr)";
 		return $this->selectAll($sql,array_merge(array($attid,$store_id),$optvals));
 	}
 
-	
+
 	/* create a new option entry for an attribute */
 	function createOption($attid)
 	{
@@ -611,7 +628,7 @@ class MagentoMassImporter extends DBHelper
 		$optval_id=$this->insert("INSERT INTO $t (option_id,store_id,value) VALUES (?,?,?)",array($optid,$store_id,$optval));
 		return $optval_id;
 	}
-	
+
 
 	function getOptionIds($attid,$storeid,$values)
 	{
@@ -620,7 +637,7 @@ class MagentoMassImporter extends DBHelper
 		$exvals=array();
 		foreach($existing as $optdesc)
 		{
-			$exvals[]=$optdesc["value"];			
+			$exvals[]=$optdesc["value"];
 		}
 		$new=array_merge(array_diff($values,$exvals));
 		if($storeid==0)
@@ -636,7 +653,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		else
 		{
-			
+				
 			$brows=$this->getCachedOptIds($attid);
 			foreach($existing as $ex)
 			{
@@ -657,19 +674,19 @@ class MagentoMassImporter extends DBHelper
 		unset($existing);
 		unset($exvals);
 		return $optids;
-		
+
 	}
-	
+
 	function cacheOptIds($attid,$row)
 	{
 		$this->_optidcache[$attid]=$row;
 	}
-	
+
 	function getCachedOptIds($attid)
 	{
-		return $this->_optidcache[$attid];	
+		return $this->_optidcache[$attid];
 	}
-	
+
 
 	/**
 	 * returns tax class id for a given tax class value
@@ -691,17 +708,17 @@ class MagentoMassImporter extends DBHelper
 	{
 		$t=$this->tablename('catalog_product_entity_media_gallery');
 		$imgid=$this->selectone("SELECT value_id FROM $t WHERE value=? AND entity_id=? AND attribute_id=?" ,
-								array($imgname,$pid,$attid),
+		array($imgname,$pid,$attid),
 								'value_id');
 		if($imgid==null)
 		{
-				// insert image in media_gallery
+			// insert image in media_gallery
 			$sql="INSERT INTO $t
 				(attribute_id,entity_id,value)
 				VALUES
 				(?,?,?)";
-	
-			$imgid=$this->insert($sql,array($attid,$pid,$imgname));			
+
+			$imgid=$this->insert($sql,array($attid,$pid,$imgname));
 		}
 		return $imgid;
 	}
@@ -714,7 +731,7 @@ class MagentoMassImporter extends DBHelper
 	{
 		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
 		$tg=$this->tablename('catalog_product_entity_media_gallery');
-		$sql="DELETE emgv,emg FROM `$tgv` as emgv JOIN `$tg` AS emg ON emgv.value_id = emg.value_id AND emgv.store_id=? 
+		$sql="DELETE emgv,emg FROM `$tgv` as emgv JOIN `$tg` AS emg ON emgv.value_id = emg.value_id AND emgv.store_id=?
 		WHERE emg.entity_id=? AND emg.attribute_id=?";
 		$this->delete($sql,array($storeid,$pid,$attid));
 
@@ -727,7 +744,7 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$excluded=false)
 	{
-		
+
 		$vid=$this->getImageId($pid,$this->attrinfo["media_gallery"]["attribute_id"],$imgname);
 		$tg=$this->tablename('catalog_product_entity_media_gallery');
 		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
@@ -743,7 +760,7 @@ class MagentoMassImporter extends DBHelper
 		$sql="INSERT IGNORE INTO $tgv
 			(value_id,store_id,position,disabled)
 			VALUES(?,?,?,?)";	
-		$data=array($vid,$storeid,$pos,$excluded?1:0);		
+		$data=array($vid,$storeid,$pos,$excluded?1:0);
 		$this->insert($sql,$data);
 		unset($data);
 	}
@@ -770,7 +787,7 @@ class MagentoMassImporter extends DBHelper
 		$l2d="$l1d/$i2";
 		$te="$l2d/$bimgfile";
 		$fname="$this->imgsourcedir/$bimgfile";
-		
+
 		/* test if imagefile comes from export */
 		if(!file_exists("$te"))
 		{
@@ -783,7 +800,7 @@ class MagentoMassImporter extends DBHelper
 				{
 					$exists=true;
 					fclose($h);
-				}		
+				}
 				unset($h);
 			}
 			else
@@ -794,7 +811,7 @@ class MagentoMassImporter extends DBHelper
 			{
 				$this->log("$fname not found, skipping image","warning");
 				return false;
-			}	
+			}
 			/* test if 1st level product media dir exists , create it if not */
 			if(!file_exists("$l1d"))
 			{
@@ -809,21 +826,21 @@ class MagentoMassImporter extends DBHelper
 			/* test if image already exists ,if not copy from source to media dir*/
 			if(!file_exists("$l2d/$bimgfile"))
 			{
-				
+
 				if(!@copy($fname,"$l2d/$bimgfile"))
 				{
 					$errors= error_get_last();
-					
+						
 					$this->log("error copying $l2d/$bimgfile : ${$errors["type"]},${$errors["message"]}","warning");
-				}
-			}
 		}
-		/* return image file name relative to media dir (with leading / ) */
-		return "/$i1/$i2/$bimgfile";
+	}
+}
+/* return image file name relative to media dir (with leading / ) */
+return "/$i1/$i2/$bimgfile";
 	}
 
 
-	
+
 	/**
 	 * Create product attribute from values for a given product id
 	 * @param $pid : product id to create attribute values for
@@ -846,7 +863,7 @@ class MagentoMassImporter extends DBHelper
 		//websites related store_ids
 		$ws_store_ids=$this->getWebsitesStoreIds($item["websites"]);
 		$bstore_ids=array_unique(array_merge($bstore_ids,$ws_store_ids));
-		//set pid for attribute handlers, useful for cache effects	
+		//set pid for attribute handlers, useful for cache effects
 		foreach($this->_attributehandlers as $ah)
 		{
 			$ah->setCurrentPid($pid);
@@ -861,7 +878,7 @@ class MagentoMassImporter extends DBHelper
 			{
 				continue;
 			}
-				
+
 			//table name for backend type data
 			$cpet=$this->tablename("catalog_product_entity_$tp");
 			//data table for inserts
@@ -870,7 +887,7 @@ class MagentoMassImporter extends DBHelper
 			$inserts=array();
 			//use reflection to find special handlers
 			$handler="handle".ucfirst($tp)."Attribute";
-			
+				
 			//iterate on all attribute descriptions for the given backend type
 			foreach($a["data"] as $attrdesc)
 			{
@@ -899,8 +916,8 @@ class MagentoMassImporter extends DBHelper
 						//force default store
 						$store_ids=array_unique(array_merge($this->_dstore,$ws_store_ids));
 				}
-				$deletes=array();				
-				
+				$deletes=array();
+
 				foreach($store_ids as $store_id)
 				{
 					$ovalue=$ivalue;
@@ -909,10 +926,10 @@ class MagentoMassImporter extends DBHelper
 					{
 						if(method_exists($ah,$handler))
 						{
-							$ovalue=$ah->$handler($store_id,$ivalue,$attrdesc);				
+							$ovalue=$ah->$handler($store_id,$ivalue,$attrdesc);
 						}
 					}
-					
+						
 					if($ovalue=="__MAGMI_DELETE__")
 					{
 						$deletes[]=array($attid,$store_id,$pid);
@@ -936,16 +953,16 @@ class MagentoMassImporter extends DBHelper
 			unset($store_ids);
 			if(!empty($inserts))
 			{
-			//now perform insert for all values of the the current backend type in one
-			//single insert
-			$sql="INSERT INTO $cpet
+				//now perform insert for all values of the the current backend type in one
+				//single insert
+				$sql="INSERT INTO $cpet
 			(`entity_type_id`, `attribute_id`, `store_id`, `entity_id`, `value`)
 			VALUES ";
-			$sql.=implode(",",$inserts);
-			//this one taken from mysql log analysis of magento import
-			//smart one :)
-			$sql.=" ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)";
-			$this->insert($sql,$data);
+				$sql.=implode(",",$inserts);
+				//this one taken from mysql log analysis of magento import
+				//smart one :)
+				$sql.=" ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)";
+				$this->insert($sql,$data);
 			}
 			else
 			if(!empty($deletes))
@@ -1023,7 +1040,7 @@ class MagentoMassImporter extends DBHelper
 		$sql="TRUNCATE TABLE `".$this->tablename("catalog_product_entity")."`;\n";
 		$this->insert($sql);
 		$optv=$this->tablename("eav_attribute_option_value");
-		$opt=$this->tablename("eav_attribute_option");	
+		$opt=$this->tablename("eav_attribute_option");
 		$et=$this->tablename("eav_attribute");
 		$sql="SET FOREIGN_KEY_CHECKS = 1";
 		//clearing all product options
@@ -1067,10 +1084,10 @@ class MagentoMassImporter extends DBHelper
 		$css=$this->tablename("cataloginventory_stock_status");
 		$stockid=1; //Default stock id , not found how to relate product to a specific stock id
 		$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>0?1:0);
-		
+
 		if($this->mode!=="update")
 		{
-			
+				
 			$lsdate=nullifempty(isset($item["low_stock_date"])?$item["low_stock_date"]:"");
 			$sql="INSERT INTO `$csit`
 			(`product_id`, 
@@ -1092,7 +1109,7 @@ class MagentoMassImporter extends DBHelper
 			unset($data);
 			$data=array();
 			$inserts=array();
-			
+				
 			//for each website code
 			foreach($wscodes as $wscode)
 			{
@@ -1114,7 +1131,7 @@ class MagentoMassImporter extends DBHelper
 			//Fast stock update
 			$data[]=$item["qty"];
 			$data[]=$is_in_stock;
-			$data[]=$pid;			
+			$data[]=$pid;
 			$sql="UPDATE `$csit` SET qty=?,is_in_stock=? WHERE product_id=?";
 			$this->update($sql,$data);
 			$sql="UPDATE `$css` SET qty=? WHERE product_id=?";
@@ -1171,7 +1188,7 @@ class MagentoMassImporter extends DBHelper
 		unset($inserts);
 	}
 
-	
+
 
 	/**
 	 * set website of product if not exists
@@ -1203,8 +1220,8 @@ class MagentoMassImporter extends DBHelper
 		unset($inserts);
 	}
 
-	
-	
+
+
 	public function callPlugins($types,$step,&$item,$params)
 	{
 		foreach($types as $type)
@@ -1214,10 +1231,10 @@ class MagentoMassImporter extends DBHelper
 			{
 				return false;
 			}
-		}	
+		}
 		return true;
 	}
-	
+
 	public function callGeneral($step)
 	{
 		$methname=$step;
@@ -1234,7 +1251,7 @@ class MagentoMassImporter extends DBHelper
 		return true;
 			
 	}
-	
+
 	public function callProcessors($step,&$data=null,$params=null,$prefix="")
 	{
 		$methname=$prefix.ucfirst($step);
@@ -1243,7 +1260,7 @@ class MagentoMassImporter extends DBHelper
 			if(method_exists($ip,$methname))
 			{
 				if($prefix=="processItem" || $prefix="process")
-				{				
+				{
 					if(!$ip->$methname($data,$params))
 					{
 						return false;
@@ -1256,7 +1273,7 @@ class MagentoMassImporter extends DBHelper
 			}
 		}
 		return true;
-	
+
 	}
 
 	public function clearOptCache()
@@ -1279,14 +1296,14 @@ class MagentoMassImporter extends DBHelper
 		}
 		$this->_same=false;
 	}
-	
+
 	public function onSameSku($sku)
 	{
 		unset($this->_dstore);
 		$this->_dstore=array();
 		$this->_same=true;
 	}
-	
+
 	public function getItemIds($item)
 	{
 		$sku=$item["sku"];
@@ -1297,11 +1314,11 @@ class MagentoMassImporter extends DBHelper
 			$this->_curitemids["pid"]=$this->getProductId($sku);
 			if($this->_mode!=="update")
 			{
-				$this->_curitemids["asid"]=$this->getAttributeSetId($item["attribute_set"]);				
+				$this->_curitemids["asid"]=$this->getAttributeSetId($item["attribute_set"]);
 			}
 			$this->onNewSku($sku);
-		//retrieve attribute set from given name
-		//if not in cache, add to cache
+			//retrieve attribute set from given name
+			//if not in cache, add to cache
 		}
 		else
 		{
@@ -1320,14 +1337,14 @@ class MagentoMassImporter extends DBHelper
 			exit();
 		}
 		//first step
-		
+
 		if(!$this->callProcessors("beforeId",$item,null,"processItem"))
 		{
 			return;
 		}
 		$itemids=$this->getItemIds($item);
 		$pid=$itemids["pid"];
-		$isnew=false;		
+		$isnew=false;
 		if(!isset($pid))
 		{
 			//if not found & mode !=update
@@ -1351,10 +1368,10 @@ class MagentoMassImporter extends DBHelper
 			{
 				return;
 			}
-			
+				
 			//begin transaction
 			$this->beginTransaction();
-			
+				
 			//create new ones
 			$this->createAttributes($pid,$item);
 			if(!testempty($item,"category_ids"))
@@ -1372,6 +1389,7 @@ class MagentoMassImporter extends DBHelper
 				//update stock
 				$this->updateStock($pid,$item);
 			}
+
 			$this->touchProduct($pid);
 			//ok,we're done
 			$this->commitTransaction();
@@ -1397,9 +1415,9 @@ class MagentoMassImporter extends DBHelper
 	public function lookup()
 	{
 		$t0=microtime(true);
-	
-		$count=$this->datasource->getRecordsCount();	
-		$t1=microtime(true);	
+
+		$count=$this->datasource->getRecordsCount();
+		$t1=microtime(true);
 		$time=$t1-$t0;
 		$this->log("$count:$time","lookup");
 		return $count;
@@ -1410,12 +1428,12 @@ class MagentoMassImporter extends DBHelper
 	 * @param string $csvfile : csv file name to import
 	 * @param bool $reset : destroy all products before import
 	 */
-	
+
 	public function getParam($params,$pname,$default=null)
 	{
 		return isset($params[$pname])?$params[$pname]:$default;
 	}
-	
+
 	public function createGeneralPlugins($params)
 	{
 		foreach($this->_pluginclasses["general"] as $giclass)
@@ -1424,7 +1442,7 @@ class MagentoMassImporter extends DBHelper
 			$gi->pluginInit($this,$params);
 			$this->_activeplugins["general"][]=$gi;
 		}
-		
+
 	}
 	public function createItemProcessors($params)
 	{
@@ -1434,16 +1452,16 @@ class MagentoMassImporter extends DBHelper
 			$ip=new $ipclass();
 			$ip->pluginInit($this,$params);
 			$this->_activeplugins["processors"][]=$ip;
-		}	
+		}
 	}
-	
+
 	public function createDatasource($params)
 	{
 		$dsclass=$this->datasource_class;
 		$this->datasource=new $dsclass();
 		$this->datasource->pluginInit($this,$params);
 	}
-	
+
 	public function import($params)
 	{
 		$this->init();
@@ -1452,7 +1470,7 @@ class MagentoMassImporter extends DBHelper
 		//initializing datasource
 		try
 		{
-			
+				
 			$this->log("Magento Mass Importer by dweeves - version:".MagentoMassImporter::$version,"title");
 			$this->log("step:".$this->getProp("GLOBAL","step",100),"step");
 			//initialize db connectivity
@@ -1462,7 +1480,7 @@ class MagentoMassImporter extends DBHelper
 			$this->datasource->beforeImport();
 			$this->callGeneral("beforeImport");
 			$this->registerAttributeHandler("Magmi_DefaultAttributeHandler");
-			
+				
 			$nitems=$this->lookup();
 			Magmi_StateManager::setState("running");
 			//store reset flag
@@ -1476,84 +1494,84 @@ class MagentoMassImporter extends DBHelper
 			}
 			if($nitems>0)
 			{
-			//initialize website id cache
-			$this->initWebSites();
-			//intialize store id cache
-			$this->initStores();
-			setLocale(LC_COLLATE,"fr_FR.UTF-8");
-			$this->datasource->startImport();
-			
-			//initializing item processors
-			$this->createItemProcessors($params);
-			
-			$cols=$this->datasource->getColumnNames();
-			$this->log(count($cols),"columns");
-			$this->callProcessors("columnList",$cols,null,"process");
-			//initialize attribute infos & indexes from column names
-			
-			$this->initAttrInfos($cols);
-			//counter
-			$this->current_row=0;
-			//start time
-			$tstart=microtime(true);
-			//differential
-			$tdiff=$tstart;
-			//intermediary report step
-			$this->initDbqStats();
-			$mstep=$this->getProp("GLOBAL","step",100);
-			if(!isset($mstep))
-			{
-				$mstep=100;
-			}
-			//read each line
-			$lastrec=0;
-			$lastdbtime=0;
-			while(($item=$this->datasource->getNextRecord())!==false)
-			{
+				//initialize website id cache
+				$this->initWebSites();
+				//intialize store id cache
+				$this->initStores();
+				setLocale(LC_COLLATE,"fr_FR.UTF-8");
+				$this->datasource->startImport();
+					
+				//initializing item processors
+				$this->createItemProcessors($params);
+					
+				$cols=$this->datasource->getColumnNames();
+				$this->log(count($cols),"columns");
+				$this->callProcessors("columnList",$cols,null,"process");
+				//initialize attribute infos & indexes from column names
+					
+				$this->initAttrInfos($cols);
 				//counter
-				$this->current_row++;
-				
-				try
+				$this->current_row=0;
+				//start time
+				$tstart=microtime(true);
+				//differential
+				$tdiff=$tstart;
+				//intermediary report step
+				$this->initDbqStats();
+				$mstep=$this->getProp("GLOBAL","step",100);
+				if(!isset($mstep))
 				{
-					if(is_array($item) && count($item)>0)
-					{
-						//import item
-						$this->importItem($item);
-					}
-					else
-					{
-						$this->log("ERROR - RECORD #$this->current_row - INVALID RECORD","error");
-					}
-					//intermediary measurement
-					if($this->current_row%$mstep==0)
-					{
-						$tend=microtime(true);
-						$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
-						$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
-						$lastrec=$this->_nreq;
-						$lastdbtime=$this->_indbtime;
-						$tdiff=microtime(true);
-					}
+					$mstep=100;
 				}
-				catch(Exception $e)
+				//read each line
+				$lastrec=0;
+				$lastdbtime=0;
+				while(($item=$this->datasource->getNextRecord())!==false)
 				{
-					$this->log("ERROR - RECORD #$this->current_row - ".$e->getMessage(),"error");
-				}
-				unset($item);
-			}
+					//counter
+					$this->current_row++;
 
-			$this->datasource->endImport();
-			$tend=microtime(true);
-			$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
-			$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
+					try
+					{
+						if(is_array($item) && count($item)>0)
+						{
+							//import item
+							$this->importItem($item);
+						}
+						else
+						{
+							$this->log("ERROR - RECORD #$this->current_row - INVALID RECORD","error");
+						}
+						//intermediary measurement
+						if($this->current_row%$mstep==0)
+						{
+							$tend=microtime(true);
+							$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
+							$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
+							$lastrec=$this->_nreq;
+							$lastdbtime=$this->_indbtime;
+							$tdiff=microtime(true);
+						}
+					}
+					catch(Exception $e)
+					{
+						$this->log("ERROR - RECORD #$this->current_row - ".$e->getMessage(),"error");
+					}
+					unset($item);
+				}
+
+				$this->datasource->endImport();
+				$tend=microtime(true);
+				$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
+				$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
 			}
 			$this->disconnectFromMagento();
 			$this->datasource->afterImport();
 			$this->callGeneral("afterImport");
-			
+				
 			$this->log("Import Ended","end");
 			Magmi_StateManager::setState("idle");
-			
+				
 		}
 		catch(Exception $e)
 		{
