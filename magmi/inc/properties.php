@@ -35,6 +35,13 @@ class Properties
 		{
 			$this->inifile=$file;
 			$this->_props=parse_ini_file($this->inifile,true);
+			foreach($this->_props as $sec=>$data)
+			{	
+				foreach($data as $k=>$v)
+				{
+					$this->_props[$sec][$k]=str_replace(":DQUOTE:",'"',$v);
+				}
+			}
 		}
 		catch(Exception $e)
 		{
@@ -68,7 +75,7 @@ class Properties
 	
 	public function esc($str)
 	{
-		return str_replace('"','\\"',$str);
+		return str_replace('"',':DQUOTE:',$str);
 	}
 	public function write_ini_file($assoc_arr, $path, $has_sections=FALSE) { 
     $content = ""; 
@@ -124,7 +131,8 @@ class Properties
 	{
 		if(isset($this->_props[$secname]) && isset($this->_props[$secname][$pname]))
 		{
-			return $this->_props[$secname][$pname];
+			$v=$this->_props[$secname][$pname];
+			return $v;
 		}
 		else
 		{
