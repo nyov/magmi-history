@@ -1084,7 +1084,10 @@ return "/$i1/$i2/$bimgfile";
 		$css=$this->tablename("cataloginventory_stock_status");
 		$stockid=1; //Default stock id , not found how to relate product to a specific stock id
 		$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>0?1:0);
-
+		if(!$is_in_stock && $item["qty"]>0)
+		{
+			$is_in_stock=1;
+		}
 		if($this->mode!=="update")
 		{
 				
