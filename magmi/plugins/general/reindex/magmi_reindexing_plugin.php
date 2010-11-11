@@ -44,7 +44,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 			{
 				$tstart=microtime(true);
 				$this->log("Reindexing $idx....","info");
-				exec("php $indexer --reindex $idx");
+				shell_exec("php $indexer --reindex $idx");
 				$tend=microtime(true);
 				$this->log("done in ".round($tend-$tstart,2). " secs","info");
 				if(Magmi_StateManager::getState()=="canceled")
