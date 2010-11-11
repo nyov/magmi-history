@@ -35,9 +35,20 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 		{
 			if(isset($this->_mapping["$k.csv"]))
 			{
-				if(isset($this->_mapping["$k.csv"][$item[$k]]))
+				$mpd=$this->_mapping["$k.csv"]["DIRECT"];
+				if(isset($mpd[$item[$k]]))
 				{
-					$item[$k]=$this->_mapping["$k.csv"][$item[$k]];
+					$item[$k]=$mpd[$item[$k]];
+					break;
+				}
+				$mpr=$this->_mapping["$k.csv"]["RE"];
+				foreach($mpr as $re=>$value)
+				{
+					if(preg_match("|$re|",$item[$k]))
+					{
+						$item[$k]=preg_replace("|$re|",$value,$item[$k]);
+						break;
+					}			
 				}
 			}
 		}
@@ -57,11 +68,21 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 		foreach($flist as $fname)
 		{
 			$idx=basename($fname);
-			$this->_mapping[$idx]=array();
+			$this->_mapping[$idx]=array("DIRECT"=>array(),"RE"=>array());
 			$mf=fopen("$fname","r");
 			while (($data = fgetcsv($mf, 1000, ",")) !== FALSE)
 			{
-				$this->_mapping[$idx][$data[0]]=$data[1];
+				if(substr($data[0],0,4)=="_RE:")
+				{
+					$target="RE";
+					$key=substr($data[0],4)
+				}
+				else
+				{
+					$target="DIRECT";
+					$key=$data[0];
+				}
+				$this->_mapping[$idx][$target][$key]=$data[1];
 			}
 		}
 	}
