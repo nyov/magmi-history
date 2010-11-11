@@ -102,7 +102,6 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 					break;
 					//if it's visibility ,set it to catalog/search
 				case "catalog/product_visibility":
-					$ovalue=4;
 					break;
 					//otherwise, standard option behavior
 					//get option id for value, create it if does not already exist
@@ -1395,6 +1394,10 @@ return "/$i1/$i2/$bimgfile";
 
 			$this->touchProduct($pid);
 			//ok,we're done
+			if(!$this->callProcessors("afterImport",$item,array("product_id"=>$pid,"new"=>$isnew),"processItem"))
+			{
+				return;
+			}
 			$this->commitTransaction();
 		}
 		catch(Exception $e)
