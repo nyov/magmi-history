@@ -6,16 +6,23 @@ set_include_path(ini_get("include_path").PATH_SEPARATOR."$plugin_dir/inc".PATH_S
 require_once("magmi_item_processor.php");
 require_once("magmi_datasource.php");
 
+
 class Magmi_PluginHelper
 {
 	
 	static $_plugins_cache=null;
+	
+	public static function fnsort($f1,$f2)
+	{
+		return strcmp(basename($f1),basename($f2));	
+	}
 	
 	public static function initPluginInfos($basedir,$baseclass)
 	{
 		$pgdir=dirname(__FILE__);
 		$basedir="$pgdir/../$basedir";
 		$candidates=glob("$basedir/*/*.php");
+		usort($candidates,"self::fnsort");
 		$pluginclasses=array();
 		foreach($candidates as $pcfile)
 		{
