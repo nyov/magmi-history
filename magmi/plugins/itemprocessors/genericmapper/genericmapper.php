@@ -75,7 +75,7 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 				if(substr($data[0],0,4)=="_RE:")
 				{
 					$target="RE";
-					$key=substr($data[0],4)
+					$key=substr($data[0],4);
 				}
 				else
 				{

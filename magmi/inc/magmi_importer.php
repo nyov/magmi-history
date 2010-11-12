@@ -235,7 +235,8 @@ class MagentoMassImporter extends DBHelper
 	private $_conf;
 	private $_initialized=false;
 	private $_attributehandlers;
-	private $current_row;
+	private $_current_row;
+	private $_nsku;
 	private $_optidcache=null;
 	private $_curitemids=array("sku"=>null);
 	private $_dstore;
@@ -1297,6 +1298,7 @@ return "/$i1/$i2/$bimgfile";
 			$this->_dstore=array();
 		}
 		$this->_same=false;
+		$this->_nsku++;
 	}
 
 	public function onSameSku($sku)
@@ -1460,6 +1462,11 @@ return "/$i1/$i2/$bimgfile";
 			$this->_activeplugins["processors"][]=$ip;
 		}
 	}
+	
+	public function getCurrentRow()
+	{
+		return $this->_current_row;
+	}
 
 	public function createDatasource($params)
 	{
@@ -1468,6 +1475,15 @@ return "/$i1/$i2/$bimgfile";
 		$this->datasource->pluginInit($this,$params);
 	}
 
+	public function isLastItem($item)
+	{
+		return isset($item["__MAGMI_LAST__"]);
+	}
+	
+	public function setLastItem(&$item)
+	{
+		$item["__MAGMI_LAST__"]=1;
+	}
 	public function import($params)
 	{
 		$this->init();
@@ -1518,7 +1534,7 @@ return "/$i1/$i2/$bimgfile";
 					
 				$this->initAttrInfos($cols);
 				//counter
-				$this->current_row=0;
+				$this->_current_row=0;
 				//start time
 				$tstart=microtime(true);
 				//differential
@@ -1536,8 +1552,8 @@ return "/$i1/$i2/$bimgfile";
 				while(($item=$this->datasource->getNextRecord())!==false)
 				{
 					//counter
-					$this->current_row++;
-
+					$this->_current_row++;
+					
 					try
 					{
 						if(is_array($item) && count($item)>0)
@@ -1547,13 +1563,13 @@ return "/$i1/$i2/$bimgfile";
 						}
 						else
 						{
-							$this->log("ERROR - RECORD #$this->current_row - INVALID RECORD","error");
+							$this->log("ERROR - RECORD #$this->__current_row - INVALID RECORD","error");
 						}
 						//intermediary measurement
-						if($this->current_row%$mstep==0)
+						if($this->_current_row%$mstep==0)
 						{
 							$tend=microtime(true);
-							$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
+							$this->log($this->_current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 							$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
 							$lastrec=$this->_nreq;
 							$lastdbtime=$this->_indbtime;
@@ -1562,14 +1578,18 @@ return "/$i1/$i2/$bimgfile";
 					}
 					catch(Exception $e)
 					{
-						$this->log("ERROR - RECORD #$this->current_row - ".$e->getMessage(),"error");
+						$this->log("ERROR - RECORD #$this->_current_row - ".$e->getMessage(),"error");
+					}
+					if($this->isLastItem($item))
+					{
+						break;
 					}
 					unset($item);
 				}
 
 				$this->datasource->endImport();
 				$tend=microtime(true);
-				$this->log($this->current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
+				$this->log($this->_current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 				$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
 			}
 			$this->disconnectFromMagento();
