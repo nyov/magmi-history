@@ -30,14 +30,21 @@ class DBHelper
 		$this->_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
 		//set database debug mode to trace if necessary
 		$this->_debug=$debug;
-		if($this->_debug)
-		{
-			$this->_db->query("SET GLOBAL general_log='ON' ")->execute();
-		}
 		$this->prepared=array();
 
 	}
 
+	public function logdebug($data)
+	{
+		if($this->_debug)
+		{
+			$f=fopen($this->_debugfile,"a");
+			fwrite($f,microtime());
+			fwrite($f,$data);
+			fwrite($f,"\n");
+			fclose($f);
+		}
+	}
 	public function usestmtcache($uc)
 	{
 		$this->_use_stmt_cache=$uc;
@@ -47,11 +54,6 @@ class DBHelper
 	 */
 	public function exitDb()
 	{
-		//unset database debug mode to trace if necessary
-		if($this->_debug)
-		{
-			$this->_db->query("SET GLOBAL general_log='OFF' ")->execute();
-		}
 		//clear PDO resource
 		$this->_db=NULL;
 			
@@ -117,6 +119,7 @@ class DBHelper
 		}
 		$t1=microtime(true);
 		$this->_indbtime+=$t1-$t0;
+		$this->logdebug("$sql\n".print_r($params,true));
 		return $stmt;
 	}
 
@@ -127,12 +130,12 @@ class DBHelper
 	 */
 	public function delete($sql,$params=null)
 	{
-		$this->exec_stmt($sql,$params);
+			$this->exec_stmt($sql,$params);
 	}
 
 	public function update($sql,$params=null)
 	{
-		$this->exec_stmt($sql,$params);
+			$this->exec_stmt($sql,$params);
 	}
 	/**
 	 * Perform an insert , sql should be "INSERT"
@@ -215,6 +218,8 @@ class DBHelper
 	{
 		$this->_db->beginTransaction();
 		$this->_intrans=true;
+		$this->logdebug("-- TRANSACTION BEGIN --");
+		
 	}
 
 	/**
@@ -224,6 +229,8 @@ class DBHelper
 	{
 		$this->_db->commit();
 		$this->_intrans=false;
+		$this->logdebug("-- TRANSACTION COMMIT --");
+		
 	}
 
 	/**
@@ -234,6 +241,17 @@ class DBHelper
 		if($this->_intrans)
 		{
 			$this->_db->rollBack();
+			$this->_intrans=false;
+			$this->logdebug("-- TRANSACTION ROLLBACK --");
+			
 		}
+		
 	}
+	
+	public function setDebug($debug,$debugfname)
+	{
+		$this->_debug=$debug;	
+		$this->_debugfile=$debugfname;
+	}
+	
 }
