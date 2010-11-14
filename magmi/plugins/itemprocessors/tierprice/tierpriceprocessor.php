@@ -36,10 +36,10 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		foreach(array_keys($item) as $k)
 		{
 			//if we have a tier price
-		 if(in_array($k,array_keys($this->_tpcols)))
+		 if(in_array($k,array_keys($this->_tpcol)))
 		 {
 		 	//get tier price column info
-		  $tpinf=$this->_tpcols[$k];
+		  $tpinf=$this->_tpcol[$k];
 		  //now we've got a customer group id
 		  $cgid=$tpinf["id"];
 		  //add tier price
@@ -79,7 +79,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		//inspect column list for getting tier price columns info
 		foreach($cols as $col)
 		{
-			if(preg_match("|tier_price:(.*)|",$colname,$matches))
+			if(preg_match("|tier_price:(.*)|",$col,$matches))
 			{
 				$tpinf=array("name"=>$matches[1],"id"=>null);
 				//if specific tier price 
@@ -87,7 +87,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		 		 {
 		  			//get tier price customer group id
 		  			$sql="SELECT customer_group_id from ".$this->tablename("customer_group")." WHERE customer_group_code=?";
-	 					$cgid=$this->selectone($sql,$cgname,"customer_group_id");
+	 					$cgid=$this->selectone($sql,$tpinf["name"],"customer_group_id");
 	 				$tpinf["id"]=$cgid;
 		  		}
 		  		else
