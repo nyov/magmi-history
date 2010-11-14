@@ -16,7 +16,7 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Default Values setter",
             "author" => "Dweeves",
-            "version" => "0.0.1"
+            "version" => "0.0.2"
         );
     }
 	
@@ -65,7 +65,7 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
 	
 	public function getPluginParamNames()
 	{
-		return array("DEFAULT:store","DEFAULT:websites","DEFAULT:type","DEFAULT:attribute_set");
+		return array("DEFAULT:store","DEFAULT:websites","DEFAULT:type","DEFAULT:attribute_set","DEFAULT:tax_class_id","DEFAULT:category_ids");
 	}
 	
 	public function processColumnList(&$cols,$params=null)
@@ -79,5 +79,6 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
 				$this->_dcols[]=$col;
 			}
 		}
+		return true;
 	}
 }
