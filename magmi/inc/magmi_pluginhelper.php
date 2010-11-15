@@ -22,7 +22,7 @@ class Magmi_PluginHelper
 		$pgdir=dirname(__FILE__);
 		$basedir="$pgdir/../$basedir";
 		$candidates=glob("$basedir/*/*.php");
-		usort($candidates,"self::fnsort");
+		usort($candidates,array("Magmi_PluginHelper","fnsort"));
 		$pluginclasses=array();
 		foreach($candidates as $pcfile)
 		{
