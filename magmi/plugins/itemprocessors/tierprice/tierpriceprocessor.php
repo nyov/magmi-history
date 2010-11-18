@@ -47,7 +47,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 			(entity_id,all_groups,customer_group_id,qty,value,website_id) VALUES ";
 		  $inserts=array();
 		  $data=array();
-		  $wsids=$this->getWebsiteIds($item["store"]);
+		  $wsids=$this->getStoresWebsiteIds($item["store"]);
 		  foreach($wsids as $sid)
 		  {
 		  	if($sid!=0)
