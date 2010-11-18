@@ -75,10 +75,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 							/* TODO */
 							break;
 
-						case 'field':
-						case 'area':
-							$opt['max_characters'] = $sort_order;
-							/* NO BREAK */
+				
 
 						case 'date':
 						case 'date_time':
@@ -87,7 +84,10 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 							$opt['price'] = $price;
 							$opt['sku'] = $sku;
 							break;
-
+						case 'field':
+						case 'area':
+							$opt['max_characters'] = $sort_order;
+							/* NO BREAK */
 						case 'drop_down':
 						case 'radio':
 						case 'checkbox':
@@ -127,33 +127,54 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 			$t6 = $this->tablename('catalog_product_option_type_price');
 
 			// delete old custom options
-			if(!$params['new'] ) {
+			if(!$params["same"] ) {
 				$sql = "DELETE $t1 FROM $t1 WHERE $t1.product_id=$pid";
 				$this->delete($sql);
 			}
 				
 			$oc=isset($item['options_container'])?$item['options_container']:"container2";
-			if(!in_array($item['options_container'],array('container1','container2')))
+			if(!in_array($oc,array('container1','container2')))
 			{
 				$item['options_container'] = $this->_containerMap[$oc];
 			}
-			$optionTitleSql = "INSERT INTO $t2 (option_id, store_id, title) VALUES ";
-			$optionTitleValues = array();
-
-			$optionTypeTitleSql = "INSERT INTO $t5 (option_type_id, store_id, title) VALUES ";
-			$optionTypeTitleValues = array();
-
-			$optionTypePriceSql = "INSERT INTO $t6 (option_type_id, store_id, price, price_type) VALUES ";
-			$optionTypePriceValues = array();
-
+			
+			$sids=$this->getItemStoreIds($item,0);
+			if(!$params["same"])
+			{
+				$sids=array_unique(array_merge(array(0),$sids));
+			}	
+			
 			foreach($custom_options as $option) {
 				$values = array($pid, $option['type'], $option['is_require']);
-				$sql = "INSERT INTO $t1
-                        (product_id, type, is_require)
-                        VALUES (?, ?, ?)";
+				$f="product_id, type, is_require";
+				$i="?,?,?";
+				
+				$mx=isset($option["max_characters"]);
+				if($mx)
+				{
+					$values[]=$option["max_characters"];
+					$i.=",?";
+					$f.=",max_characters";
+				}
+				
+				$sql = "INSERT INTO $t1 ($f) VALUES ($i)";
 				$optionId = $this->insert($sql, $values);
+				
+				if(count($option['values'])>0)
+				{
+					$optionTitleSql = "INSERT IGNORE INTO $t2 (option_id, store_id, title) VALUES ";
+					$optionTitleValues = array();
 
-
+					$optionPriceSql = "INSERT IGNORE INTO $t3 (option_id, store_id, price, price_type) VALUES ";
+					$optionPriceValues = array();
+					
+					$optionTypeTitleSql = "INSERT INTO $t5 (option_type_id, store_id, title) VALUES ";
+					$optionTypeTitleValues = array();
+					
+					$optionTypePriceSql = "INSERT INTO $t6 (option_type_id, store_id, price, price_type) VALUES ";
+					$optionTypePriceValues = array();
+				}			
+				
 				foreach($option['values'] as $val) 
 				{
 					$values = array($optionId, $val['sku'], $val['sort_order']);
@@ -161,36 +182,52 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
                	             (option_id, sku, sort_order)
                	             VALUES (?, ?, ?)";
 					$optionTypeId = $this->insert($sql, $values);
-
-					foreach($this->getItemStoreIds($item,2) as $sid)
+					
+					
+					foreach($sids as $sid)
 					{
 						$optionTitleSql = $optionTitleSql."(?, ?, ?),";
-						$optionTitleValues[] = $optionTypeId;
+						$optionTitleValues[] = $optionId;
 						$optionTitleValues[] = $sid;
-						$optionTitleValues[] = $val['title'];
 						
-						$optionTypeTitleSql = $optionTypeTitleSql."(?, ?, ?),";
-						$optionTypeTitleValues[] = $optionTypeId;
-						$optionTypeTitleValues[] = $sid;
-						$optionTypeTitleValues[] = $val['title'];
-	
+						$optionTitleValues[] = ($sid!=0?$val['title']:$option['title']);
+
+						
+						$optionPriceSql = $optionPriceSql."(?, ?, ?,?),";
+						$optionPriceValues[] = $optionId;
+						$optionPriceValues[] = $sid;
+						$optionPriceValues[] = ($sid!=0?$val['price']:$option['price']);
+						$optionPriceValues[] = ($sid!=0?$val['price_type']:$option['price_type']);				
+										
 						$optionTypePriceSql = $optionTypePriceSql."(?, ?, ?, ?),";
 						$optionTypePriceValues[] = $optionTypeId;
 						$optionTypePriceValues[] = $sid;
-						$optionTypePriceValues[] = $val['price'];
-						$optionTypePriceValues[] = $val['price_type'];
+						$optionTypePriceValues[] = ($sid!=0?$val['price']:$option['price']);
+						$optionTypePriceValues[] = ($sid!=0?$val['price_type']:$option['price_type']);				
+							
+						$optionTypeTitleSql = $optionTypeTitleSql."(?, ?, ?),";
+						$optionTypeTitleValues[] = $optionTypeId;
+						$optionTypeTitleValues[] = $sid;
+						$optionTypeTitleValues[] = ($sid!=0?$val['title']:$option['title']);
+	
 					}
 				}
 			}
 
-			$optionTitleSql = rtrim($optionTitleSql, ',');
-			$this->insert($optionTitleSql, $optionTitleValues);
+			if(count($option['values'])>0)
+			{
+				$optionTitleSql = rtrim($optionTitleSql, ',');
+				$this->insert($optionTitleSql, $optionTitleValues);
 
-			$optionTypeTitleSql = rtrim($optionTypeTitleSql, ',');
-			$this->insert($optionTypeTitleSql, $optionTypeTitleValues);
-
-			$optionTypePriceSql = rtrim($optionTypePriceSql, ',');
-			$this->insert($optionTypePriceSql, $optionTypePriceValues);
+				$optionTypeTitleSql = rtrim($optionTypeTitleSql, ',');
+				$this->insert($optionTypeTitleSql, $optionTypeTitleValues);
+				
+				$optionPriceSql = rtrim($optionPriceSql, ',');
+				$this->insert($optionPriceSql, $optionPriceValues);
+				
+				$optionTypePriceSql = rtrim($optionTypePriceSql, ',');
+				$this->insert($optionTypePriceSql, $optionTypePriceValues);
+			}
 		}
 		return true;
 	}
