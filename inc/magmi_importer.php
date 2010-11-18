@@ -215,7 +215,6 @@ class MagentoMassImporter extends DBHelper
 	public $status_id=array();
 	public $attribute_sets=array();
 	public $ws_store_map=array();
-	public $store_ws_map=array();
 	public $reset=false;
 	public $magdir;
 	public $imgsourcedir;
@@ -340,42 +339,34 @@ class MagentoMassImporter extends DBHelper
 		unset($result);
 	}
 
+	public function getStoresWebSiteIds($storestr)
+	{
+		$sarr=explode(",",$storestr);
+		$wsids=array();
+		foreach($sarr as $scode)
+		{
+			if(isset($this->ws_store_map["s"][$scode]))
+			{
+				$wsids=array_merge($wsids,$this->ws_store_map["s"][$scode]);
+			}
+		}
+		return array_unique($wsids);
+			
+	}
 	public function getWebsitesStoreIds($wsstr)
 	{
 		$sids=array();
 		$wsarr=explode(",",$wsstr);
 		foreach($wsarr as $ws)
 		{
-			if(!isset($this->website_ids[$ws]))
+			if(isset($this->ws_store_map["w"][$wsstr]))
 			{
-				$this->log("unknown store code:$ws","warning");
-			}
-			else
-			{
-				if(isset($this->ws_store_map[$this->website_ids[$ws]]))
-				{
-					$sids=array_merge($sids,$this->ws_store_map[$this->website_ids[$ws]]);
-				}
+				$sids=array_merge($sids,$this->ws_store_map["w"][$wsstr]);
 			}
 		}
 		return array_unique($sids);
 	}
 
-	public function getWebsiteIds($storestr)
-	{
-		if(!isset($this->store_ws_map[$storestr]))
-		{
-			$this->store_ws_map[$storestr]=array();
-			$sarr=$this->getStoreIds($storestr);
-			$sql="SELECT DISTINCT website_id FROM ".$this->tablename("core_store")." WHERE store_id IN (".implode(",",$sarr).")";
-			$result=$this->selectAll($sql,null);
-			foreach($result as $r)
-			{
-				$this->store_ws_map[$storestr][]=$r["website_id"];
-			}
-		}
-		return $this->store_ws_map[$storestr];
-	}
 	/**
 	 * logging function
 	 * @param string $data : string to log
@@ -398,19 +389,29 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function initStores()
 	{
-		$tname=$this->tablename("core_store");
-		$sql="SELECT code,store_id,website_id FROM $tname";
+		$csname=$this->tablename("core_store");
+		$wsname=$this->tablename("core_website");
+		$sql="SELECT cs.code as stcode,store_id,cs.website_id,ws.code as wscode FROM $csname as cs
+				JOIN $wsname as ws ON cs.website_id=ws.website_id";
 		$result=$this->selectAll($sql);
 		$wsm=array();
 		foreach($result as $r)
 		{
-			$this->store_ids[$r["code"]]=$r["store_id"];
+			$scode=$r["stcode"];
+			$wscode=$r["wscode"];
+			$this->store_ids[$scode]=$r["store_id"];
 			$wsid=$r["website_id"];
-			if(!isset($wsm[$wsid]))
+			if(!isset($wsm["w"][$wscode]))
 			{
-				$wsm[$wsid]=array();
+				$wsm["w"][$wscode]=array();
 			}
-			$wsm[$wsid][]=$r["store_id"];
+			if(!isset($wsm["s"][$scode]))
+			{
+				$wsm["s"][$scode]=array();
+			}
+			$wsm["w"][$wscode][]=$r["store_id"];
+			$wsm["s"][$scode][]=$wsid;
+			$wsm["s"][$scode]=array_unique($wsm["s"][$scode]);
 		}
 		unset($result);
 		$this->ws_store_map=$wsm;
@@ -841,6 +842,35 @@ return "/$i1/$i2/$bimgfile";
 
 
 
+	public function getItemStoreIds($item,$scope)
+	{
+		$bstore_ids=array();
+		switch($scope){
+			//global scope
+			case 1:
+				$bstore_ids[]=0;
+				break;
+			//store scope
+			case 0:
+				if(isset($item["store"]))
+				{
+					$bstore_ids=$this->getStoreIds($item["store"]);
+					$bstore_ids=array_unique(array_merge($this->_dstore,$bstore_ids));
+				}
+				else
+				{
+					$bstore_ids=array(0,1);
+				}
+				break;
+			//website scope
+			case 2:
+				$ws_store_ids=$this->getWebsitesStoreIds($item["store"]);
+				$bstore_ids=array_unique(array_merge($bstore_ids,$ws_store_ids));
+				break;
+		}
+			
+		return array_merge($this->_dstore,$bstore_ids);
+	}
 	/**
 	 * Create product attribute from values for a given product id
 	 * @param $pid : product id to create attribute values for
@@ -851,18 +881,6 @@ return "/$i1/$i2/$bimgfile";
 		/**
 		 * get all store ids
 		 */
-		if(isset($item["store"]))
-		{
-			$bstore_ids=$this->getStoreIds($item["store"]);
-			$bstore_ids=array_unique(array_merge($this->_dstore,$bstore_ids));
-		}
-		else
-		{
-			$bstore_ids=array(0,1);
-		}
-		//websites related store_ids
-		$ws_store_ids=$this->getWebsitesStoreIds($item["websites"]);
-		$bstore_ids=array_unique(array_merge($bstore_ids,$ws_store_ids));
 		//set pid for attribute handlers, useful for cache effects
 		foreach($this->_attributehandlers as $ah)
 		{
@@ -897,25 +915,9 @@ return "/$i1/$i2/$bimgfile";
 				$attid=$attrdesc["attribute_id"];
 				//get attribute value in the item to insert based on code
 				$ivalue=$item[$attrdesc["attribute_code"]];
-
 					
-				$store_ids=array();
-				switch($attrdesc["is_global"])
-				{
-					//store_view scope
-					case 0:
-						//use all store values from item
-						$store_ids=$bstore_ids;
-						break;
-						//global scope
-					case 1:
-						//all values impact store 0
-						$store_ids=array(0);
-						break;
-					case 2:
-						//force default store
-						$store_ids=array_unique(array_merge($this->_dstore,$ws_store_ids));
-				}
+				$store_ids=$this->getItemStoreIds($item,$attrdesc["is_global"]);
+				
 				$deletes=array();
 
 				foreach($store_ids as $store_id)
@@ -1061,6 +1063,10 @@ return "/$i1/$i2/$bimgfile";
 	}
 
 
+	public function getItemWebsites($item)
+	{
+		
+	}
 	/**
 	 * update product stock
 	 * @param int $pid : product id
@@ -1201,19 +1207,22 @@ return "/$i1/$i2/$bimgfile";
 	public function updateWebSites($pid,$item)
 	{
 		$cpst=$this->tablename("catalog_product_website");
-		//get all website codes for item (separated by , in magento export format)
-		$wscodes=explode(",",$item["websites"]);
+		//get all website codes for item from store values
+		if(isset($item["store"]))
+		{
+			$wsids=$this->getStoresWebsiteIds($item["store"]);	
+		}
 		$data=array();
 		$inserts=array();
-		//for each website code
-		foreach($wscodes as $wscode)
+		//for each website id that item is bound to
+		foreach($wsids as $wsid)
 		{
 			//new value couple to insert
 			$inserts[]="(?,?)";
 			//product id
 			$data[]=$pid;
 			//website id
-			$data[]=$this->website_ids[$wscode];
+			$data[]=$wsid;
 		}
 		//associate product with all websites in a single multi insert (use ignore to avoid duplicates)
 		$sql="INSERT IGNORE INTO `$cpst` (`product_id`, `website_id`)
@@ -1384,10 +1393,7 @@ return "/$i1/$i2/$bimgfile";
 				$this->assignCategories($pid,$item);
 			}
 			//update websites
-			if(!testempty($item,"websites"))
-			{
-				$this->updateWebSites($pid,$item);
-			}
+			$this->updateWebSites($pid,$item);
 			if(!testempty($item,"qty") && !$this->_same)
 			{
 				//update stock
