@@ -1,29 +1,55 @@
 <div class="plugin_description">
 This plugin enables to set some default item values if not found in input source.
+enter columns to set default value for in default attribute list field, separated by commas (,)
+when leaving the field, new fields will be inserted for filling default values.
 </div>
-<div style="width:400px; height:145px;">
+<?php $clist=$this->getParam("DEFAULT:columnlist")?>
+<div>
 <ul class="formline">
-	<li class="label">Default store:</li>
-	<li class="value"><input type="text" name="DEFAULT:store" value="<?php echo $this->getParam("DEFAULT:store","admin")?>"></input></li>
+	<li class="label">Default attribute list</li>
+	<li class="value"><input type="text" id="DEFAULT:columnlist" name="DEFAULT:columnlist" size="80" value="<?php echo $clist?>" onblur="dyn_buildparamlist()"></input></li>
 </ul>
-<ul class="formline">
-	<li class="label">Default websites:</li>
-	<li class="value"><input type="text" name="DEFAULT:websites" value="<?php echo $this->getParam("DEFAULT:websites","base")?>"></input></li>
-</ul>
-<ul class="formline">
-	<li class="label">Default product type:</li>
-	<li class="value"><input type="text" name="DEFAULT:type" value="<?php echo $this->getParam("DEFAULT:type","simple")?>"></input></li>
-</ul>
-<ul class="formline">
-	<li class="label">Default attribute_set:</li>
-	<li class="value"><input type="text" name="DEFAULT:attribute_set" value="<?php echo $this->getParam("DEFAULT:attribute_set","default")?>"></input></li>
-</ul>
-<ul class="formline">
-	<li class="label">Default tax class:</li>
-	<li class="value"><input type="text" name="DEFAULT:tax_class_id" value="<?php echo $this->getParam("DEFAULT:tax_class_id","Taxable Goods")?>"></input></li>
-</ul>
-<ul class="formline">
-	<li class="label">Default category_ids:</li>
-	<li class="value"><input type="text" name="DEFAULT:category_ids" value="<?php echo $this->getParam("DEFAULT:category_ids","2")?>"></input></li>
-</ul>
+<div id="DEFAULT:columnsetup">
 </div>
+</div>
+<script type="text/javascript">
+var dvals=[];
+getinputline=function(fieldname,dvalue)
+{
+	var linetpl='<ul class="formline"><li class="label">Default '+fieldname+'</li><li class="value"><input type="text" name="DEFAULT:'+fieldname+'" value="'+dvalue+'""></input></li></ul>';
+	return linetpl;
+};
+
+
+dyn_buildparamlist=function()
+{
+  var value=$F('DEFAULT:columnlist')
+  var content='';
+  if(value!="")
+  {
+ 	var arr=value.split(",");
+  	var farr=[];
+ 	 arr.each(function(it){
+ 	 	 var v=typeof(dvals[it])!='undefined'?dvals[it]:'';
+  		farr.push({'field':it,'value':v});
+  	});
+ 	 farr.each(function(it){content+=getinputline(it.field,it.value)});
+  }
+  $('DEFAULT:columnsetup').update(content);
+  
+};
+</script>
+<script type="text/javascript">
+ <?php $def=array();
+ 		$cl=$this->getParam('DEFAULT:columnlist');
+ 		if($cl!="")
+ 		{
+ 			foreach(explode(",",$cl) as $col)
+ 			{
+ 				$v=$this->getParam("DEFAULT:$col");
+ 				?>
+ 				dvals["<?php echo $col?>"]="<?php echo $v?>";
+	<?php  		}
+	 	}?>
+ 	dyn_buildparamlist();
+</script>

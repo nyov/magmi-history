@@ -16,7 +16,7 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Default Values setter",
             "author" => "Dweeves",
-            "version" => "0.0.2"
+            "version" => "0.0.3"
         );
     }
 	
@@ -53,20 +53,28 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
 	
 	public function initialize($params)
 	{
-		$pp=$this->getPluginParams($params);
-		foreach($pp as $k=>$v)
+		foreach($params as $k=>$v)
 		{
-			if(preg_match_all("/^DEFAULT:(.*)$/",$k,$m))
+			if(preg_match_all("/^DEFAULT:(.*)$/",$k,$m) && $k!="DEFAULT:columnlist")
 			{
-				$this->_dset[$m[1][0]]=$pp[$k];
+				$this->_dset[$m[1][0]]=$params[$k];
 			}
 		}
 	}
 	
-	public function getPluginParamNames()
+	public function getPluginParams($params)
 	{
-		return array("DEFAULT:store","DEFAULT:websites","DEFAULT:type","DEFAULT:attribute_set","DEFAULT:tax_class_id","DEFAULT:category_ids");
+		$pp=array();
+		foreach($params as $k=>$v)
+		{
+			if(preg_match("/^DEFAULT:.*$/",$k))
+			{
+				$pp[$k]=$v;
+			}
+		}	
+		return $pp;
 	}
+	
 	
 	public function processColumnList(&$cols,$params=null)
 	{
