@@ -133,8 +133,10 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 			}
 				
 			$oc=isset($item['options_container'])?$item['options_container']:"container2";
-			$item['options_container'] = $this->_containerMap[$oc];
-
+			if(!in_array($item['options_container'],array('container1','container2')))
+			{
+				$item['options_container'] = $this->_containerMap[$oc];
+			}
 			$optionTitleSql = "INSERT INTO $t2 (option_id, store_id, title) VALUES ";
 			$optionTitleValues = array();
 
@@ -151,10 +153,6 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
                         VALUES (?, ?, ?)";
 				$optionId = $this->insert($sql, $values);
 
-				$optionTitleSql = $optionTitleSql."(?, ?, ?),";
-				$optionTitleValues[] = $optionId;
-				$optionTitleValues[] = 0;
-				$optionTitleValues[] = $option['title'];
 
 				foreach($option['values'] as $val) 
 				{
@@ -166,6 +164,11 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 
 					foreach($this->getItemStoreIds($item,2) as $sid)
 					{
+						$optionTitleSql = $optionTitleSql."(?, ?, ?),";
+						$optionTitleValues[] = $optionTypeId;
+						$optionTitleValues[] = $sid;
+						$optionTitleValues[] = $val['title'];
+						
 						$optionTypeTitleSql = $optionTypeTitleSql."(?, ?, ?),";
 						$optionTypeTitleValues[] = $optionTypeId;
 						$optionTypeTitleValues[] = $sid;
