@@ -1,9 +1,15 @@
 @CHARSET "UTF-8";
 
+.datasource_plugin_config,.itemprocessor_plugin_config,.general_plugin_config
+{
+	clear:both;
+}
+
 ul.formline
 {
 	width:100%;
 	padding-left:0px;
+	clear:both;
 }
 
 ul.formline li
@@ -17,12 +23,12 @@ ul.formline li
 ul.formline li.label
 {
 	text-align: left;
-	clear:both;
+	width:200px;
 }
 
 ul.formline li.value
 {
-	float:right;
+	float:left;
 }
 
 .col
