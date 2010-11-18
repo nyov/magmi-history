@@ -1377,7 +1377,7 @@ return "/$i1/$i2/$bimgfile";
 		}
 		try
 		{
-			if(!$this->callProcessors("afterId",$item,array("product_id"=>$pid,"new"=>$isnew),"processItem"))
+			if(!$this->callProcessors("afterId",$item,array("product_id"=>$pid,"new"=>$isnew,"same"=>$this->_same),"processItem"))
 			{
 				return;
 			}
@@ -1402,7 +1402,7 @@ return "/$i1/$i2/$bimgfile";
 
 			$this->touchProduct($pid);
 			//ok,we're done
-			if(!$this->callProcessors("afterImport",$item,array("product_id"=>$pid,"new"=>$isnew),"processItem"))
+			if(!$this->callProcessors("afterImport",$item,array("product_id"=>$pid,"new"=>$isnew,"same"=>$this->_same),"processItem"))
 			{
 				return;
 			}
