@@ -14,7 +14,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Custom Options",
             "author" => "Pablo & Dweeves",
-            "version" => "0.0.2"
+            "version" => "0.0.3"
             );
 	}
 
@@ -30,9 +30,11 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		$custom_options = array();
 		$itemCopy = $item;
 
-		foreach($itemCopy as $field=>$value) {
+		foreach($itemCopy as $field=>$value) 
+		{
 			$fieldParts = explode(':', $field);
-			if(count($fieldParts)>2 && $value) {
+			if(count($fieldParts)>2 && $value) 
+			{
 				$sort_order=0;
 					
 				unset($item[$field]);
@@ -48,7 +50,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 				}
 				//@list($title,$type,$is_required,$sort_order) = $fieldParts;
 				$title = ucfirst(str_replace('_',' ',$title));
-				$custom_options[] = array(
+				$opt = array(
                     'is_delete'=>0,
                     'title'=>$title,
                     'previous_group'=>'',
@@ -59,29 +61,15 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
                     'values'=>array()
 				);
 				$values = explode('|',$value);
-				foreach($values as $v) {
+				foreach($values as $v)
+				{
 					$parts = explode(':',$v);
+					$c=count($parts);
 					$title = $parts[0];
-					if(count($parts)>1) {
-						$price_type = $parts[1];
-					} else {
-						$price_type = 'fixed';
-					}
-					if(count($parts)>2) {
-						$price = $parts[2];
-					} else {
-						$price =0;
-					}
-					if(count($parts)>3) {
-						$sku = $parts[3];
-					} else {
-						$sku='';
-					}
-					if(count($parts)>4) {
-						$sort_order = $parts[4];
-					} else {
-						$sort_order = 0;
-					}
+					$price_type=($c>1)?$parts[1]:'fixed';
+					$price=($c>2)?$parts[2]:0;
+					$sku=($c>3)?$parts[3]:'';
+					$sort_order=($c>4)?$parts[4]:0;
 					switch($type) {
 						case 'file':
 							/* TODO */
@@ -89,15 +77,15 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 
 						case 'field':
 						case 'area':
-							$custom_options[count($custom_options) - 1]['max_characters'] = $sort_order;
+							$opt['max_characters'] = $sort_order;
 							/* NO BREAK */
 
 						case 'date':
 						case 'date_time':
 						case 'time':
-							$custom_options[count($custom_options) - 1]['price_type'] = $price_type;
-							$custom_options[count($custom_options) - 1]['price'] = $price;
-							$custom_options[count($custom_options) - 1]['sku'] = $sku;
+							$opt['price_type'] = $price_type;
+							$opt['price'] = $price;
+							$opt['sku'] = $sku;
 							break;
 
 						case 'drop_down':
@@ -105,7 +93,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 						case 'checkbox':
 						case 'multiple':
 						default:
-							$custom_options[count($custom_options) - 1]['values'][]=array(
+							$opt['values'][]=array(
                                 'is_delete'=>0,
                                 'title'=>$title,
                                 'option_type_id'=>-1,
@@ -117,15 +105,15 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 							break;
 					}
 				}
+				$custom_options[]=$opt;
 			}
 		}
 
 
 		// create new custom options
 		if(count($custom_options)>0) {
-			
+				
 			$pid = $params['product_id'];
-
 			$tname=$this->tablename('catalog_product_entity');
 			$data = array($hasOptions, $requiredOptions, $pid);
 			$sql="UPDATE `$tname` SET has_options=?,required_options=? WHERE entity_id=?";
@@ -139,11 +127,11 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 			$t6 = $this->tablename('catalog_product_option_type_price');
 
 			// delete old custom options
-			if(!$params['new']) {
+			if(!$params['new'] ) {
 				$sql = "DELETE $t1 FROM $t1 WHERE $t1.product_id=$pid";
 				$this->delete($sql);
 			}
-			
+				
 			$oc=isset($item['options_container'])?$item['options_container']:"container2";
 			$item['options_container'] = $this->_containerMap[$oc];
 
@@ -168,23 +156,27 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 				$optionTitleValues[] = 0;
 				$optionTitleValues[] = $option['title'];
 
-				foreach($option['values'] as $val) {
+				foreach($option['values'] as $val) 
+				{
 					$values = array($optionId, $val['sku'], $val['sort_order']);
 					$sql = "INSERT INTO $t4
-                            (option_id, sku, sort_order)
-                            VALUES (?, ?, ?)";
+               	             (option_id, sku, sort_order)
+               	             VALUES (?, ?, ?)";
 					$optionTypeId = $this->insert($sql, $values);
 
-					$optionTypeTitleSql = $optionTypeTitleSql."(?, ?, ?),";
-					$optionTypeTitleValues[] = $optionTypeId;
-					$optionTypeTitleValues[] = 0;
-					$optionTypeTitleValues[] = $val['title'];
-
-					$optionTypePriceSql = $optionTypePriceSql."(?, ?, ?, ?),";
-					$optionTypePriceValues[] = $optionTypeId;
-					$optionTypePriceValues[] = 0;
-					$optionTypePriceValues[] = $val['price'];
-					$optionTypePriceValues[] = $val['price_type'];
+					foreach($this->getItemStoreIds($item,2) as $sid)
+					{
+						$optionTypeTitleSql = $optionTypeTitleSql."(?, ?, ?),";
+						$optionTypeTitleValues[] = $optionTypeId;
+						$optionTypeTitleValues[] = $sid;
+						$optionTypeTitleValues[] = $val['title'];
+	
+						$optionTypePriceSql = $optionTypePriceSql."(?, ?, ?, ?),";
+						$optionTypePriceValues[] = $optionTypeId;
+						$optionTypePriceValues[] = $sid;
+						$optionTypePriceValues[] = $val['price'];
+						$optionTypePriceValues[] = $val['price_type'];
+					}
 				}
 			}
 
