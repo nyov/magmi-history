@@ -14,6 +14,6 @@ File to import:
 	<?php }?>
 </select>
 <div>
-<span class="">CSV separator:</span><input type="text" maxlength="1" size="1" name="CSV:separator" value="<?php echo $this->getParam("CSV:separator")?>"></input>
-<span class="">CSV Enclosure:</span><input type="text" maxlength="1" size="1" name="CSV:enclosure" value='<?php echo $this->getParam("CSV:enclosure")?>'></input>
+<span class="">CSV separator:</span><input type="text" maxlength="3" size="3" name="CSV:separator" value="<?php echo $this->getParam("CSV:separator")?>"></input>
+<span class="">CSV Enclosure:</span><input type="text" maxlength="3" size="3" name="CSV:enclosure" value='<?php echo $this->getParam("CSV:enclosure")?>'></input>
 </div>
