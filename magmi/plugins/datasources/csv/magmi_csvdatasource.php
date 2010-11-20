@@ -10,6 +10,8 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	protected $_fh;
 	protected $_cols;
 	protected $_csep;
+	protected $_dcsep;
+	
 	protected $_buffersize;
 	protected $_curline;
 	protected $_nhcols;
@@ -18,6 +20,13 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	{
 		$this->_filename=$this->getParam("CSV:filename");
 		$this->_csep=$this->getParam("CSV:separator",",");
+		$this->_dcsep=$this->_csep;
+		
+		if($this->_csep=="\\t")
+		{
+			$this->_csep="\t";
+		}
+		
 		$this->_cenc=$this->getParam("CSV:enclosure",'"');
 		$this->_buffersize=$this->getParam("CSV:buffer",0);
 		$this->_curline=0;
@@ -65,7 +74,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function beforeImport()
 	{
-		$this->log("Importing CSV : $this->_filename using separator [ $this->_csep ] enclosing [ $this->_cenc ]","startup");
+		$this->log("Importing CSV : $this->_filename using separator [ $this->_dcsep ] enclosing [ $this->_cenc ]","startup");
 	}
 	
 	public function afterImport()
