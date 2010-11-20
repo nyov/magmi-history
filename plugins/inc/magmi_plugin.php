@@ -153,8 +153,9 @@ abstract class Magmi_Plugin
 	
 	public function log($data,$type='std')
 	{
+		$pinf=$this->getPluginInfo();
 		
-		$this->_mmi->log($data,"plugin;$this->_class;$type");
+		$this->_mmi->log("{$pinf["name"]} v{$pinf["version"]} - $data","plugin;$this->_class;$type");
 	}
 	
 	public function pluginHello()
