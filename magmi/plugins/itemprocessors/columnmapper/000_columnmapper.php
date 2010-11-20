@@ -5,18 +5,17 @@
  *
  * This class is a sample for item processing   
 */ 
-class DefaultValuesItemProcessor extends Magmi_ItemProcessor
+class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 {
 
-	protected $_dset=array();
 	protected $_dcols=array();
 	
     public function getPluginInfo()
     {
         return array(
-            "name" => "Default Values setter",
+            "name" => "Column mapper",
             "author" => "Dweeves",
-            "version" => "0.0.4"
+            "version" => "0.0.1"
         );
     }
 	
@@ -30,34 +29,40 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
 	 * 		false if you want to skip item import after your processing
 	 */
 	
-	
-	public function processItemBeforeId(&$item,$params=null)
+	public function processColumnList(&$cols,$params=null)
 	{
-		foreach($this->_dcols as $col)
+		for($i=0;$i<count($cols);$i++)
 		{
-			$item[$col]=$this->_dset[$col];
+			$cname=$cols[$i];
+			if(isset($this->_dcols[$cname]))
+			{
+				$cols[$i]=$this->_dcols[$cname];
+				$this->log("Replacing Column $cname by ".$cols[$i],"startup");
+			}
 		}
 		return true;
 	}
 	
-	public function processItemAfterId(&$item,$params=null)
+	public function processItemBeforeId(&$item,$params)
 	{
+		foreach($this->_dcols as $oname=>$mname)
+		{
+			if(isset($item[$oname]))
+			{
+				$item[$mname]=$item[$oname];
+				unset($item[$oname]);
+			}
+		}
 		return true;
 	}
-	
-	/*
-	public function processItemException(&$item,$params=null)
-	{
-		
-	}*/
 	
 	public function initialize($params)
 	{
 		foreach($params as $k=>$v)
 		{
-			if(preg_match_all("/^DEFAULT:(.*)$/",$k,$m) && $k!="DEFAULT:columnlist")
+			if(preg_match_all("/^CMAP:(.*)$/",$k,$m) && $k!="CMAP:columnlist")
 			{
-				$this->_dset[$m[1][0]]=$params[$k];
+				$this->_dcols[$m[1][0]]=$params[$k];
 			}
 		}
 	}
@@ -67,28 +72,11 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
 		$pp=array();
 		foreach($params as $k=>$v)
 		{
-			if(preg_match("/^DEFAULT:.*$/",$k))
+			if(preg_match("/^CMAP:.*$/",$k))
 			{
 				$pp[$k]=$v;
 			}
 		}	
 		return $pp;
-	}
-	
-	
-	public function processColumnList(&$cols,$params=null)
-	{
-		$dcols=array_diff(array_keys($this->_dset),array_intersect($cols,array_keys($this->_dset)));
-		foreach($dcols as $col)
-		{
-			if(!empty($this->_dset[$col]))
-			{
-				$cols[]=$col;
-				$this->_dcols[]=$col;								
-			}
-		}
-		$this->log("Adding Columns ".implode(",",$dcols),"startup");
-		
-		return true;
-	}
+	}	
 }
