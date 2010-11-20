@@ -210,7 +210,6 @@ class MagentoMassImporter extends DBHelper
 
 	public $attrinfo=array();
 	public $attrbytype=array();
-	public $website_ids=array();
 	public $store_ids=array();
 	public $status_id=array();
 	public $attribute_sets=array();
@@ -321,22 +320,6 @@ class MagentoMassImporter extends DBHelper
 	public function registerAttributeHandler($ahclass)
 	{
 		$this->_attributehandlers[]=new $ahclass($this);
-	}
-	/**
-	 * Initialize websites list
-	 */
-	public function initWebsites()
-	{
-
-		//Get all websites code/ids
-		$tname=$this->tablename("core_website");
-		$sql="SELECT code,website_id FROM $tname";
-		$result=$this->selectAll($sql);
-		foreach($result as $r)
-		{
-			$this->website_ids[$r["code"]]=$r["website_id"];
-		}
-		unset($result);
 	}
 
 	public function getStoresWebSiteIds($storestr)
@@ -855,21 +838,25 @@ return "/$i1/$i2/$bimgfile";
 				if(isset($item["store"]))
 				{
 					$bstore_ids=$this->getStoreIds($item["store"]);
-					$bstore_ids=array_unique(array_merge($this->_dstore,$bstore_ids));
 				}
 				else
 				{
-					$bstore_ids=array(0,1);
+					if(isset($item["websites"]))
+					{
+						$bstore_ids=$this->getWebsitesStoreIds($item["websites"]);
+					}
 				}
 				break;
 			//website scope
 			case 2:
-				$ws_store_ids=$this->getWebsitesStoreIds($item["store"]);
+				$ws_store_ids=$this->getWebsitesStoreIds($item["websites"]);					
 				$bstore_ids=array_unique(array_merge($bstore_ids,$ws_store_ids));
 				break;
 		}
-			
-		return array_merge($this->_dstore,$bstore_ids);
+		
+		$itemstores=array_unique(array_merge($this->_dstore,$bstore_ids));
+		sort($itemstores);
+		return $itemstores;
 	}
 	/**
 	 * Create product attribute from values for a given product id
@@ -1063,10 +1050,6 @@ return "/$i1/$i2/$bimgfile";
 	}
 
 
-	public function getItemWebsites($item)
-	{
-		
-	}
 	/**
 	 * update product stock
 	 * @param int $pid : product id
@@ -1113,17 +1096,17 @@ return "/$i1/$i2/$bimgfile";
 			`stock_status_changed_automatically`=VALUES(`stock_status_changed_automatically`)";
 			$data=array($pid,$stockid,$item["qty"],$is_in_stock,$lsdate,1);
 			$this->insert($sql,$data);
-			$sql="INSERT INTO `$css` (`website_id`,`product_id`,`stock_id`,`qty`,`stock_status`)";
-			$wscodes=explode(",",$item["websites"]);
 			unset($data);
+			$sql="INSERT INTO `$css` (`website_id`,`product_id`,`stock_id`,`qty`,`stock_status`)";
 			$data=array();
 			$inserts=array();
-				
+			
+			$wsids=$this->getStoresWebsiteIds($item["store"]);	
 			//for each website code
-			foreach($wscodes as $wscode)
+			foreach($wsids as $wsid)
 			{
 				$inserts[]="(?,?,?,?,?)";
-				$data[]=$this->website_ids[$wscode];
+				$data[]=$wsid;
 				$data[]=$pid;
 				$data[]=$stockid;
 				$data[]=$item["qty"];
@@ -1522,8 +1505,6 @@ return "/$i1/$i2/$bimgfile";
 			}
 			if($nitems>0)
 			{
-				//initialize website id cache
-				$this->initWebSites();
 				//intialize store id cache
 				$this->initStores();
 				setLocale(LC_COLLATE,"fr_FR.UTF-8");
