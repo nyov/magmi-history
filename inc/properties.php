@@ -11,7 +11,9 @@ class Properties
 {
 	protected $_props;
 	public $inifile;
-	
+	protected $_specialchars=array('"'=>":DQUOTE:",
+								   "'"=>":SQUOTE:",
+								   '\\t'=>"TAB");
 	public function __construct()
 	{
 		$this->inifile=null;
@@ -39,7 +41,15 @@ class Properties
 			{	
 				foreach($data as $k=>$v)
 				{
-					$this->_props[$sec][$k]=str_replace(":DQUOTE:",'"',$v);
+					foreach($this->_specialchars as $spch=>$alias)
+					{
+						$newv=str_replace($alias,$spch,$v);
+						if($newv!=$v)
+						{
+							break;
+						}
+					}
+					$this->_props[$sec][$k]=$newv;
 				}
 			}
 		}
@@ -75,8 +85,13 @@ class Properties
 	
 	public function esc($str)
 	{
-		return str_replace('"',':DQUOTE:',$str);
+		foreach($this->_specialchars as $spch=>$alias)
+		{
+			$str=str_replace($spch,$alias,$str);
+		}
+		return $str;
 	}
+	
 	public function write_ini_file($assoc_arr, $path, $has_sections=FALSE) { 
     $content = ""; 
     if ($has_sections) { 
