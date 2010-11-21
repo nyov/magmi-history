@@ -37,10 +37,11 @@ class Magmi_PluginHelper
 	{
 		return strcmp(basename($f1),basename($f2));	
 	}
-	
-	public function initPluginInfos($basedir,$baseclass)
+		
+  
+	public function initPluginInfos($baseclass)
 	{
-		$candidates=glob("$this->plugin_dir/$basedir/*/*.php");
+		$candidates=glob("$this->plugin_dir/*/*/*/*.php");
 		usort($candidates,array("Magmi_PluginHelper","fnsort"));
 		$pluginclasses=array();
 		foreach($candidates as $pcfile)
@@ -98,9 +99,9 @@ class Magmi_PluginHelper
 	{
 		if(!isset(self::$_plugins_cache))
 		{
-			self::$_plugins_cache=array("itemprocessors"=>self::initPluginInfos("itemprocessors","Magmi_ItemProcessor"),
-				"datasources"=>self::initPluginInfos("datasources","Magmi_Datasource"),
-				"general"=>self::initPluginInfos("general","Magmi_GeneralImportPlugin"));
+			self::$_plugins_cache=array("itemprocessors"=>self::initPluginInfos("Magmi_ItemProcessor"),
+				"datasources"=>self::initPluginInfos("Magmi_Datasource"),
+				"general"=>self::initPluginInfos("Magmi_GeneralImportPlugin"));
 		}
 	}
 	
@@ -138,11 +139,24 @@ class Magmi_PluginHelper
 	
 	public function installPluginPackage($pkgname)
 	{
-		
-	}
+		$zip = new ZipArchive();
+     	$res = $zip->open($pkgname);
+     	if ($res === TRUE) 
+     	{
+         $zip->extractTo($this->plugin_dir);
+         $zip->close();
+         return array("plugin_install"=>"OK");
+     	} 
+     	else 
+     	{
+     		return array("plugin_install"=>"ERROR",
+     					 "ERROR"=>"Invalid Plugin Package Archive");
+     	}
+     }	
 	
-	public function removePlugin($pgclass)
+	
+	public function removePlugin($pgpath)
 	{
-		
+		unlink($pgpath);
 	}
 }
