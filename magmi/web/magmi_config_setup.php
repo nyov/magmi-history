@@ -1,5 +1,4 @@
 <div class="container_12">
-
 	<div class="grid_12 subtitle">Configuration</div>
 </div>
 <div class="clear"></div>
@@ -26,10 +25,7 @@ $conf_ok=1;
 			target.value=context.arr.join(",");
 		});
 	};
-	
-	
 </script>
-
 <form method="post" action="magmi_saveconfig.php" onsubmit="return gatherclasses(['GENERAL','ITEMPROCESSORS'])">
 <div class="container_12">
 	<div class="grid_4 col">
@@ -83,21 +79,14 @@ $conf_ok=1;
 	</ul>
 	
 	</div>
-	<div class="clear"></div>
 	
-	</div>
-
-<div class="container_12">
 	<div class="grid_12 subtitle">Enabled Plugins</div>
-</div>
-<div class="clear"></div>
 <?php
 require_once("magmi_pluginhelper.php");
 $plugins=Magmi_PluginHelper::getInstance()->getPluginClasses();
 $order=array("datasources","general","itemprocessors");
 ?>
 
-<div class="container_12">
 	<?php foreach($order as $k)
 	{?>
 	<div class="grid_4 col <?php if($k==$order[count($order)-1]){?>omega<?php }?>">
@@ -141,19 +130,22 @@ $order=array("datasources","general","itemprocessors");
 		}?>
 	</div>
 	<?php }?>
-</div>
-<div class="container_12">
 	<div style="float:right">
 		<input type="submit" value="Apply Configuration" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>></input>
 	</div>
 </div>
 </form>
 <!-- UPLOADER -->
-<form method="post" enctype="multipart/form-data" action="plugin_upload.php">
 <div class="container_12">
+<form method="post" enctype="multipart/form-data" action="plugin_upload.php">
 	<div class="grid_12 col"><h3>Upload New Plugins</h3>
 		<input type="file" name="plugin_package"></input>
 		<input type="submit" value="Upload Plugins"></input>
-	</div>
+<?php if(isset($_SESSION["plugin_install_error"])){?>
+<div class="plupload_error">
+<?php echo $_SESSION["plugin_install_error"];?>
+</div>
+<?php }?>
 </div>
 </form>
+</div>
