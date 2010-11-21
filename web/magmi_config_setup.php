@@ -92,7 +92,7 @@ $conf->load();
 <div class="clear"></div>
 <?php
 require_once("magmi_pluginhelper.php");
-$plugins=Magmi_PluginHelper::getPluginClasses();
+$plugins=Magmi_PluginHelper::getInstance()->getPluginClasses();
 $order=array("datasources","general","itemprocessors");
 ?>
 <div class="container_12">
@@ -106,7 +106,7 @@ $order=array("datasources","general","itemprocessors");
 			<?php $pinf=$plugins[$k];?>
 			<?php foreach($pinf as $pclass)
 			{
-			$pinst=Magmi_PluginHelper::createInstance($pclass);
+			$pinst=Magmi_PluginHelper::getInstance()->createInstance($pclass);
 			$pinfo=$pinst->getPluginInfo();
 			?>
 			<option value="<?php echo $pclass?>"<?php  if($conf->isPluginEnabled($k,$pclass)){?>selected="selected"<?php }?>><?php echo $pinfo["name"]." v".$pinfo["version"];?></option>
@@ -120,7 +120,7 @@ $order=array("datasources","general","itemprocessors");
 		<ul>
 		<?php $pinf=$plugins[$k];?>
 		<?php foreach($pinf as $pclass)	{
-			$pinst=Magmi_PluginHelper::createInstance($pclass);
+			$pinst=Magmi_PluginHelper::getInstance()->createInstance($pclass);
 			$pinfo=$pinst->getPluginInfo();
 		?>
 		<li><input type="checkbox" class="pl_<?php echo strtoupper($k)?>" name="<?php echo $pclass?>" <?php if($conf->isPluginEnabled($k,$pclass)){?>checked="checked"<?php }?>><?php echo $pinfo["name"]." v".$pinfo["version"];?></input></li>

@@ -34,7 +34,7 @@
 		$conf->load();
 		$dst=$conf->getEnabledPluginClasses("datasources");
 		$ds=$dst[0];
-		$dsinst=Magmi_PluginHelper::createInstance($ds);
+		$dsinst=Magmi_PluginHelper::getInstance()->createInstance($ds);
 		$dsinfo=$dsinst->getPluginInfo();
 	?>
 	<div class="datasource_plugin_config">
@@ -49,7 +49,7 @@
 		{
 		foreach($conf->getEnabledPluginClasses("GENERAL") as $plc){?>
 		<div class="general_plugin_config">
-			<?php $plinst=Magmi_PluginHelper::createInstance($plc); 
+			<?php $plinst=Magmi_PluginHelper::getInstance()->createInstance($plc); 
 				  $plinfo=$plinst->getPluginInfo();
 				  $panel=$plinst->getOptionsPanel();
 				  ?>
@@ -66,7 +66,7 @@
 		{
 			foreach($conf->getEnabledPluginClasses("ITEMPROCESSORS") as $plc){?>
 			<div class="itemprocessor_plugin_config">
-			<?php $plinst=Magmi_PluginHelper::createInstance($plc); 
+			<?php $plinst=Magmi_PluginHelper::getInstance()->createInstance($plc); 
 				  $plinfo=$plinst->getPluginInfo();
 				  $panel=$plinst->getOptionsPanel();
 				  ?>
