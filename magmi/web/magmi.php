@@ -34,7 +34,15 @@
 	<div class="clear"></div>
 </div>
 <?php
-	if(FSHelper::isDirWritable("../state") && FSHelper::isDirWritable("../conf"))
+	$badrights=array();
+	foreach(array("../state","../conf","../plugins") as $dirname)
+	{
+		if(!FSHelper::isDirWritable($dirname))
+		{
+			$badrights[]=$dirname;
+		}
+	}
+	if(count($badrights)==0)
 	{
 	
 		if(isset($_REQUEST["run"]) && file_exists("../conf/magmi.ini"))
@@ -57,10 +65,18 @@
 	else
 	{
 		?>
-	<div class="container_12 config_error">
+	
+	<div class="container_12" style="margin-top:5px">
+		<div class="magmi_error">
 		Directory permissions not compatible with Mass Importer operations
-		<br/>
-		PHP/Web Server must have write permissions to magmi/state &amp; magmi/conf directory
+		<ul>
+		<?php foreach($badrights as $dirname){
+			$trname=str_replace("..","magmi",$dirname);
+			?>
+			<li><?php echo $trname?> not writable!</li>
+		<?php }?>
+		</ul>
+		</div>
 	</div>
 		<?php 
 	}
