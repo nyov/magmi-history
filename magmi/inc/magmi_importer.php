@@ -267,7 +267,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		try
 		{
-			$pluginclasses=Magmi_PluginHelper::getPluginClasses();
+			$pluginclasses=Magmi_PluginHelper::getInstance()->getPluginClasses();
 			$this->_activeplugins=array("general"=>array(),"processors"=>array());
 			$this->_conf=Magmi_Config::getInstance();
 			$this->_conf->load();
