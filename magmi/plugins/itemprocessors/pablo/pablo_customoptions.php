@@ -52,9 +52,9 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		$t1 = $this->tablename('catalog_product_option');
 		$t2 = $this->tablename('catalog_product_option_title');
 		$t3 = $this->tablename('catalog_product_option_price');
-		$values = array($pid, $opt['type'], $opt['is_require']);
-		$f="product_id, type, is_require";
-		$i="?,?,?";
+		$values = array($pid, $opt['type'], $opt['is_require'],$opt['sort_order']);
+		$f="product_id, type, is_require,sort_order";
+		$i="?,?,?,?";
 
 		$mx=isset($opt["max_characters"]);
 		if($mx)
@@ -171,13 +171,10 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 	public function BuildCustomOption($field,$value)
 	{
 		$fieldParts=explode(":",$field);
-		$sort_order=0;
 		$title = $fieldParts[0];
 		$type = $fieldParts[1];
 		$is_required = $fieldParts[2];
-		if(isset($fieldParts[3])) {
-			$sort_order = $fieldParts[3];
-		}
+		$sort_order = isset($fieldParts[3])?$fieldParts[3]:0;
 		//@list($title,$type,$is_required,$sort_order) = $fieldParts;
 		$title = ucfirst(str_replace('_',' ',$title));
 		$opt = array(
