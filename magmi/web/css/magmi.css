@@ -315,10 +315,14 @@ div.log_error
 	margin:2px;
 }
 
-.plupload_error
+.plupload_error,.magmi_error
 {
 	border:1px #cc0000 solid;
 	background-color:#ffaaaa;
 	color:#000000;
 	font-weight:normal;
+}
+.magmi_error li
+{
+	list-style: disc inside;
 }
