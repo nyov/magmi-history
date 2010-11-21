@@ -61,8 +61,7 @@ class Magmi_PluginOptionsPanel
 	
 	public function getFile()
 	{
-		$dir=Magmi_PluginHelper::getInstance()->getPluginDir($this->_plugin);
-		return 	$dir."/options_panel.php";
+		return 	"options_panel.php";
 	}
 
 	public final function initDefaultHtml()
@@ -77,7 +76,8 @@ class Magmi_PluginOptionsPanel
 	public function getHtml()
 	{
 		$plugin=$this->_plugin;
-		$panelfile=$this->getFile();
+		$pdir=Magmi_PluginHelper::getInstance()->getPluginDir($this->_plugin);
+		$panelfile="$pdir/".$this->getFile();
 		$content="";
 		if(!file_exists($panelfile))
 		{
