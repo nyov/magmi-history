@@ -314,3 +314,11 @@ div.log_error
 	background-color:#dddddd;
 	margin:2px;
 }
+
+.plupload_error
+{
+	border:1px #cc0000 solid;
+	background-color:#ffaaaa;
+	color:#000000;
+	font-weight:normal;
+}
