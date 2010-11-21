@@ -7,6 +7,7 @@
 require_once("magmi_config.php");
 $conf=Magmi_Config::getInstance();
 $conf->load();
+$conf_ok=1;
 ?>
 <script type="text/javascript">
 	addclass=function(it,o)
@@ -103,8 +104,10 @@ $order=array("datasources","general","itemprocessors");
 		<h3><?php echo ucfirst($k)?></h3>
 		<?php if($k=="datasources")
 		{?>
-			<select name="PLUGINS_DATASOURCES:class">
 			<?php $pinf=$plugins[$k];?>
+			<?php if(count($pinf)>0){?>
+			<select name="PLUGINS_DATASOURCES:class">
+			
 			<?php foreach($pinf as $pclass)
 			{
 			$pinst=Magmi_PluginHelper::getInstance()->createInstance($pclass);
@@ -114,6 +117,12 @@ $order=array("datasources","general","itemprocessors");
 			<?php }?>
 					
 			</select>
+			<?php }else{
+						$conf_ok=0;
+				
+				?>
+			Magmi needs a datasource plugin, please install one
+			<?php }?>
 			<?php 
 		}
 		else
@@ -135,7 +144,7 @@ $order=array("datasources","general","itemprocessors");
 </div>
 <div class="container_12">
 	<div style="float:right">
-		<input type="submit" value="Apply Configuration"></input>
+		<input type="submit" value="Apply Configuration" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>></input>
 	</div>
 </div>
 </form>
