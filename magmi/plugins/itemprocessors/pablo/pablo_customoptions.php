@@ -199,31 +199,19 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		{
 			$ovalues=array();
 			$parts = explode(':',$v);
-			if(count($values)>1)
-			{
 			
-				if($v==$values[0])
-				{
-					$opt["title"] = $parts[0];
-					$vtitle=array_pop($parts);
-					
-					if($vtitle!=$opt["title"])
-					{
-						$ovalues["title"]=$vtitle;
-					}
-				}
-				else
-				{
-						$ovalues["title"]=$parts[0];			
-				}
+			if(count($parts)>1 && $v==$values[0])
+			{
+				$opt["title"]=$parts[0];
+				$vtitle=array_pop($parts);
 			}
 			else
 			{
-					$opt["title"] = $parts[0];	
+				$vtitle=$parts[0];
 			}
-
-			$c=count($parts);
 			
+			$ovalues["title"]=$vtitle;
+			$c=count($parts);
 			$price_type=($c>1)?$parts[1]:'fixed';
 			$price=($c>2)?$parts[2]:0;
 			$sku=($c>3)?$parts[3]:'';
