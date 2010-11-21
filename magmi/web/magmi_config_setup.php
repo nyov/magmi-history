@@ -95,6 +95,7 @@ require_once("magmi_pluginhelper.php");
 $plugins=Magmi_PluginHelper::getInstance()->getPluginClasses();
 $order=array("datasources","general","itemprocessors");
 ?>
+
 <div class="container_12">
 	<?php foreach($order as $k)
 	{?>
@@ -135,6 +136,15 @@ $order=array("datasources","general","itemprocessors");
 <div class="container_12">
 	<div style="float:right">
 		<input type="submit" value="Apply Configuration"></input>
+	</div>
+</div>
+</form>
+<!-- UPLOADER -->
+<form method="post" enctype="multipart/form-data" action="plugin_upload.php">
+<div class="container_12">
+	<div class="grid_12 col"><h3>Upload New Plugins</h3>
+		<input type="file" name="plugin_package"></input>
+		<input type="submit" value="Upload Plugins"></input>
 	</div>
 </div>
 </form>
