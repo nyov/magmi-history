@@ -117,6 +117,22 @@ abstract class Magmi_Plugin
 		
 	}
 	
+	public function fixListParam($pvalue)
+	{
+		$iarr=explode(",",$pvalue);
+		$oarr=array();
+		foreach($iarr as $v)
+		{
+			if($v!="")
+			{
+				$oarr[]=$v;
+			}
+		}
+		$val=implode(",",$oarr);
+		unset($iarr);
+		unset($oarr);
+		return $val;
+	}
 	public function getPluginParamNames()
 	{
 		return array();
