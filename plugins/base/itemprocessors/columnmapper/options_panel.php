@@ -3,7 +3,7 @@ This plugin enables to change column names from datasource before they are handl
 enter columns to set new name for in mapped column list field, separated by commas (,)
 when leaving the field, new fields will be inserted for filling new column names.
 </div>
-<?php $clist=$this->getParam("CMAP:columnlist")?>
+<?php $clist=$this->fixListParam($this->getParam("CMAP:columnlist"))?>
 <div>
 <ul class="formline">
 	<li class="label">Mapped columns list</li>
@@ -30,8 +30,11 @@ cmap_dyn_buildparamlist=function()
  	var arr=value.split(",");
   	var farr=[];
  	 arr.each(function(it){
- 	 	 var v=typeof(cmap_dvals[it])!='undefined'?cmap_dvals[it]:'';
-  		farr.push({'field':it,'value':v});
+ 	 	 if(it!='')
+ 	 	 {
+ 	 		 var v=typeof(cmap_dvals[it])!='undefined'?cmap_dvals[it]:'';
+  			farr.push({'field':it,'value':v});
+ 	 	 }
   	});
  	 farr.each(function(it){content+=cmap_getinputline(it.field,it.value)});
   }
