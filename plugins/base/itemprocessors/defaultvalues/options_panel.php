@@ -16,7 +16,7 @@ when leaving the field, new fields will be inserted for filling default values.
 var dvals=[];
 getinputline=function(fieldname,dvalue)
 {
-	var linetpl='<ul class="formline"><li class="label">Default '+fieldname+'</li><li class="value"><input type="text" name="DEFAULT:'+fieldname+'" value="'+dvalue+'""></input></li></ul>';
+	var linetpl='<ul class="formline"><li class="label">Default '+fieldname+'</li><li class="value"><input type="text" name="DEFAULT:'+encodeURIComponent(fieldname)+'" value="'+encodeURIComponent(dvalue)+'""></input></li></ul>';
 	return linetpl;
 };
 
