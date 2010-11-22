@@ -1,6 +1,12 @@
 	<?php 
 	ini_set('magic_gpc_quotes',0);
-	$_SESSION["magmi_import_params"]=$_POST;
+	$tmp=array();
+	foreach($_POST as $k=>$v)
+	{
+		$tmp[urldecode($k)]=urldecode($v);
+	}
+	$_SESSION["magmi_import_params"]=$tmp;
+	unset($tmp);
 	session_write_close();
 	?>
 	<div class="clear"></div>
