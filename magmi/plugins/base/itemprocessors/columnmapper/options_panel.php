@@ -16,7 +16,7 @@ when leaving the field, new fields will be inserted for filling new column names
 var cmap_dvals=[];
 cmap_getinputline=function(fieldname,dvalue)
 {
-	var linetpl='<ul class="formline"><li class="label">New name for col '+fieldname+'</li><li class="value"><input type="text" name="CMAP:'+fieldname+'" value="'+dvalue+'""></input></li></ul>';
+	var linetpl='<ul class="formline"><li class="label">New name for col '+fieldname+'</li><li class="value"><input type="text" name="CMAP:'+encodeURIComponent(fieldname)+'" value="'+encodeURIComponent(dvalue)+'"></input></li></ul>';
 	return linetpl;
 };
 
