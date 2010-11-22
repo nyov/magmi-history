@@ -3,7 +3,7 @@ This plugin enables to set some default item values if not found in input source
 enter columns to set default value for in default attribute list field, separated by commas (,)
 when leaving the field, new fields will be inserted for filling default values.
 </div>
-<?php $clist=$this->getParam("DEFAULT:columnlist")?>
+<?php $clist=$this->fixListParam($this->getParam("DEFAULT:columnlist"))?>
 <div>
 <ul class="formline">
 	<li class="label">Default attribute list</li>
@@ -30,8 +30,11 @@ dyn_buildparamlist=function()
  	var arr=value.split(",");
   	var farr=[];
  	 arr.each(function(it){
- 	 	 var v=typeof(dvals[it])!='undefined'?dvals[it]:'';
-  		farr.push({'field':it,'value':v});
+ 	 	 if(it!='')
+ 	 	 {
+ 	 		 var v=typeof(dvals[it])!='undefined'?dvals[it]:'';
+  			farr.push({'field':it,'value':v});
+ 	 	 }
   	});
  	 farr.each(function(it){content+=getinputline(it.field,it.value)});
   }
