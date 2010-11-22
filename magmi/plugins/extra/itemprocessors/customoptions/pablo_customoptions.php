@@ -12,13 +12,13 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 	
 	protected $_optids=array();
 	protected $_opttypeids=array();
-	
+	protected $_multivals=array('drop_down','multiple','radio','checkbox');
 	public function getPluginInfo()
 	{
 		return array(
             "name" => "Custom Options",
             "author" => "Pablo & Dweeves",
-            "version" => "0.0.4"
+            "version" => "dev"
             );
 	}
 
@@ -52,9 +52,9 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		$t1 = $this->tablename('catalog_product_option');
 		$t2 = $this->tablename('catalog_product_option_title');
 		$t3 = $this->tablename('catalog_product_option_price');
-		$values = array($pid, $opt['type'], $opt['is_require'],$opt['sort_order']);
-		$f="product_id, type, is_require,sort_order";
-		$i="?,?,?,?";
+		$values = array($pid, $opt['type'], $opt['is_require'],$opt['sort_order'],$opt['sku']);
+		$f="product_id, type, is_require,sort_order,sku";
+		$i="?,?,?,?,?";
 
 		$mx=isset($opt["max_characters"]);
 		if($mx)
@@ -168,6 +168,12 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 
 	}
 
+	public function isMultiValue($type)
+	{
+		$mv=in_array($type,$this->_multivals);
+		return $mv;
+	}
+	
 	public function BuildCustomOption($field,$value)
 	{
 		$fieldParts=explode(":",$field);
@@ -196,20 +202,24 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		{
 			$ovalues=array();
 			$parts = explode(':',$v);
-			
-			if(count($parts)>1 && $v==$values[0])
+			$mv=$this->isMultiValue($type);
+			if($mv)
 			{
-				$opt["title"]=$parts[0];
-				$vtitle=array_pop($parts);
+				if(preg_match("|\[(.*)\]|",$parts[0],$matches))
+				{
+					$opt['title']=$matches[1];
+					array_shift($parts);
+				}
+				$ovalues["title"]=($parts[0]!=''?$parts[0]:$title);
 			}
 			else
 			{
-				$vtitle=$parts[0];
+				$opt['title']=($parts[0]!=''?$parts[0]:$title);
 			}
 			
-			$ovalues["title"]=$vtitle;
+			
 			$c=count($parts);
-			$price_type=($c>1)?$parts[1]:'fixed';
+			$price_type=($c>1)?($parts[1]!=''?$parts[1]:'fixed'):'fixed';
 			$price=($c>2)?$parts[2]:0;
 			$sku=($c>3)?$parts[3]:'';
 			$sort_order=($c>4)?$parts[4]:0;
@@ -237,6 +247,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 				default:
 					$ovalues["price_type"]=$price_type;
 					$ovalues["price"]=$price;
+					$opt['sku']='';
 					$ovalues["sku"]=$sku;
 					$ovalues["sort_order"]=$sort_order;
 					$opt['values'][]=$ovalues;
