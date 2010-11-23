@@ -167,11 +167,14 @@ abstract class Magmi_Plugin
 		return null;
 	}
 	
-	public function log($data,$type='std')
+	public function log($data,$type='std',$useprefix=true)
 	{
 		$pinf=$this->getPluginInfo();
-		
-		$this->_mmi->log("{$pinf["name"]} v{$pinf["version"]} - $data","plugin;$this->_class;$type");
+		if($useprefix)
+		{
+			$data="{$pinf["name"]} v{$pinf["version"]} - ".$data;
+		}
+		$this->_mmi->log($data,"plugin;$this->_class;$type");
 	}
 	
 	public function pluginHello()
@@ -183,7 +186,7 @@ abstract class Magmi_Plugin
 		$hello[]=!isset($info["url"])?"":$info["url"];
 		$hellostr=implode("-",$hello);
 		$base=get_parent_class($this);
-		$this->log("$hellostr ","pluginhello");
+		$this->log("$hellostr ","pluginhello",false);
 		
 	}
 
