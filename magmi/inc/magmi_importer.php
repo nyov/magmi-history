@@ -103,6 +103,9 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 					//if it's visibility ,set it to catalog/search
 				case "catalog/product_visibility":
 					break;
+					//do not create options for boolean values tagged as select 
+				case "eav/attribute_source_boolean":
+					break;
 					//otherwise, standard option behavior
 					//get option id for value, create it if does not already exist
 					//do not insert if empty
