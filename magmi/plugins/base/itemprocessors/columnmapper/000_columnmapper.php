@@ -39,12 +39,15 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 
 			if(isset($this->_dcols[$cname]))
 			{
-				$mlist=explode(",",$this->_dcols[$cname]);
+				$mlist=array_unique(explode(",",$this->_dcols[$cname]));
 				$ncol=array_shift($mlist);
 				$ocols[]=$ncol;
-				$this->log("Replacing Column $cname by $ncol","startup");
-				if(count($mlist)>0)
+				if($ncol!=$cname)
 				{
+					$this->log("Replacing Column $cname by $ncol","startup");
+				}
+				if(count($mlist)>0)
+				{					
 					$scols=array_merge($scols,$mlist);
 					$this->log("Replicating Column $cname to ".implode(",",$mlist),"startup");
 				}
@@ -54,7 +57,7 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 				$ocols[]=$cname;
 			}
 		}
-		$ocols=array_merge($ocols,$scols);
+		$ocols=array_unique(array_merge($ocols,$scols));
 		$cols=$ocols;
 		return true;
 	}
@@ -70,7 +73,10 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 				{
 					$item[$mname]=$item[$oname];
 				}
-				unset($item[$oname]);
+				if($oname!=$mname)
+				{
+					unset($item[$oname]);
+				}
 			}
 		}
 		return true;
