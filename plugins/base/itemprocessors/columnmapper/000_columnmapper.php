@@ -15,7 +15,7 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Column mapper",
             "author" => "Dweeves",
-            "version" => "0.0.1"
+            "version" => "0.0.2"
         );
     }
 	
@@ -31,25 +31,45 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 	
 	public function processColumnList(&$cols,$params=null)
 	{
-		for($i=0;$i<count($cols);$i++)
+		$icols=$cols;
+		$ocols=array();
+		$scols=array();
+		foreach($icols as $cname)
 		{
-			$cname=$cols[$i];
+
 			if(isset($this->_dcols[$cname]))
 			{
-				$cols[$i]=$this->_dcols[$cname];
-				$this->log("Replacing Column $cname by ".$cols[$i],"startup");
+				$mlist=explode(",",$this->_dcols[$cname]);
+				$ncol=array_shift($mlist);
+				$ocols[]=$ncol;
+				$this->log("Replacing Column $cname by $ncol","startup");
+				if(count($mlist)>0)
+				{
+					$scols=array_merge($scols,$mlist);
+					$this->log("Replicating Column $cname to ".implode(",",$mlist),"startup");
+				}
+			}
+			else
+			{
+				$ocols[]=$cname;
 			}
 		}
+		$ocols=array_merge($ocols,$scols);
+		$cols=$ocols;
 		return true;
 	}
 	
 	public function processItemBeforeId(&$item,$params)
 	{
-		foreach($this->_dcols as $oname=>$mname)
+		foreach($this->_dcols as $oname=>$mnames)
 		{
 			if(isset($item[$oname]))
 			{
-				$item[$mname]=$item[$oname];
+				$mapped=explode(",",$mnames);
+				foreach($mapped as $mname)
+				{
+					$item[$mname]=$item[$oname];
+				}
 				unset($item[$oname]);
 			}
 		}
