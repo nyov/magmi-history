@@ -30,7 +30,7 @@ function falseifempty($val)
 
 function testempty($arr,$val)
 {
-	return !isset($arr[$val]) || strlen($val)==0;
+	return !isset($arr[$val]) || strlen(trim($val))==0;
 }
 
 class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
@@ -104,7 +104,7 @@ class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
 				case "catalog/product_visibility":
 					break;
 					//do not create options for boolean values tagged as select 
-				case "eav/attribute_source_boolean":
+				case "eav/entity_attribute_source_boolean":
 					break;
 					//otherwise, standard option behavior
 					//get option id for value, create it if does not already exist
