@@ -6,7 +6,12 @@
 	}
 	else
 	{
-		$params=$_REQUEST;
+		$params=array();
+		foreach($_REQUEST as $k=>$v)
+		{
+			$params[urldecode($k)]=urldecode($v);
+		}
+		
 	}
 	session_write_close();
 	if(count($params)==0)
