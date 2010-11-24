@@ -267,9 +267,12 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		foreach($itemCopy as $field=>$value)
 		{
 			$fieldParts = explode(':', $field);
-			if(count($fieldParts)>2 && $value)
+			if(count($fieldParts)>2)
 			{
-				$custom_options[]=$this->BuildCustomOption($field,$value);
+				if(strlen($value)>0)
+				{
+					$custom_options[]=$this->BuildCustomOption($field,$value);
+				}
 				unset($item[$field]);
 			}
 			unset($fieldParts);
