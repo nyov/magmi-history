@@ -30,7 +30,8 @@ function falseifempty($val)
 
 function testempty($arr,$val)
 {
-	return !isset($arr[$val]) || strlen(trim($val))==0;
+	
+	return !isset($arr[$val]) || strlen(trim($arr[$val]))==0;
 }
 
 class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
