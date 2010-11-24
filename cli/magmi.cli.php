@@ -12,7 +12,6 @@
 require_once("../inc/magmi_importer.php");
 
 $script=array_shift($argv);
-$csvfile=array_shift($argv);
 $options=array();
 foreach($argv as $option)
 {
