@@ -451,7 +451,7 @@ class MagentoMassImporter extends DBHelper
 		//create statement parameter string ?,?,?.....
 		$qcolstr=substr(str_repeat("?,",count($gcols)),0,-1);
 		$tname=$this->tablename("eav_attribute");
-		if($this->magversion="1.4.x")
+		if($this->magversion=="1.4.x")
 		{
 			$extra=$this->tablename("catalog_eav_attribute");
 			//SQL for selecting attribute properties for all wanted attributes
