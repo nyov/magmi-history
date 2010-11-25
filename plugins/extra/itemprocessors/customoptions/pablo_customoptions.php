@@ -18,7 +18,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Custom Options",
             "author" => "Pablo & Dweeves",
-            "version" => "0.0.5"
+            "version" => "0.0.6"
             );
 	}
 
