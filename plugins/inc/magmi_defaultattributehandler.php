@@ -6,6 +6,16 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		$this->registerAttributeHandler($this);	
 	}
+	
+	public function getPluginInfo()
+	{
+		return array(
+            "name" => "Standard Attribute Import",
+            "author" => "Dweeves",
+            "version" => "1.0.0"
+            );
+	}
+	
 	/**
 	 * attribute handler for decimal attributes
 	 * @param int $pid	: product id
@@ -52,19 +62,28 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 			//we need to identify its type since some have no options
 			switch($attrdesc["source_model"])
 			{
-				//if its status, make it available
+				//if its status, default to 2 if not correcly mapped
 				case "catalog/product_status":
-					$ovalue=($ivalue==$this->_mmi->enabled_label?1:2);
+					if(!is_int($ivalue)){
+						$ovalue=2;
+					}
+					break;
+				//do not create options for boolean values tagged as select ,default to 0 if not correcly mapped
+				case "eav/entity_attribute_source_boolean":
+					if(!is_int($ivalue)){
+						$ovalue=0;
+					}
+					break;
+				//if visibility no options either,default to 4 if not correctly mapped
+				case "catalog/product_visibility":
+					if(!is_int($ivalue)){
+						$ovalue=4;
+					}
+					
 					break;
 					//if it's tax_class, get tax class id from item value
 				case "tax/class_source_product":
 					$ovalue=$this->getTaxClassId($ivalue);
-					break;
-					//if it's visibility ,set it to catalog/search
-				case "catalog/product_visibility":
-					break;
-					//do not create options for boolean values tagged as select 
-				case "eav/entity_attribute_source_boolean":
 					break;
 					//otherwise, standard option behavior
 					//get option id for value, create it if does not already exist
