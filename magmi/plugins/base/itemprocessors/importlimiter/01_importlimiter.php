@@ -9,7 +9,7 @@ class ImportLimiter extends Magmi_ItemProcessor
 	{
 		return array("name"=>"Magmi Import Limiter",
 					 "author"=>"Dweeves",
-					 "version"=>"0.0.1");
+					 "version"=>"0.0.2");
 	}
 	
 	
