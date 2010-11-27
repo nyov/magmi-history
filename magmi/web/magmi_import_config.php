@@ -100,5 +100,18 @@
 		}
 	}
 	$('mode').observe('change',checkmode);
-
+</script>
+	<script type="text/javascript">
+	/**  
+	 * having fun with prototype & javascript closures , automatically add an evenhandler on all "fieldhelp" containers in ".ifield" class range
+	 * that toggles automatically all "fieldsyntax" containers bound to the same ifield range !!!
+	 */
+		$$('.ifield').each(function(it){
+			it.select('.fieldhelp').each(function(fh){
+				fh.observe('click',function(ev){
+					it.select('.fieldsyntax').each(function(el){el.toggle();})
+						})
+				})
+			});
 	</script>
+	
