@@ -64,11 +64,17 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 	public function initialize($params)
 	{
 		$this->_mapping=array();
-		$flist=glob(dirname(__file__)."/mappings/*.csv");
+		
+		$dlist=glob(dirname(__file__)."/mappings/default/*.csv");
+		$slist=glob(dirname(__file__)."/mappings/*.csv");
+		$flist=array_merge($dlist,$slist);
 		foreach($flist as $fname)
 		{
 			$idx=basename($fname);
-			$this->_mapping[$idx]=array("DIRECT"=>array(),"RE"=>array());
+			if(!isset($this->_mapping[$idx]))
+			{
+				$this->_mapping[$idx]=array("DIRECT"=>array(),"RE"=>array());
+			}
 			$mf=fopen("$fname","r");
 			while (($data = fgetcsv($mf, 1000, ",")) !== FALSE)
 			{
