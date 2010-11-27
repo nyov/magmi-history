@@ -5,6 +5,7 @@
 	clear:both;
 }
 
+
 ul.formline
 {
 	width:100%;
@@ -45,6 +46,11 @@ ul.formline li.value
 	line-height: 1.3em;
 }
 
+.fieldinfo
+{
+	font-size:x-small;
+	color:#0000cc;
+}
 
 input[type=text]
 {
@@ -325,4 +331,13 @@ div.log_error
 .magmi_error li
 {
 	list-style: disc inside;
+}
+
+.fieldhelp
+{
+	float:right;
+	width:24px;
+	height:24px;
+	margin-right:4px;
+	background: url('fieldhelp.png') transparent no-repeat;
 }

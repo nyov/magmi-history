@@ -66,10 +66,6 @@ $conf_ok=1;
 		<li class="value"><input type="text" name="MAGENTO:basedir" value="<?php echo $conf->get("MAGENTO","basedir")?>" ></input></li>
 	</ul>
 	
-	<ul class="formline">
-		<li class="label">Enabled Status:</li>
-		<li class="value"><input type="text" name="MAGENTO:enabled_status_label" value="<?php echo $conf->get("MAGENTO","enabled_status_label","Enabled")?>"></input></li>
-	</ul>
 	</div>
 	<div class="grid_4 col omega">
 	<h3>Global</h3>
