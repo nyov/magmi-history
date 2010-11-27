@@ -521,7 +521,12 @@ class MagentoMassImporter extends DBHelper
 	public function getTaxClassId($tcvalue)
 	{
 		$t=$this->tablename('tax_class');
-		return $this->selectone("SELECT class_id FROM $t WHERE class_name=?",$tcvalue,"class_id");
+		$txid=$this->selectone("SELECT class_id FROM $t WHERE class_name=?",$tcvalue,"class_id");
+		//bugfix for tax class id, if not found set it to none
+		if(!isset($txid))
+		{
+			$txid=0;
+		}
 	}
 
 
