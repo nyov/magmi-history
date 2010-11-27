@@ -15,7 +15,6 @@ require_once("dbhelper.class.php");
 require_once("magmi_statemanager.php");
 require_once("magmi_pluginhelper.php");
 require_once("magmi_config.php");
-require_once("magmi_attributehandler.php");
 
 ini_set("allow_url_fopen",true);
 function nullifempty($val)
@@ -34,180 +33,6 @@ function testempty($arr,$val)
 	return !isset($arr[$val]) || strlen(trim($arr[$val]))==0;
 }
 
-class Magmi_DefaultAttributeHandler extends Magmi_AttributeHandler
-{
-
-	protected $_curpid=null;
-
-	public function setCurrentPid($pid)
-	{
-		$this->_curpid=$pid;
-	}
-	/**
-	 * attribute handler for decimal attributes
-	 * @param int $pid	: product id
-	 * @param int $ivalue : initial value of attribute
-	 * @param array $attrdesc : attribute description
-	 * @return mixed : false if no further processing is needed,
-	 * 					string (magento value) for the decimal attribute otherwise
-	 */
-	public function handleDecimalAttribute($storeid,$ivalue,$attrdesc)
-	{
-		$ovalue=falseifempty($ivalue);
-		return $ovalue;
-	}
-
-	/**
-	 * attribute handler for datetime attributes
-	 * @param int $pid	: product id
-	 * @param int $ivalue : initial value of attribute
-	 * @param array $attrdesc : attribute description
-	 * @return mixed : false if no further processing is needed,
-	 * 					string (magento value) for the datetime attribute otherwise
-	 */
-	public function handleDatetimeAttribute($storeid,$ivalue,$attrdesc)
-	{
-		$ovalue=nullifempty($ivalue);
-		return $ovalue;
-	}
-
-	/**
-	 * attribute handler for int typed attributes
-	 * @param int $pid	: product id
-	 * @param int $ivalue : initial value of attribute
-	 * @param array $attrdesc : attribute description
-	 * @return mixed : false if no further processing is needed,
-	 * 					int (magento value) for the int attribute otherwise
-	 */
-	public function handleIntAttribute($storeid,$ivalue,$attrdesc)
-	{
-		$ovalue=$ivalue;
-		$attid=$attrdesc["attribute_id"];
-		if($ivalue=="" && $this->_mmi->mode=="create")
-		{
-			return false;
-		}
-		//if we've got a select type value
-		if($attrdesc["frontend_input"]=="select")
-		{
-			//we need to identify its type since some have no options
-			switch($attrdesc["source_model"])
-			{
-				//if its status, make it available
-				case "catalog/product_status":
-					$ovalue=($ivalue==$this->_mmi->enabled_label?1:2);
-					break;
-					//if it's tax_class, get tax class id from item value
-				case "tax/class_source_product":
-					$ovalue=$this->_mmi->getTaxClassId($ivalue);
-					break;
-					//if it's visibility ,set it to catalog/search
-				case "catalog/product_visibility":
-					break;
-					//do not create options for boolean values tagged as select 
-				case "eav/entity_attribute_source_boolean":
-					break;
-					//otherwise, standard option behavior
-					//get option id for value, create it if does not already exist
-					//do not insert if empty
-				default:
-					if($ivalue=="" && $this->_mmi->mode=="update")
-					{
-						return "__MAGMI_DELETE__";
-					}
-					$oids=$this->_mmi->getOptionIds($attid,$storeid,array($ivalue));
-					$ovalue=$oids[0];
-					unset($oids);
-					break;
-			}
-		}
-		return $ovalue;
-	}
-
-
-	/**
-	 * attribute handler for varchar based attributes
-	 * @param int $pid : product id
-	 * @param string $ivalue : attribute value
-	 * @param array $attrdesc : attribute description
-	 */
-	public function handleVarcharAttribute($storeid,$ivalue,$attrdesc)
-	{
-
-		if($storeid!==0 && empty($ivalue) && $this->_mmi->mode=="create")
-		{
-			return false;
-		}
-
-		$ovalue=$ivalue;
-		$pid=$this->_curpid;
-		$attid=$attrdesc["attribute_id"];
-		//if it's an image attribute (image,small_image or thumbnail)
-		if($attrdesc["frontend_input"]=="media_image")
-		{
-			//do nothing if empty
-			if($ivalue=="")
-			{
-				return false;
-			}
-			//else copy image file
-			$imagefile=$this->_mmi->copyImageFile($ivalue);
-			$ovalue=$imagefile;
-			//add to gallery as excluded
-			if($imagefile!==false)
-			{
-				$vid=$this->_mmi->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,true);
-			}
-		}
-		else
-		//if it's a gallery
-		if($attrdesc["frontend_input"]=="gallery")
-		{
-			//do nothing if empty
-			if($ivalue=="")
-			{
-				return false;
-			}
-			$this->_mmi->resetGallery($pid,$storeid,$attid);
-			//use ";" as image separator
-			$images=explode(";",$ivalue);
-			//for each image
-			foreach($images as $imagefile)
-			{
-				//copy it from source dir to product media dir
-				$imagefile=$this->_mmi->copyImageFile($imagefile);
-				if($imagefile!==false)
-				{
-					//add to gallery
-					$vid=$this->_mmi->addImageToGallery($pid,$storeid,$attrdesc,$imagefile);
-				}
-			}
-			unset($images);
-			//we don't want to insert after that
-			$ovalue=false;
-		}
-		else
-		//--- Contribution From mennos , optimized by dweeves ----
-		//Added to support multiple select attributes
-		//(as far as i could figure out) always stored as varchars
-		//if it's a multiselect value
-		if($attrdesc["frontend_input"]=="multiselect")
-		{
-			//if empty delete entry
-			if($ivalue=="")
-			{
-				return "__MAGMI_DELETE__";
-			}
-			//magento uses "," as separator for different multiselect values
-			$multiselectvalues=explode(",",$ivalue);
-			$oids=$this->_mmi->getOptionIds($attid,$storeid,$multiselectvalues);
-			$ovalue=implode(",",$oids);
-			unset($oids);
-		}
-		return $ovalue;
-	}
-
-}
 /* here inheritance from DBHelper is used for syntactic convenience */
 class MagentoMassImporter extends DBHelper
 {
@@ -219,9 +44,8 @@ class MagentoMassImporter extends DBHelper
 	public $attribute_sets=array();
 	public $ws_store_map=array();
 	public $reset=false;
-	public $magdir;
-	public $imgsourcedir;
 	public $tprefix;
+	public $magdir;
 	public $logger=null;
 	public $enabled_label;
 	public $prod_etype;
@@ -277,7 +101,6 @@ class MagentoMassImporter extends DBHelper
 			$this->_conf->load();
 			$this->magversion=$this->_conf->get("MAGENTO","version");
 			$this->magdir=$this->_conf->get("MAGENTO","basedir");
-			$this->imgsourcedir=$this->_conf->get("IMAGES","sourcedir",$this->magdir."/media/import");
 			$this->tprefix=$this->_conf->get("DATABASE","table_prefix");
 			$this->enabled_label=$this->_conf->get("MAGENTO","enabled_status_label","Enabled");
 			$enproc=explode(",",$this->_conf->get("PLUGINS_ITEMPROCESSORS","classes",implode(",",$pluginclasses["itemprocessors"])));
@@ -321,10 +144,12 @@ class MagentoMassImporter extends DBHelper
 		$this->exitDb();
 	}
 
-	public function registerAttributeHandler($ahclass)
+	public function registerAttributeHandler($ahinst)
 	{
-		$this->_attributehandlers[]=new $ahclass($this);
+		$this->_attributehandlers[]=$ahinst;
 	}
+	
+	
 
 	public function getStoresWebSiteIds($storestr)
 	{
@@ -439,9 +264,22 @@ class MagentoMassImporter extends DBHelper
 	}
 
 	/**
+	 * returns mode
+	 */
+	public function getMode()
+	{
+		return $this->mode;
+	}
+	
+	public function getMagentoDir()
+	{
+		return $this->magdir;
+	}
+	/**
 	 * Initialize attribute infos to be used during import
 	 * @param array $cols : array of attribute names
 	 */
+	
 	public function initAttrInfos($cols)
 	{
 		//Find product entity type
@@ -686,146 +524,6 @@ class MagentoMassImporter extends DBHelper
 		return $this->selectone("SELECT class_id FROM $t WHERE class_name=?",$tcvalue,"class_id");
 	}
 
-	/**
-	 * imageInGallery
-	 * @param int $pid  : product id to test image existence in gallery
-	 * @param string $imgname : image file name (relative to /products/media in magento dir)
-	 * @return bool : if image is already present in gallery for a given product id
-	 */
-	public function getImageId($pid,$attid,$imgname)
-	{
-		$t=$this->tablename('catalog_product_entity_media_gallery');
-		$imgid=$this->selectone("SELECT value_id FROM $t WHERE value=? AND entity_id=? AND attribute_id=?" ,
-		array($imgname,$pid,$attid),
-								'value_id');
-		if($imgid==null)
-		{
-			// insert image in media_gallery
-			$sql="INSERT INTO $t
-				(attribute_id,entity_id,value)
-				VALUES
-				(?,?,?)";
-
-			$imgid=$this->insert($sql,array($attid,$pid,$imgname));
-		}
-		return $imgid;
-	}
-
-	/**
-	 * reset product gallery
-	 * @param int $pid : product id
-	 */
-	public function resetGallery($pid,$storeid,$attid)
-	{
-		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
-		$tg=$this->tablename('catalog_product_entity_media_gallery');
-		$sql="DELETE emgv,emg FROM `$tgv` as emgv JOIN `$tg` AS emg ON emgv.value_id = emg.value_id AND emgv.store_id=?
-		WHERE emg.entity_id=? AND emg.attribute_id=?";
-		$this->delete($sql,array($storeid,$pid,$attid));
-
-	}
-	/**
-	 * adds an image to product image gallery only if not already exists
-	 * @param int $pid  : product id to test image existence in gallery
-	 * @param array $attrdesc : product attribute description
-	 * @param string $imgname : image file name (relative to /products/media in magento dir)
-	 */
-	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$excluded=false)
-	{
-
-		$vid=$this->getImageId($pid,$this->attrinfo["media_gallery"]["attribute_id"],$imgname);
-		$tg=$this->tablename('catalog_product_entity_media_gallery');
-		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
-		#get maximum current position in the product gallery
-		$sql="SELECT MAX( position ) as maxpos
-				 FROM $tgv AS emgv
-				 JOIN $tg AS emg ON emg.value_id = emgv.value_id AND emg.entity_id = ?
-				 WHERE emgv.store_id=?
-		 		 GROUP BY emg.entity_id";
-		$pos=$this->selectone($sql,array($pid,$storeid),'maxpos');
-		$pos=($pos==null?0:$pos+1);
-		#insert new value (ingnore duplicates)
-		$sql="INSERT IGNORE INTO $tgv
-			(value_id,store_id,position,disabled)
-			VALUES(?,?,?,?)";	
-		$data=array($vid,$storeid,$pos,$excluded?1:0);
-		$this->insert($sql,$data);
-		unset($data);
-	}
-
-	public function cleanImageName($fname)
-	{
-		$cname=preg_replace("/%[0-9][0-9|A-F]/","_",$fname);
-		return $cname;
-	}
-	/**
-	 * copy image file from source directory to
-	 * product media directory
-	 * @param $imgfile : name of image file name in source directory
-	 * @return : name of image file name relative to magento catalog media dir,including leading
-	 * directories made of first char & second char of image file name.
-	 */
-	public function copyImageFile($imgfile)
-	{
-		$bimgfile=$this->cleanImageName(basename($imgfile));
-		//source file exists
-		$i1=$bimgfile[0];
-		$i2=$bimgfile[1];
-		$l1d="$this->magdir/media/catalog/product/$i1";
-		$l2d="$l1d/$i2";
-		$te="$l2d/$bimgfile";
-		$fname="$this->imgsourcedir/$bimgfile";
-
-		/* test if imagefile comes from export */
-		if(!file_exists("$te"))
-		{
-			$exists=false;
-			if(preg_match("|.*?://.*|",$imgfile))
-			{
-				$fname=$imgfile;
-				$h=@fopen($fname,"r");
-				if($h!==false)
-				{
-					$exists=true;
-					fclose($h);
-				}
-				unset($h);
-			}
-			else
-			{
-				$exists=file_exists($fname);
-			}
-			if(!$exists)
-			{
-				$this->log("$fname not found, skipping image","warning");
-				return false;
-			}
-			/* test if 1st level product media dir exists , create it if not */
-			if(!file_exists("$l1d"))
-			{
-				mkdir($l1d,0777);
-			}
-			/* test if 2nd level product media dir exists , create it if not */
-			if(!file_exists("$l2d"))
-			{
-				mkdir($l2d,0777);
-			}
-
-			/* test if image already exists ,if not copy from source to media dir*/
-			if(!file_exists("$l2d/$bimgfile"))
-			{
-
-				if(!@copy($fname,"$l2d/$bimgfile"))
-				{
-					$errors= error_get_last();
-						
-					$this->log("error copying $l2d/$bimgfile : ${$errors["type"]},${$errors["message"]}","warning");
-		}
-	}
-}
-/* return image file name relative to media dir (with leading / ) */
-return "/$i1/$i2/$bimgfile";
-	}
 
 
 
@@ -872,11 +570,6 @@ return "/$i1/$i2/$bimgfile";
 		/**
 		 * get all store ids
 		 */
-		//set pid for attribute handlers, useful for cache effects
-		foreach($this->_attributehandlers as $ah)
-		{
-			$ah->setCurrentPid($pid);
-		}
 			
 		/* now is the interesring part */
 		/* iterate on attribute backend type index */
@@ -887,7 +580,7 @@ return "/$i1/$i2/$bimgfile";
 			{
 				continue;
 			}
-
+			
 			//table name for backend type data
 			$cpet=$this->tablename("catalog_product_entity_$tp");
 			//data table for inserts
@@ -895,8 +588,7 @@ return "/$i1/$i2/$bimgfile";
 			//inserts to perform on backend type eav
 			$inserts=array();
 			//use reflection to find special handlers
-			$handler="handle".ucfirst($tp)."Attribute";
-				
+			$typehandler="handle".ucfirst($tp)."Attribute";
 			//iterate on all attribute descriptions for the given backend type
 			foreach($a["data"] as $attrdesc)
 			{
@@ -905,24 +597,46 @@ return "/$i1/$i2/$bimgfile";
 				//get attribute id
 				$attid=$attrdesc["attribute_id"];
 				//get attribute value in the item to insert based on code
-				$ivalue=$item[$attrdesc["attribute_code"]];
-					
+				$atthandler="handle".ucfirst($attrdesc["attribute_code"])."Attribute";
+				$attrcode=$attrdesc["attribute_code"];
+				$ivalue=$item[$attrcode];
+				
 				$store_ids=$this->getItemStoreIds($item,$attrdesc["is_global"]);
 				
 				$deletes=array();
 
 				foreach($store_ids as $store_id)
 				{
+					
 					$ovalue=$ivalue;
 
 					foreach($this->_attributehandlers as $ah)
 					{
-						if(method_exists($ah,$handler))
+						//if there is a specific handler for attribute, use it
+						if(method_exists($ah,$atthandler))
 						{
-							$ovalue=$ah->$handler($store_id,$ivalue,$attrdesc);
+							$hvalue=$ah->$atthandler($pid,$item,$store_id,$attrcode,$attrdesc,$ivalue);						
+						}
+						else
+						//use generic type attribute
+						if(method_exists($ah,$typehandler))
+						{
+							//do not handle empty generic int values in create mode
+							if($ivalue=="" && $this->mode=="create" && $tp=="int")
+							{
+								$ovalue=false;
+							}
+							$hvalue=$ah->$typehandler($pid,$item,$store_id,$attrcode,$attrdesc,$ivalue);
+						}
+						//if value has been handled,break attribute handler loop 
+						if($hvalue!="__MAGMI_UNHANDLED__")
+						{
+							$ovalue=$hvalue;
+							break;
 						}
 					}
-						
+					
+					//if handled value is a "DELETE"
 					if($ovalue=="__MAGMI_DELETE__")
 					{
 						$deletes[]=array($attid,$store_id,$pid);
@@ -939,7 +653,7 @@ return "/$i1/$i2/$bimgfile";
 						$data[]=$attid;
 						$data[]=$store_id;
 						$data[]=$pid;
-						$data[]=$ovalue;
+						$data[]=$hvalue;
 					}
 				}
 			}
@@ -1075,7 +789,7 @@ return "/$i1/$i2/$bimgfile";
 		}
 		$csit=$this->tablename("cataloginventory_stock_item");
 		$css=$this->tablename("cataloginventory_stock_status");
-		$stockid=1; //Default stock id , not found how to relate product to a specific stock id
+		$stockid=isset($item["stock_id"])?$item["stock_id"]:1; //use stock_id if set in exotic multi repo cases
 		$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>0?1:0);
 		if(!$is_in_stock && $item["qty"]>0)
 		{
@@ -1447,9 +1161,11 @@ return "/$i1/$i2/$bimgfile";
 	}
 	public function createItemProcessors($params)
 	{
+		//insert default attribute processor plugin
+		require_once("magmi_defaultattributehandler.php");
+		$this->_pluginclasses["processors"][]="Magmi_DefaultAttributeItemProcessor";
 		foreach($this->_pluginclasses["processors"] as $ipclass)
 		{
-
 			$ip=new $ipclass();
 			$ip->pluginInit($this,$params);
 			$this->_activeplugins["processors"][]=$ip;
@@ -1494,7 +1210,6 @@ return "/$i1/$i2/$bimgfile";
 			$this->createGeneralPlugins($params);
 			$this->datasource->beforeImport();
 			$this->callGeneral("beforeImport");
-			$this->registerAttributeHandler("Magmi_DefaultAttributeHandler");
 				
 			$nitems=$this->lookup();
 			Magmi_StateManager::setState("running");
