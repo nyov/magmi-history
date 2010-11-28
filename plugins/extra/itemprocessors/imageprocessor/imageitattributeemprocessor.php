@@ -25,7 +25,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.0.1"
+            "version" => "0.0.2"
             );
 	}
 	public function handleGalleryTypeAttribute($pid,$item,$storeid,$attrcode,$attrdesc,$ivalue)
