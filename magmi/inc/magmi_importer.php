@@ -546,16 +546,19 @@ class MagentoMassImporter extends DBHelper
 				break;
 			//store scope
 			case 0:
+				//if not admin store set, use store list
 				if(isset($item["store"]) && $item["store"]!=="admin")
 				{
 					$bstore_ids=$this->getStoreIds($item["store"]);
 				}
 				else
 				{
+					//use websites stores 
 					if(isset($item["websites"]))
 					{
 						$bstore_ids=$this->getWebsitesStoreIds($item["websites"]);
 					}
+					//if admin store set, add it
 					if($item["store"]=="admin")
 					{
 						$bstore_ids=array_unique(array_merge(array(0),$bstore_ids));
