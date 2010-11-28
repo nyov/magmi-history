@@ -624,6 +624,7 @@ class MagentoMassImporter extends DBHelper
 						$matchinfo=explode(":",$match);
 						$mtype=$matchinfo[0];
 						$mtest=$matchinfo[1];
+						unset($matchinfo);
 						if(preg_match("/$mtest/",$attrdesc[$mtype]))
 						{
 							$hvalue="__MAGMI_UNHANDLED__";
