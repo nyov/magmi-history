@@ -617,6 +617,7 @@ class MagentoMassImporter extends DBHelper
 
 					foreach($this->_attributehandlers as $ah)
 					{
+						$hvalue="__MAGMI_UNHANDLED__";
 						//if there is a specific handler for attribute, use it
 						if(method_exists($ah,$atthandler))
 						{
@@ -640,7 +641,6 @@ class MagentoMassImporter extends DBHelper
 							break;
 						}
 					}
-					
 					//if handled value is a "DELETE"
 					if($ovalue=="__MAGMI_DELETE__")
 					{
