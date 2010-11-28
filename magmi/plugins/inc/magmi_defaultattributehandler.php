@@ -62,10 +62,10 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 			//we need to identify its type since some have no options
 			switch($attrdesc["source_model"])
 			{
-				//if its status, default to 2 if not correcly mapped
+				//if its status, default to 1 (Enabled) if not correcly mapped
 				case "catalog/product_status":
 					if(!is_int($ivalue)){
-						$ovalue=2;
+						$ovalue=1;
 					}
 					break;
 				//do not create options for boolean values tagged as select ,default to 0 if not correcly mapped
@@ -119,51 +119,6 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 
 		$ovalue=$ivalue;
 		$attid=$attrdesc["attribute_id"];
-		//if it's an image attribute (image,small_image or thumbnail)
-		if($attrdesc["frontend_input"]=="media_image")
-		{
-			//do nothing if empty
-			if($ivalue=="")
-			{
-				return false;
-			}
-			//else copy image file
-			$imagefile=$this->_mmi->copyImageFile($ivalue);
-			$ovalue=$imagefile;
-			//add to gallery as excluded
-			if($imagefile!==false)
-			{
-				$vid=$this->_mmi->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,true);
-			}
-		}
-		else
-		//if it's a gallery
-		if($attrdesc["frontend_input"]=="gallery")
-		{
-			//do nothing if empty
-			if($ivalue=="")
-			{
-				return false;
-			}
-			$this->_mmi->resetGallery($pid,$storeid,$attid);
-			//use ";" as image separator
-			$images=explode(";",$ivalue);
-			//for each image
-			foreach($images as $imagefile)
-			{
-				//copy it from source dir to product media dir
-				$imagefile=$this->_mmi->copyImageFile($imagefile);
-				if($imagefile!==false)
-				{
-					//add to gallery
-					$vid=$this->_mmi->addImageToGallery($pid,$storeid,$attrdesc,$imagefile);
-				}
-			}
-			unset($images);
-			//we don't want to insert after that
-			$ovalue=false;
-		}
-		else
 		//--- Contribution From mennos , optimized by dweeves ----
 		//Added to support multiple select attributes
 		//(as far as i could figure out) always stored as varchars
