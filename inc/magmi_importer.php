@@ -556,6 +556,10 @@ class MagentoMassImporter extends DBHelper
 					{
 						$bstore_ids=$this->getWebsitesStoreIds($item["websites"]);
 					}
+					if($item["store"]=="admin")
+					{
+						$bstore_ids=array_unique(array_merge(array(0),$bstore_ids));
+					}
 				}
 				break;
 			//website scope
