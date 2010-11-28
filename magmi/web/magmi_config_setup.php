@@ -26,6 +26,22 @@ $conf_ok=1;
 		});
 	};
 </script>
+<!-- UPLOADER -->
+<div class="container_12">
+<form method="post" enctype="multipart/form-data" action="magmi_upload.php">
+	<div class="grid_12 col"><h3>Update Magmi Release</h3>
+		<input type="file" name="magmi_package"></input>
+		<input type="submit" value="Upload Magmi Release"></input>
+<?php if(isset($_SESSION["plugin_install_error"])){?>
+<div class="plupload_error">
+<?php echo $_SESSION["plugin_install_error"];?>
+</div>
+<?php }?>
+</div>
+</form>
+</div>
+<!-- UPLOADER -->
+
 <form method="post" action="magmi_saveconfig.php" onsubmit="return gatherclasses(['GENERAL','ITEMPROCESSORS'])">
 <div class="container_12">
 	<div class="grid_4 col">
@@ -131,7 +147,6 @@ $order=array("datasources","general","itemprocessors");
 	</div>
 </div>
 </form>
-<!-- UPLOADER -->
 <div class="container_12">
 <form method="post" enctype="multipart/form-data" action="plugin_upload.php">
 	<div class="grid_12 col"><h3>Upload New Plugins</h3>
