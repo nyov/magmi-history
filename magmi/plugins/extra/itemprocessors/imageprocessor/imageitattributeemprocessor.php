@@ -9,7 +9,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	public function initialize($params)
 	{
 		//declare current class as attribute handler
-		$this->registerAttributeHandler($this);
+		$this->registerAttributeHandler($this,array("frontend_input:(media_image|media_gallery)"));
 		$this->magdir=$this->getMagentoDir();
 		$this->imgsourcedir=realpath($this->magdir."/".$this->getParam("IMG:sourcedir"));
 		if(!file_exists($this->imgsourcedir))
