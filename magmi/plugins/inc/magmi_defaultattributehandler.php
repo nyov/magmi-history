@@ -4,7 +4,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	
 	public function initialize($params)
 	{
-		$this->registerAttributeHandler($this);	
+		$this->registerAttributeHandler($this,array("attribute_code:.*"));	
 	}
 	
 	public function getPluginInfo()
