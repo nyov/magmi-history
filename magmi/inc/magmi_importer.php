@@ -546,7 +546,7 @@ class MagentoMassImporter extends DBHelper
 				break;
 			//store scope
 			case 0:
-				if(isset($item["store"]))
+				if(isset($item["store"]) && $item["store"]!=="admin")
 				{
 					$bstore_ids=$this->getStoreIds($item["store"]);
 				}
