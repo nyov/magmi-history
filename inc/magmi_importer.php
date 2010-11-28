@@ -521,12 +521,13 @@ class MagentoMassImporter extends DBHelper
 	public function getTaxClassId($tcvalue)
 	{
 		$t=$this->tablename('tax_class');
-		$txid=$this->selectone("SELECT class_id FROM $t WHERE class_name=?",$tcvalue,"class_id");
+		$txid=$this->selectone("SELECT class_id FROM $t WHERE class_name=?",array($tcvalue),"class_id");
 		//bugfix for tax class id, if not found set it to none
 		if(!isset($txid))
 		{
 			$txid=0;
 		}
+		return $txid;
 	}
 
 
@@ -634,12 +635,15 @@ class MagentoMassImporter extends DBHelper
 							}
 							$hvalue=$ah->$typehandler($pid,$item,$store_id,$attrcode,$attrdesc,$ivalue);
 						}
-						//if value has been handled,break attribute handler loop 
 						if($hvalue!="__MAGMI_UNHANDLED__")
 						{
 							$ovalue=$hvalue;
 							break;
 						}
+					}
+					if($ovalue=="__MAGMI_UNHANDLED__")
+					{
+						$ovalue=false;
 					}
 					//if handled value is a "DELETE"
 					if($ovalue=="__MAGMI_DELETE__")
@@ -658,7 +662,7 @@ class MagentoMassImporter extends DBHelper
 						$data[]=$attid;
 						$data[]=$store_id;
 						$data[]=$pid;
-						$data[]=$hvalue;
+						$data[]=$ovalue;
 					}
 				}
 			}
