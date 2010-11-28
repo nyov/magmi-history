@@ -144,9 +144,12 @@ class MagentoMassImporter extends DBHelper
 		$this->exitDb();
 	}
 
-	public function registerAttributeHandler($ahinst)
+	public function registerAttributeHandler($ahinst,$attdeflist)
 	{
-		$this->_attributehandlers[]=$ahinst;
+		foreach($attdeflist as $attdef)
+		{
+			$this->_attributehandlers[$attdef]=$ahinst;
+		}
 	}
 	
 	
@@ -616,29 +619,35 @@ class MagentoMassImporter extends DBHelper
 					
 					$ovalue=$ivalue;
 
-					foreach($this->_attributehandlers as $ah)
+					foreach($this->_attributehandlers as $match=>$ah)
 					{
-						$hvalue="__MAGMI_UNHANDLED__";
-						//if there is a specific handler for attribute, use it
-						if(method_exists($ah,$atthandler))
+						$matchinfo=explode(":",$match);
+						$mtype=$matchinfo[0];
+						$mtest=$matchinfo[1];
+						if(preg_match("/$mtest/",$attrdesc[$mtype]))
 						{
-							$hvalue=$ah->$atthandler($pid,$item,$store_id,$attrcode,$attrdesc,$ivalue);						
-						}
-						else
-						//use generic type attribute
-						if(method_exists($ah,$typehandler))
-						{
-							//do not handle empty generic int values in create mode
-							if($ivalue=="" && $this->mode=="create" && $tp=="int")
+							$hvalue="__MAGMI_UNHANDLED__";
+							//if there is a specific handler for attribute, use it
+							if(method_exists($ah,$atthandler))
 							{
-								$ovalue=false;
+								$hvalue=$ah->$atthandler($pid,$item,$store_id,$attrcode,$attrdesc,$ivalue);						
 							}
-							$hvalue=$ah->$typehandler($pid,$item,$store_id,$attrcode,$attrdesc,$ivalue);
-						}
-						if($hvalue!="__MAGMI_UNHANDLED__")
-						{
-							$ovalue=$hvalue;
-							break;
+							else
+							//use generic type attribute
+							if(method_exists($ah,$typehandler))
+							{
+								//do not handle empty generic int values in create mode
+								if($ivalue=="" && $this->mode=="create" && $tp=="int")
+								{
+									$ovalue=false;
+								}
+								$hvalue=$ah->$typehandler($pid,$item,$store_id,$attrcode,$attrdesc,$ivalue);
+							}
+							if($hvalue!="__MAGMI_UNHANDLED__")
+							{
+								$ovalue=$hvalue;
+								break;
+							}
 						}
 					}
 					if($ovalue=="__MAGMI_UNHANDLED__")
