@@ -538,32 +538,18 @@ class MagentoMassImporter extends DBHelper
 
 	public function getItemStoreIds($item,$scope)
 	{
-		$bstore_ids=array();
+		$bstore_ids=array(0);
 		switch($scope){
 			//global scope
 			case 1:
-				$bstore_ids[]=0;
 				break;
 			//store scope
 			case 0:
-				//if not admin store set, use store list
-				if(isset($item["store"]) && $item["store"]!=="admin")
+				if(isset($item["store"]) && $item["store"]=="admin")
 				{
-					$bstore_ids=$this->getStoreIds($item["store"]);
+					break;
 				}
-				else
-				{
-					//use websites stores 
-					if(isset($item["websites"]))
-					{
-						$bstore_ids=$this->getWebsitesStoreIds($item["websites"]);
-					}
-					//if admin store set, add it
-					if($item["store"]=="admin")
-					{
-						$bstore_ids=array(0);//array_unique(array_merge(array(0),$bstore_ids));
-					}
-				}
+				$bstore_ids=$this->getStoreIds($item["store"]);
 				break;
 			//website scope
 			case 2:
