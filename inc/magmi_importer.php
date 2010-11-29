@@ -561,7 +561,7 @@ class MagentoMassImporter extends DBHelper
 					//if admin store set, add it
 					if($item["store"]=="admin")
 					{
-						$bstore_ids=array_unique(array_merge(array(0),$bstore_ids));
+						$bstore_ids=array(0);//array_unique(array_merge(array(0),$bstore_ids));
 					}
 				}
 				break;
