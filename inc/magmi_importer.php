@@ -53,7 +53,7 @@ class MagentoMassImporter extends DBHelper
 	public $mode="update";
 	public static $state=null;
 	protected static $_statefile=null;
-	public static $version="0.6.16-alpha5";
+	public static $version="0.6.16-alpha6";
 	public $customip=null;
 	public  static $_script=__FILE__;
 	private $_pluginclasses=array();
@@ -934,27 +934,11 @@ class MagentoMassImporter extends DBHelper
 	public function updateWebSites($pid,$item)
 	{
 		$cpst=$this->tablename("catalog_product_website");
+		$qcolstr=substr(str_repeat("?,",count($item["websites"])),0,-1);
 		//get all website codes for item from store values
-		if(isset($item["store"]))
-		{
-			$wsids=$this->getStoresWebsiteIds($item["store"]);	
-		}
-		$data=array();
-		$inserts=array();
-		//for each website id that item is bound to
-		foreach($wsids as $wsid)
-		{
-			//new value couple to insert
-			$inserts[]="(?,?)";
-			//product id
-			$data[]=$pid;
-			//website id
-			$data[]=$wsid;
-		}
 		//associate product with all websites in a single multi insert (use ignore to avoid duplicates)
-		$sql="INSERT IGNORE INTO `$cpst` (`product_id`, `website_id`)
-					VALUES ".implode(",",$inserts);
-		$this->insert($sql,$data);
+		$sql="INSERT IGNORE INTO `$cpst` (`product_id`, `website_id`) SELECT $pid,website_id FROM core_website WHERE code IN ($qcolstr)";
+		$this->insert($sql,$item["websites"]);
 		unset($data);
 		unset($inserts);
 	}
