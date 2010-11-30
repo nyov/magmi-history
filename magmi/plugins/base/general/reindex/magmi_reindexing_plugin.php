@@ -8,12 +8,14 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 	{
 		return array("name"=>"Magmi Magento Reindexer",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.1");
+					 "version"=>"1.0.2");
 	}
 	
 	public function afterImport()
 	{
+		$this->log("running indexer","info");
 		$this->updateIndexes($this->_reindex);
+		return true;
 	}
 	
 	public function getPluginParamNames()
@@ -33,6 +35,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		{
 			if($idxlist=="")
 			{
+				$this->log("No indexes set to reindex","info");
 				return;
 			}
 			$idxlist=explode(",",$idxlist);
