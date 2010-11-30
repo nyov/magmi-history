@@ -49,7 +49,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.0.1"
+            "version" => "0.0.2"
             );
 	}
 	
@@ -156,6 +156,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		{
 			//else
 			$catids=array();
+			$lastcached=array();
 			foreach($catparts as $catpart)
 			{
 				$pdef[]=$catpart;
@@ -163,6 +164,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 				if($this->isInCache($ptest))
 				{
 					$catids=$this->getCache($ptest);
+					$lastcached=$pdef;
 				}
 			}
 			$curpath=array_merge(array(1,2),$catids);	
@@ -173,7 +175,10 @@ class CategoryImporter extends Magmi_ItemProcessor
 				$catids[]=$catid;
 				$curpath[]=$catid;
 				//cache newly created levels
-				$this->putInCache(implode("/",$curpath),$catids);
+				$lastcached[]=$catparts[$i];
+			
+				$this->putInCache(implode("/",$lastcached),$catids);
+				
 			}
 		}
 		return $catids;
@@ -185,6 +190,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$cols=array_unique($cols);
 		return true;
 	}
+	
 	public function processItemAfterId(&$item,$params=null)
 	{
 		if(isset($item["categories"]))
@@ -193,10 +199,21 @@ class CategoryImporter extends Magmi_ItemProcessor
 			$catids=array();
 			foreach($catlist as $catdef)
 			{
+				$root=$this->getParam("CAT:baseroot","");
+				if($root!="")
+				{
+					$catdef="$root/$catdef";
+				}
 				$catids=array_unique(array_merge($catids,$this->getCategoryIdsFromDef($catdef)));
 			}
 			$item["category_ids"]=implode(",",$catids);
 		}
 		return true;
 	}
+	
+	public function getPluginParamNames()
+	{
+		return array('CAT:baseroot');
+	}
+	
 }
