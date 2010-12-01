@@ -44,6 +44,10 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 		return $ovalue;
 	}
 
+	public function checkInt($value)
+	{
+		return is_string($value) && is_numeric($value) && (int)$value==$value;
+	}
 	/**
 	 * attribute handler for int typed attributes
 	 * @param int $pid	: product id
@@ -64,19 +68,19 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 			{
 				//if its status, default to 1 (Enabled) if not correcly mapped
 				case "catalog/product_status":
-					if(!is_int($ivalue)){
+					if(!$this->checkInt($ivalue) ){
 						$ovalue=1;
 					}
 					break;
 				//do not create options for boolean values tagged as select ,default to 0 if not correcly mapped
 				case "eav/entity_attribute_source_boolean":
-					if(!is_int($ivalue)){
+					if(!$this->checkInt($ivalue)){
 						$ovalue=0;
 					}
 					break;
 				//if visibility no options either,default to 4 if not correctly mapped
 				case "catalog/product_visibility":
-					if(!is_int($ivalue)){
+					if(!$this->checkInt($ivalue)){
 						$ovalue=4;
 					}
 					
