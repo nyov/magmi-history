@@ -18,7 +18,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Custom Options",
             "author" => "Pablo & Dweeves",
-            "version" => "0.0.6"
+            "version" => "0.0.7"
             );
 	}
 
@@ -302,6 +302,10 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 			{
 				$sql = "DELETE $t1 FROM $t1 WHERE $t1.product_id=$pid";
 				$this->delete($sql);
+				unset($this->_opttypeids);
+				unset($this->_optids);
+				$this->_opttypeids=array();
+				$this->_optids=array();
 			}
 			//check options container
 			$oc=isset($item['options_container'])?$item['options_container']:"container2";
