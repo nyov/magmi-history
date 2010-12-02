@@ -5,6 +5,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	protected $forcename=null;
 	protected $magdir=null;
 	protected $imgsourcedir=null;
+	protected $errattrs=array();
 	
 	public function initialize($params)
 	{
@@ -17,7 +18,13 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			$this->imgsourcedir=$this->getParam("IMG:sourcedir");
 		}
 		$this->forcename=$this->getParam("IMG:renaming",$params);
-		
+		foreach($params as $k=>$v)
+		{
+			if(preg_match_all("/^IMG_ERR:(.*)$/",$k,$m))
+			{
+				$this->errattrs[$m[1][0]]=$params[$k];
+			}
+		}	
 	}
 
 	public function getPluginInfo()
@@ -25,10 +32,10 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.0.2"
+            "version" => "0.0.3"
             );
 	}
-	public function handleGalleryTypeAttribute($pid,$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleGalleryTypeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
 		//do nothing if empty
 		if($ivalue=="")
@@ -54,7 +61,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		$ovalue=false;
 	}
 
-	public function handleImageTypeAttribute($pid,$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleImageTypeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
 		//do nothing if empty
 		if($ivalue=="")
@@ -73,7 +80,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	}
 
 
-	public function handleVarcharAttribute($pid,$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleVarcharAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
 
 		//if it's a gallery
@@ -200,9 +207,26 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return $info;
 	}
 	
-	public function getPluginParamNames()
+	public function getPluginParams($params)
 	{
-		return array('IMG:renaming','IMG:localdir','IMG:writemode');
+		$pp=array();
+		foreach($params as $k=>$v)
+		{
+			if(preg_match("/^IMG(_ERR)?:.*$/",$k))
+			{
+				$pp[$k]=$v;
+			}
+		}	
+		return $pp;
+	}
+	
+	public function fillErrorAttributes(&$item)
+	{
+		foreach($this->errattrs as $k=>$v)
+		{
+			$this->addExtraAttribute($k);
+			$item[$k]=$v;
+		}
 	}
 	public function getTargetName($fname,$item,$extra)
 	{
@@ -225,7 +249,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @return : name of image file name relative to magento catalog media dir,including leading
 	 * directories made of first char & second char of image file name.
 	 */
-	public function copyImageFile($imgfile,$item,$extra)
+	public function copyImageFile($imgfile,&$item,$extra)
 	{
 		$bimgfile=$this->getTargetName(basename($imgfile),$item,$extra);
 		//source file exists
@@ -259,6 +283,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			if(!$exists)
 			{
 				$this->log("$fname not found, skipping image","warning");
+				$this->fillErrorAttributes($item);
 				return false;
 			}
 			/* test if 1st level product media dir exists , create it if not */
@@ -279,7 +304,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				if(!@copy($fname,"$l2d/$bimgfile"))
 				{
 					$errors= error_get_last();
-
+					$this->fillErrorAttributes($item);
 					$this->log("error copying $l2d/$bimgfile : ${$errors["type"]},${$errors["message"]}","warning");
 					return false;
 				}
@@ -289,5 +314,12 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return $result;
 	}
 
+	public function processColumnList(&$cols,$params=null)
+	{
+		//automatically add modified attributes if not found in datasource
+		$cols=array_unique(array_merge(array_keys($this->errattrs),$cols));
+		return true;
+	}
+	
 
 }
