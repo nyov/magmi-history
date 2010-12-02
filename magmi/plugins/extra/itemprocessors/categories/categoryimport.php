@@ -80,7 +80,8 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$sql="SELECT cce.entity_type_id,cce.attribute_set_id,cce.level+1 as level,COALESCE(MAX(eac.position),0)+1 as position
 		FROM $cet as cce
 		LEFT JOIN  $cet as eac ON eac.parent_id=cce.entity_id
-		WHERE cce.entity_id=?";
+		WHERE cce.entity_id=?
+		GROUP BY eac.parent_id";
 		$info=$this->selectAll($sql,$parentid);
 		$info=$info[0];
 		//insert new category
