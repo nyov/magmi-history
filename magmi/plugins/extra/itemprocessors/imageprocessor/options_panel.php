@@ -32,5 +32,16 @@ if you've got 5 stores,i will create 5 different copies of the input image &amp;
 <option value="override" <?php if($iwm=="override"){?>selected="selected"<?php }?>>Override existing images</option>
 </select>
 </div>
-
+<ul class="formline">
+	<li class="label">Change attributes on image error</li>
+	<li class="value"><input type="text" id="IMG:err_attrlist" name="IMG:err_attrlist" size="80" value="<?php echo $this->fixListParam($this->getParam("IMG:err_attrlist"))?>" onblur="img_mf.buildparamlist()"></input></li>
+</ul>
+<div id="IMG:err_attrsetup">
+</div>
+<script type="text/javascript">
+var img_vals=<?php echo tdarray_to_js($this,'IMG:err_attrlist','IMG_ERR')?>;
+var img_linetpl='<ul class="formline"><li class="label">set {fieldname} as</li><li class="value"><input type="text" name="IMG_ERR:{fieldname.enc}" value="{value}"></input></li></ul>';
+var img_mf=new magmi_multifield('IMG:err_attrlist','IMG:err_attrsetup',img_linetpl,img_vals);
+img_mf.buildparamlist();
+</script>
 
