@@ -181,9 +181,9 @@ class MagentoMassImporter extends DBHelper
 		$wsarr=explode(",",$wsstr);
 		foreach($wsarr as $ws)
 		{
-			if(isset($this->ws_store_map["w"][$wsstr]))
+			if(isset($this->ws_store_map["w"][$ws]))
 			{
-				$sids=array_merge($sids,$this->ws_store_map["w"][$wsstr]);
+				$sids=array_merge($sids,$this->ws_store_map["w"][$ws]);
 			}
 		}
 		return array_unique($sids);
