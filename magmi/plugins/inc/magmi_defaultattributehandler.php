@@ -24,7 +24,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @return mixed : false if no further processing is needed,
 	 * 					string (magento value) for the decimal attribute otherwise
 	 */
-	public function handleDecimalAttribute($pid,$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleDecimalAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
 		$ovalue=falseifempty($ivalue);
 		return $ovalue;
@@ -38,7 +38,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @return mixed : false if no further processing is needed,
 	 * 					string (magento value) for the datetime attribute otherwise
 	 */
-	public function handleDatetimeAttribute($pid,$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleDatetimeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
 		$ovalue=nullifempty($ivalue);
 		return $ovalue;
@@ -46,7 +46,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 
 	public function checkInt($value)
 	{
-		return is_string($value) && is_numeric($value) && (int)$value==$value;
+		return is_int($value) || (is_string($value) && is_numeric($value) && (int)$value==$value);
 	}
 	/**
 	 * attribute handler for int typed attributes
@@ -56,7 +56,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @return mixed : false if no further processing is needed,
 	 * 					int (magento value) for the int attribute otherwise
 	 */
-	public function handleIntAttribute($pid,$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleIntAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
 		$ovalue=$ivalue;
 		$attid=$attrdesc["attribute_id"];
@@ -113,7 +113,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @param string $ivalue : attribute value
 	 * @param array $attrdesc : attribute description
 	 */
-	public function handleVarcharAttribute($pid,$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleVarcharAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
 
 		if($storeid!==0 && empty($ivalue) && $this->_mmi->mode=="create")
