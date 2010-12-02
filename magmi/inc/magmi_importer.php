@@ -69,12 +69,19 @@ class MagentoMassImporter extends DBHelper
 	private $_same;
 	private $_currentpid;
 	public $magversion;
+	private $_extra_attrs;
 
 	public function setLogger($logger)
 	{
 		$this->logger=$logger;
 	}
 
+	public function addExtraAttribute($attr)
+	{
+		$attinfo=$this->attrinfo[$attr];
+		$this->_extra_attrs[$attinfo["backend_type"]]["data"][]=$attinfo;
+		
+	}
 	/**
 	 * constructor
 	 * @param string $conffile : configuration .ini filename
@@ -562,20 +569,21 @@ class MagentoMassImporter extends DBHelper
 		sort($itemstores);
 		return $itemstores;
 	}
+	
 	/**
 	 * Create product attribute from values for a given product id
 	 * @param $pid : product id to create attribute values for
 	 * @param $item : attribute values in an array indexed by attribute_code
 	 */
-	public function createAttributes($pid,$item)
+	public function createAttributes($pid,&$item,$attmap)
 	{
 		/**
 		 * get all store ids
 		 */
-			
+		$this->_extra_attrs=array();
 		/* now is the interesring part */
 		/* iterate on attribute backend type index */
-		foreach($this->attrbytype as $tp=>$a)
+		foreach($attmap as $tp=>$a)
 		{
 			/* for static types, do not insert into attribute tables */
 			if($tp=="static")
@@ -697,6 +705,7 @@ class MagentoMassImporter extends DBHelper
 			}
 			unset($data);
 			unset($inserts);
+			return $this->_extra_attrs;
 		}
 	}
 
@@ -1083,7 +1092,13 @@ class MagentoMassImporter extends DBHelper
 			$this->beginTransaction();
 				
 			//create new ones
-			$this->createAttributes($pid,$item);
+			$attrmap=$this->attrbytype;
+			do
+			{
+				$attrmap=$this->createAttributes($pid,$item,$attrmap);	
+			}
+			while(count($attrmap)>0);
+			
 			if(!testempty($item,"category_ids"))
 			{
 				//assign categories
