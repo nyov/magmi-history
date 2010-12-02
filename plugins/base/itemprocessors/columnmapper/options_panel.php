@@ -9,52 +9,14 @@ values of column to map to all mapped columns !!!</b>
 <div>
 <ul class="formline">
 	<li class="label">Mapped columns list</li>
-	<li class="value"><input type="text" id="CMAP:columnlist" name="CMAP:columnlist" size="80" value="<?php echo $clist?>" onblur="cmap_dyn_buildparamlist()"></input></li>
+	<li class="value"><input type="text" id="CMAP:columnlist" name="CMAP:columnlist" size="80" value="<?php echo $clist?>" onblur="cmap_mf.buildparamlist()"></input></li>
 </ul>
 <div id="CMAP:columnsetup">
 </div>
 </div>
 <script type="text/javascript">
-var cmap_dvals=[];
-cmap_getinputline=function(fieldname,dvalue)
-{
-	var linetpl='<ul class="formline"><li class="label">New name for col '+fieldname+'</li><li class="value"><input type="text" name="CMAP:'+encodeURIComponent(fieldname)+'" value="'+dvalue+'"></input></li></ul>';
-	return linetpl;
-};
-
-
-cmap_dyn_buildparamlist=function()
-{
-  var value=$F('CMAP:columnlist')
-  var content='';
-  if(value!="")
-  {
- 	var arr=value.split(",");
-  	var farr=[];
- 	 arr.each(function(it){
- 	 	 if(it!='')
- 	 	 {
- 	 		 var v=typeof(cmap_dvals[it])!='undefined'?cmap_dvals[it]:'';
-  			farr.push({'field':it,'value':v});
- 	 	 }
-  	});
- 	 farr.each(function(it){content+=cmap_getinputline(it.field,it.value)});
-  }
-  $('CMAP:columnsetup').update(content);
-  
-};
-</script>
-<script type="text/javascript">
- <?php $def=array();
- 		$cl=$this->getParam('CMAP:columnlist');
- 		if($cl!="")
- 		{
- 			foreach(explode(",",$cl) as $col)
- 			{
- 				$v=$this->getParam("CMAP:$col");
- 				?>
- 				cmap_dvals["<?php echo $col?>"]="<?php echo $v?>";
-	<?php  		}
-	 	}?>
-	 cmap_dyn_buildparamlist();
+var cm_vals=<?php echo tdarray_to_js($this,'CMAP:columnlist','CMAP')?>;
+var cm_linetpl='<ul class="formline"><li class="label">New name for col {fieldname}</li><li class="value"><input type="text" name="CMAP:{fieldname.enc}" value="{value}"></input></li></ul>';
+var cmap_mf=new magmi_multifield('CMAP:columnlist','CMAP:columnsetup',cm_linetpl,cm_vals);
+cmap_mf.buildparamlist();
 </script>
