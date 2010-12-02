@@ -929,10 +929,11 @@ class MagentoMassImporter extends DBHelper
 	public function updateWebSites($pid,$item)
 	{
 		$cpst=$this->tablename("catalog_product_website");
+		$cws=$this->tablename("core_website");
 		$qcolstr=substr(str_repeat("?,",count($item["websites"])),0,-1);
 		//get all website codes for item from store values
 		//associate product with all websites in a single multi insert (use ignore to avoid duplicates)
-		$sql="INSERT IGNORE INTO `$cpst` (`product_id`, `website_id`) SELECT $pid,website_id FROM core_website WHERE code IN ($qcolstr)";
+		$sql="INSERT IGNORE INTO `$cpst` (`product_id`, `website_id`) SELECT $pid,website_id FROM $cws WHERE code IN ($qcolstr)";
 		$this->insert($sql,$item["websites"]);
 		unset($data);
 		unset($inserts);
