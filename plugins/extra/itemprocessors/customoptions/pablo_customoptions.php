@@ -56,12 +56,14 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		$f="product_id, type, is_require,sort_order,sku";
 		$i="?,?,?,?,?";
 
-		$mx=isset($opt["max_characters"]);
-		if($mx)
+		foreach(array("max_characters","file_extension","image_size_x","image_size_y") as $extra)
 		{
-			$values[]=$opt["max_characters"];
-			$i.=",?";
-			$f.=",max_characters";
+			if(isset($opt[$extra]))
+			{
+				$values[]=$opt[$extra];
+				$i.=",?";
+				$f.=",$extra";
+			}
 		}
 
 		$optionId=$this->getOptId($opt['__field']);
@@ -227,7 +229,19 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 			switch($type) {
 				
 				case 'file':
-					/* TODO */
+					if($c>5){
+						$opt['file_extension']=$parts[5];
+					}
+					if($c>6)
+					{
+						$opt['image_size_x']=$parts[6];
+					}
+					if($c>6)
+					{
+						$opt['image_size_y']=$parts[7];
+					}
+					$opt['sku']=$sku;
+					$opt['price'] = $price;
 					break;
 				case 'field':
 				case 'area':
