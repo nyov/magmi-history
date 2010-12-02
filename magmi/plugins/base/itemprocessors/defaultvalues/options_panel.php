@@ -7,52 +7,14 @@ when leaving the field, new fields will be inserted for filling default values.
 <div>
 <ul class="formline">
 	<li class="label">Default attribute list</li>
-	<li class="value"><input type="text" id="DEFAULT:columnlist" name="DEFAULT:columnlist" size="80" value="<?php echo $clist?>" onblur="dyn_buildparamlist()"></input></li>
+	<li class="value"><input type="text" id="DEFAULT:columnlist" name="DEFAULT:columnlist" size="80" value="<?php echo $clist?>" onblur="default_mf.buildparamlist()"></input></li>
 </ul>
 <div id="DEFAULT:columnsetup">
 </div>
 </div>
 <script type="text/javascript">
-var dvals=[];
-getinputline=function(fieldname,dvalue)
-{
-	var linetpl='<ul class="formline"><li class="label">Default '+fieldname+'</li><li class="value"><input type="text" name="DEFAULT:'+encodeURIComponent(fieldname)+'" value="'+dvalue+'"></input></li></ul>';
-	return linetpl;
-};
-
-
-dyn_buildparamlist=function()
-{
-  var value=$F('DEFAULT:columnlist')
-  var content='';
-  if(value!="")
-  {
- 	var arr=value.split(",");
-  	var farr=[];
- 	 arr.each(function(it){
- 	 	 if(it!='')
- 	 	 {
- 	 		 var v=typeof(dvals[it])!='undefined'?dvals[it]:'';
-  			farr.push({'field':it,'value':v});
- 	 	 }
-  	});
- 	 farr.each(function(it){content+=getinputline(it.field,it.value)});
-  }
-  $('DEFAULT:columnsetup').update(content);
-  
-};
-</script>
-<script type="text/javascript">
- <?php $def=array();
- 		$cl=$this->getParam('DEFAULT:columnlist');
- 		if($cl!="")
- 		{
- 			foreach(explode(",",$cl) as $col)
- 			{
- 				$v=$this->getParam("DEFAULT:$col");
- 				?>
- 				dvals["<?php echo $col?>"]="<?php echo $v?>";
-	<?php  		}
-	 	}?>
- 	dyn_buildparamlist();
+var df_vals=<?php echo tdarray_to_js($this,'DEFAULT:columnlist','DEFAULT')?>;
+var df_linetpl='<ul class="formline"><li class="label">Default {fieldname}</li><li class="value"><input type="text" name="DEFAULT:{fieldname.enc}" value="{value}"></input></li></ul>';
+var default_mf=new magmi_multifield('DEFAULT:columnlist','DEFAULT:columnsetup',df_linetpl,df_vals);
+default_mf.buildparamlist();
 </script>

@@ -16,7 +16,7 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Default Values setter",
             "author" => "Dweeves",
-            "version" => "0.0.4"
+            "version" => "0.0.5"
         );
     }
 	
