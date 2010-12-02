@@ -5,6 +5,7 @@
 	require_once("magmi_importer.php");
 	require_once("magmi_config.php");
 	require_once("fshelper.php");
+	require_once("magmi_web_utils.php");
 	session_start();
 ?>
 <html>
@@ -17,6 +18,7 @@
 <link rel="stylesheet" href="css/magmi.css"></link>
 <script type="text/javascript" src="js/prototype/prototype.js"></script>
 <script type="text/javascript" src="js/ScrollBox.js"></script>
+<script type="text/javascript" src="js/magmi_utils.js"></script>
 
 <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
 <META HTTP-EQUIV="Expires" CONTENT="-1">
