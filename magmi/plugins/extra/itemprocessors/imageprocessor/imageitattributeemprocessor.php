@@ -167,7 +167,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 
 	public function parsename($info,$item,$extra)
 	{
-		while(preg_match("|\{item.(.*?)\}|",$info,$matches))
+		while(preg_match("|\{item\.(.*?)\}|",$info,$matches))
 		{
 			foreach($matches as $match)
 			{
@@ -185,7 +185,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				}
 			}
 		}
-		while(preg_match("|\{magmi.(.*?)\}|",$info,$matches))
+		while(preg_match("|\{magmi\.(.*?)\}|",$info,$matches))
 		{
 			foreach($matches as $match)
 			{
