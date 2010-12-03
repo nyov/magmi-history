@@ -217,4 +217,17 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array('CAT:baseroot');
 	}
 	
+	public function onImportEnd($params)
+	{
+		//automatically update all children_count for catalog categories
+		$cce=$this->tablename("catalog_category_entity");
+		$sql="UPDATE  $cce as cce
+		LEFT JOIN 
+			(SELECT s1.entity_id as cid, COALESCE( COUNT( s2.entity_id ) , 0 ) AS cnt
+				FROM $cce AS s1
+				LEFT JOIN $cce AS s2 ON s2.parent_id = s1.entity_id
+			GROUP BY s1.entity_id) as sq ON sq.cid=cce.entity_id
+			SET cce.children_count=sq.cnt";
+		$this->update($sql);
+	}
 }
