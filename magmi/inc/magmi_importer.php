@@ -53,7 +53,7 @@ class MagentoMassImporter extends DBHelper
 	public $mode="update";
 	public static $state=null;
 	protected static $_statefile=null;
-	public static $version="0.6.16-beta3";
+	public static $version="0.6.16-beta4";
 	public $customip=null;
 	public  static $_script=__FILE__;
 	private $_pluginclasses=array();
@@ -545,23 +545,22 @@ class MagentoMassImporter extends DBHelper
 
 	public function getItemStoreIds($item,$scope)
 	{
-		$bstore_ids=array(0);
 		switch($scope){
 			//global scope
 			case 1:
+				$bstore_ids=array(0);
 				break;
 			//store scope
 			case 0:
-				if(isset($item["store"]) && $item["store"]=="admin")
-				{
-					break;
-				}
 				$bstore_ids=$this->getStoreIds($item["store"]);
 				break;
 			//website scope
-			case 2:
-				$ws_store_ids=$this->getWebsitesStoreIds($item["websites"]);					
-				$bstore_ids=array_unique(array_merge($bstore_ids,$ws_store_ids));
+			case 2:	
+				$bstore_ids=$this->getStoreIds($item["store"]);
+				if(count($bstore_ids)==1 && $bstore_ids[0]==0)
+				{
+					$bstore_ids=$this->getWebsitesStoreIds($item["websites"]);
+				}
 				break;
 		}
 		
@@ -614,21 +613,27 @@ class MagentoMassImporter extends DBHelper
 				$store_ids=$this->getItemStoreIds($item,$attrdesc["is_global"]);
 				
 				$deletes=array();
-
+				//do not handle empty generic int values in create mode
+				if($ivalue=="" && $this->mode=="create" && $tp=="int")
+				{
+					$ovalue=false;
+					break;
+				}
+				
 				foreach($store_ids as $store_id)
 				{
 					
 					$ovalue=$ivalue;
-
+					
 					foreach($this->_attributehandlers as $match=>$ah)
 					{
 						$matchinfo=explode(":",$match);
 						$mtype=$matchinfo[0];
 						$mtest=$matchinfo[1];
 						unset($matchinfo);
+						$hvalue=null;
 						if(preg_match("/$mtest/",$attrdesc[$mtype]))
 						{
-							$hvalue="__MAGMI_UNHANDLED__";
 							//if there is a specific handler for attribute, use it
 							if(method_exists($ah,$atthandler))
 							{
@@ -638,14 +643,9 @@ class MagentoMassImporter extends DBHelper
 							//use generic type attribute
 							if(method_exists($ah,$typehandler))
 							{
-								//do not handle empty generic int values in create mode
-								if($ivalue=="" && $this->mode=="create" && $tp=="int")
-								{
-									$ovalue=false;
-								}
 								$hvalue=$ah->$typehandler($pid,$item,$store_id,$attrcode,$attrdesc,$ivalue);
 							}
-							if($hvalue!="__MAGMI_UNHANDLED__")
+							if(isset($hvalue) && $hvalue!="__MAGMI_UNHANDLED__")
 							{
 								$ovalue=$hvalue;
 								break;
@@ -676,6 +676,20 @@ class MagentoMassImporter extends DBHelper
 						$data[]=$ovalue;
 					}
 				}
+				//if one of the store in the list is admin
+				if($store_id==0)
+				{
+					//remove all values bound to the other stores for this attribute,so that they default to "use admin value"
+					array_pop($store_ids);
+					if(count($store_ids)>0)
+					{
+						$sidlist=implode(",",$store_ids);
+						$ddata=array($this->prod_etype,$attid,$store_id,$pid);
+						$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id IN ($sidlist) AND entity_id=?";
+						$this->delete($sql,$ddata);
+					}
+					break;
+				}
 			}
 			unset($store_ids);
 			if(!empty($inserts))
@@ -705,8 +719,9 @@ class MagentoMassImporter extends DBHelper
 			}
 			unset($data);
 			unset($inserts);
-			return $this->_extra_attrs;
+			
 		}
+		return $this->_extra_attrs;
 	}
 
 	/**
