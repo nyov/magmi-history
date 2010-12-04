@@ -120,7 +120,11 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			return false;
 		}
-
+		if($ivalue=="" && $this->_mmi->mode=="update")
+		{
+			return "__MAGMI_DELETE__";
+		}
+		
 		$ovalue=$ivalue;
 		$attid=$attrdesc["attribute_id"];
 		//--- Contribution From mennos , optimized by dweeves ----
