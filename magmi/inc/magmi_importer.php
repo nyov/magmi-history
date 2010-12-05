@@ -53,7 +53,7 @@ class MagentoMassImporter extends DBHelper
 	public $mode="update";
 	public static $state=null;
 	protected static $_statefile=null;
-	public static $version="0.6.16-beta4";
+	public static $version="0.6.16";
 	public $customip=null;
 	public  static $_script=__FILE__;
 	private $_pluginclasses=array();
@@ -684,7 +684,7 @@ class MagentoMassImporter extends DBHelper
 						if(count($store_ids)>0)
 						{
 							$sidlist=implode(",",$store_ids);
-							$ddata=array($this->prod_etype,$attid,$store_id,$pid);
+							$ddata=array($this->prod_etype,$attid,$pid);
 							$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id IN ($sidlist) AND entity_id=?";
 							$this->delete($sql,$ddata);
 						}
