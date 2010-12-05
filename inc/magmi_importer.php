@@ -675,20 +675,21 @@ class MagentoMassImporter extends DBHelper
 						$data[]=$pid;
 						$data[]=$ovalue;
 					}
-				}
-				//if one of the store in the list is admin
-				if($store_id==0)
-				{
-					//remove all values bound to the other stores for this attribute,so that they default to "use admin value"
-					array_pop($store_ids);
-					if(count($store_ids)>0)
+		
+					//if one of the store in the list is admin
+					if($store_id==0)
 					{
-						$sidlist=implode(",",$store_ids);
-						$ddata=array($this->prod_etype,$attid,$store_id,$pid);
-						$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id IN ($sidlist) AND entity_id=?";
-						$this->delete($sql,$ddata);
+						//remove all values bound to the other stores for this attribute,so that they default to "use admin value"
+						array_pop($store_ids);
+						if(count($store_ids)>0)
+						{
+							$sidlist=implode(",",$store_ids);
+							$ddata=array($this->prod_etype,$attid,$store_id,$pid);
+							$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id IN ($sidlist) AND entity_id=?";
+							$this->delete($sql,$ddata);
+						}
+						break;
 					}
-					break;
 				}
 			}
 			unset($store_ids);
