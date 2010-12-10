@@ -17,7 +17,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			$this->imgsourcedir=$this->getParam("IMG:sourcedir");
 		}
-		$this->forcename=$this->getParam("IMG:renaming",$params);
+		$this->forcename=$this->getParam("IMG:renaming");
 		foreach($params as $k=>$v)
 		{
 			if(preg_match_all("/^IMG_ERR:(.*)$/",$k,$m))
@@ -42,6 +42,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			return false;
 		}
+		$attid=$attrdesc["attribute_id"];
 		$this->resetGallery($pid,$storeid,$attid);
 		//use ";" as image separator
 		$images=explode(";",$ivalue);
