@@ -106,7 +106,6 @@ class DBHelper
 		{
 			$params=is_array($params)?$params:array($params);
 			$stmt->execute($params);
-			unset($params);
 		}
 		else
 		{
@@ -120,6 +119,7 @@ class DBHelper
 		$t1=microtime(true);
 		$this->_indbtime+=$t1-$t0;
 		$this->logdebug("$sql\n".print_r($params,true));
+		unset($params);
 		return $stmt;
 	}
 
