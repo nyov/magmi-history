@@ -944,6 +944,8 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function updateWebSites($pid,$item)
 	{
+		if(isset($item["websites"]))
+		{
 		$cpst=$this->tablename("catalog_product_website");
 		$cws=$this->tablename("core_website");
 		$qcolstr=substr(str_repeat("?,",count($item["websites"])),0,-1);
@@ -953,6 +955,11 @@ class MagentoMassImporter extends DBHelper
 		$this->insert($sql,$item["websites"]);
 		unset($data);
 		unset($inserts);
+		}
+		else
+		{
+			$this->log("no websites set, item not associated to any website","warning");
+		}
 	}
 
 
@@ -1048,7 +1055,7 @@ class MagentoMassImporter extends DBHelper
 			$this->_curitemids["sku"]=$sku;
 			//first get product id
 			$this->_curitemids["pid"]=$this->getProductId($sku);
-			if($this->_mode!=="update")
+			if($this->mode!=="update")
 			{
 				$this->_curitemids["asid"]=$this->getAttributeSetId($item["attribute_set"]);
 			}
@@ -1121,8 +1128,13 @@ class MagentoMassImporter extends DBHelper
 				//assign categories
 				$this->assignCategories($pid,$item);
 			}
+			
 			//update websites
-			$this->updateWebSites($pid,$item);
+			if($this->mode=="create" || isset($item["websites"]))
+			{
+				$this->updateWebSites($pid,$item);
+			}
+			
 			if(!testempty($item,"qty") && !$this->_same)
 			{
 				//update stock
@@ -1326,10 +1338,10 @@ class MagentoMassImporter extends DBHelper
 				$this->log($this->_current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 				$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
 			}
-			$this->disconnectFromMagento();
 			$this->datasource->afterImport();
 			$this->callGeneral("afterImport");
 			$this->callProcessors("importEnd",$nodata,null,"on");
+			$this->disconnectFromMagento();
 			
 			$this->log("Import Ended","end");
 			Magmi_StateManager::setState("idle");
