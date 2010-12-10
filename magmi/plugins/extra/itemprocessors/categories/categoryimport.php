@@ -229,5 +229,6 @@ class CategoryImporter extends Magmi_ItemProcessor
 			GROUP BY s1.entity_id) as sq ON sq.cid=cce.entity_id
 			SET cce.children_count=sq.cnt";
 		$this->update($sql);
+		return true;
 	}
 }
