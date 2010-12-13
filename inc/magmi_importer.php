@@ -616,10 +616,9 @@ class MagentoMassImporter extends DBHelper
 				//do not handle empty generic int values in create mode
 				if($ivalue=="" && $this->mode=="create" && $tp=="int")
 				{
-					$ovalue=false;
-					break;
+					continue;
 				}
-				
+			
 				foreach($store_ids as $store_id)
 				{
 					
@@ -692,6 +691,7 @@ class MagentoMassImporter extends DBHelper
 					}
 				}
 			}
+			
 			unset($store_ids);
 			if(!empty($inserts))
 			{
