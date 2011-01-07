@@ -10,7 +10,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	public function initialize($params)
 	{
 		//declare current class as attribute handler
-		$this->registerAttributeHandler($this,array("frontend_input:(media_image|media_gallery)"));
+		$this->registerAttributeHandler($this,array("frontend_input:(media_image|gallery)"));
 		$this->magdir=$this->getMagentoDir();
 		$this->imgsourcedir=realpath($this->magdir."/".$this->getParam("IMG:sourcedir"));
 		if(!file_exists($this->imgsourcedir))
@@ -87,7 +87,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		//if it's a gallery
 		switch($attrdesc["frontend_input"])
 		{
-			case "media_gallery":
+			case "gallery":
 				$ovalue=$this->handleGalleryTypeAttribute($pid,$item,$storeid,$attrcode,$attrdesc,$ivalue);
 				break;
 			case "media_image":
