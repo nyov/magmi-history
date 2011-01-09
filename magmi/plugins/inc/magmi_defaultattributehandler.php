@@ -26,6 +26,8 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	 */
 	public function handleDecimalAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
+		//force convert decimal separator to dot
+		$ivalue=str_replace(",",".",$ivalue);
 		$ovalue=falseifempty($ivalue);
 		return $ovalue;
 	}
