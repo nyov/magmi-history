@@ -278,9 +278,9 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			}
 			else
 			{
-				$imgfile=($imgfile[0]==DIRECTORY_SEPARATOR?substr($tst,1):$tst);
-				$fname=realpath($this->imgsourcedir.DIRECTORY_SEPARATOR.$imgfile);
-				$exists=($fname!==false) && file_exists($fname);
+				$tfile=($imgfile[0]==DIRECTORY_SEPARATOR?substr($imgfile,1):$imgfile);
+				$fname=realpath($this->imgsourcedir.DIRECTORY_SEPARATOR.$tfile);
+				$exists=($fname!==false);
 			}
 			if(!$exists)
 			{
