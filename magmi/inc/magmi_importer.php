@@ -405,6 +405,11 @@ class MagentoMassImporter extends DBHelper
 	 */
 	public function createProduct($item,$asid)
 	{
+		//force item type if not exists
+		if(!isset($item["type"]))
+		{
+			$item["type"]="simple";
+		}
 		$tname=$this->tablename('catalog_product_entity');
 		$values=array($item['type'],$asid,$item['sku'],$this->prod_etype,null,strftime("%Y-%m-%d %H:%M:%S"));
 		$sql="INSERT INTO `$tname`
