@@ -792,20 +792,10 @@ class MagentoMassImporter extends DBHelper
 		$opt=$this->tablename("eav_attribute_option");
 		$et=$this->tablename("eav_attribute");
 		$sql="SET FOREIGN_KEY_CHECKS = 1";
-		//clearing all product options
-		$sql="DELETE $opt FROM $opt
-			JOIN $et ON $et.attribute_id=$opt.attribute_id AND $et.entity_type_id=4";
+
 		$this->exec_stmt($sql);
 		//clearing all option values for products
-		$sql="DELETE $optv FROM $optv
-		LEFT JOIN $opt ON $optv.option_id=$opt.option_id
-		WHERE $opt.option_id IS NULL";
-		$this->exec_stmt($sql);
-		//reinit auto_increment
-		$sql="ALTER TABLE $opt auto_increment=3";
-		$this->exec_stmt($sql);
-		$sql="ALTER TABLE $optv auto_increment=3";
-		$this->exec_stmt($sql);
+		
 		$this->log("OK","reset");
 	}
 
