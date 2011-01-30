@@ -32,7 +32,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.0.6"
+            "version" => "0.0.7"
             );
 	}
 	public function handleGalleryTypeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
@@ -231,16 +231,20 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	}
 	public function getTargetName($fname,$item,$extra)
 	{
-		$fname=urlencode($fname);
-		$cname=strtolower(preg_replace("/%[0-9][0-9|A-F]/","_",$fname));
-		$m=preg_match("/(.*?)\.(jpg|png|gif)$/i",$cname,$matches);	
 		if(isset($this->forcename) && $this->forcename!="")
 		{
+			$m=preg_match("/(.*?)\.(jpg|png|gif)$/i",$cname,$matches);	
 			$extra["imagename"]=$cname;
 			$extra["imagename.ext"]=$matches[2];
 			$extra["imagename.noext"]=$matches[1];
 			$cname=$this->parsename($this->forcename,$item,$extra);
 		}
+		else
+		{
+			$cname=$fname;	
+		}
+		$cname=strtolower(preg_replace("/%[0-9][0-9|A-F]/","_",urlencode($cname)));
+		
 		return $cname;
 	}
 	/**
