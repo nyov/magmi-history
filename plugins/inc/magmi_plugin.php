@@ -190,7 +190,10 @@ abstract class Magmi_Plugin
 		
 	}
 
-	public abstract function initialize($params);
+	public function initialize($params)
+	{
+		
+	}
 	
 	public final function pluginInit($mmi,$params=null,$doinit=true)
 	{		
