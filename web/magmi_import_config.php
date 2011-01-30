@@ -24,11 +24,11 @@
 	<form id="import_form" method="post" action="magmi.php?run=2">
 	<h2>import parameters</h2>
 	Mode:<select name="mode" id="mode">
-		<option value="update">Update only</option>
-		<option value="create">Create</option>
+		<option value="update">Update existing items,skip new ones</option>
+		<option value="create">create new items &amp; update existing ones</option>
 	</select>
 	<span id="rstspan" style="display:none">
-	<input type="checkbox" id="reset" name="reset">Clear all products</span>
+	<input type="checkbox" id="reset" name="reset" onclick="">Clear all products</span>
 	<?php 
 		$conf=Magmi_Config::getInstance();
 		$conf->load();
@@ -112,6 +112,13 @@
 					it.select('.fieldsyntax').each(function(el){el.toggle();})
 						})
 				})
+			});
+		$('reset').observe('click',function(ev){
+			var res=confirm('Are you sure ?, it will destroy all existing items in catalog!!!')
+			if(res==false)
+			{
+				Event.stop(ev);
+			}
 			});
 	</script>
 	
