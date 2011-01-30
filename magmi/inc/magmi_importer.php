@@ -787,10 +787,7 @@ class MagentoMassImporter extends DBHelper
 		$sql="INSERT INTO `".$this->tablename("cataloginventory_stock")."`(`stock_id`,`stock_name`) VALUES (1,'Default')";
 		$this->insert($sql);
 		$sql="TRUNCATE TABLE `".$this->tablename("catalog_product_entity")."`;\n";
-		$this->insert($sql);
-		$optv=$this->tablename("eav_attribute_option_value");
-		$opt=$this->tablename("eav_attribute_option");
-		$et=$this->tablename("eav_attribute");
+		$this->exec_stmt($sql);
 		$sql="SET FOREIGN_KEY_CHECKS = 1";
 
 		$this->exec_stmt($sql);
@@ -943,11 +940,13 @@ class MagentoMassImporter extends DBHelper
 		{
 		$cpst=$this->tablename("catalog_product_website");
 		$cws=$this->tablename("core_website");
-		$qcolstr=substr(str_repeat("?,",count($item["websites"])),0,-1);
+		//exploding websites if several values set at once
+		$wsarr=explode(",",$item["websites"]);
+		$qcolstr=substr(str_repeat("?,",count($wsarr)),0,-1);
 		//get all website codes for item from store values
 		//associate product with all websites in a single multi insert (use ignore to avoid duplicates)
 		$sql="INSERT IGNORE INTO `$cpst` (`product_id`, `website_id`) SELECT $pid,website_id FROM $cws WHERE code IN ($qcolstr)";
-		$this->insert($sql,$item["websites"]);
+		$this->insert($sql,$wsarr);
 		unset($data);
 		unset($inserts);
 		}
