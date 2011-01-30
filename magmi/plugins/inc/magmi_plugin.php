@@ -8,7 +8,7 @@ class Magmi_PluginConfig extends Properties
 	public function __construct($pname)
 	{
 		$this->_prefix=$pname;
-		$this->_conffile=Magmi_Config::getConfDir()."/$this->_prefix.conf";
+		$this->_conffile=Magmi_Config::getConfDir().DIRECTORY_SEPARATOR."$this->_prefix.conf";
 	}
 	
 	public function getIniStruct($arr)
