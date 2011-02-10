@@ -45,6 +45,7 @@ public function initConfigurableOpts($cols)
 	{
 		//gather configurable options attribute code
 		$this->initConfigurableOpts($cols);	
+		return true;
 	}
 	
 	public function processItemAfterId(&$item,$params)
