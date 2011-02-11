@@ -1,37 +1,31 @@
-<div class="container_12">
-	<div class="grid_12 subtitle">Configuration</div>
-</div>
-<div class="clear"></div>
 <?php 
 require_once("magmi_config.php");
 $conf=Magmi_Config::getInstance();
 $conf->load();
 $conf_ok=1;
 ?>
-<script type="text/javascript">
-	addclass=function(it,o)
-	{
-		if(it.checked){
-			this.arr.push(it.name);
-		}
-	};
-	
-	gatherclasses=function(tlist)
-	{
-		tlist.each(function(t,o){
-			var context={arr:[]};
-			$$(".pl_"+t).each(addclass,context);
-			var target=$("plc_"+t);
-			target.value=context.arr.join(",");
-		});
-	};
-</script>
-<!-- UPLOADER -->
+
+<!-- MAGMI UPLOADER -->
 <div class="container_12">
 <form method="post" enctype="multipart/form-data" action="magmi_upload.php">
 	<div class="grid_12 col"><h3>Update Magmi Release</h3>
 		<input type="file" name="magmi_package"></input>
 		<input type="submit" value="Upload Magmi Release"></input>
+		<?php if(isset($_SESSION["magmi_install_error"])){?>
+		<div class="plupload_error">
+				<?php echo $_SESSION["magmi_install_error"];?>
+		</div>
+		<?php }?>
+	</div>
+</form>
+</div>
+
+<!--  PLUGIN UPLOADER -->
+<div class="container_12">
+<form method="post" enctype="multipart/form-data" action="plugin_upload.php">
+	<div class="grid_12 col"><h3>Upload New Plugins</h3>
+		<input type="file" name="plugin_package"></input>
+		<input type="submit" value="Upload Plugins"></input>
 <?php if(isset($_SESSION["plugin_install_error"])){?>
 <div class="plupload_error">
 <?php echo $_SESSION["plugin_install_error"];?>
@@ -40,10 +34,14 @@ $conf_ok=1;
 </div>
 </form>
 </div>
-<!-- UPLOADER -->
 
-<form method="post" action="magmi_saveconfig.php" onsubmit="return gatherclasses(['GENERAL','ITEMPROCESSORS'])">
-<div class="container_12">
+<div class="container_12" >
+<div class="grid_12 subtitle">Common Configuration </div>
+</div>
+
+<div class="clear"></div>
+<form method="post" action="magmi_saveconfig.php">
+<div class="container_12" id="common_config">
 	<div class="grid_4 col">
 	<h3>Database</h3>
 	<ul class="formline">
@@ -91,72 +89,14 @@ $conf_ok=1;
 	</ul>
 	
 	</div>
-	
-	<div class="grid_12 subtitle">Enabled Plugins</div>
-<?php
-require_once("magmi_pluginhelper.php");
-$plugins=Magmi_PluginHelper::getInstance()->getPluginClasses();
-$order=array("datasources","general","itemprocessors");
-?>
+<div class="clear"></div>
 
-	<?php foreach($order as $k)
-	{?>
-	<div class="grid_4 col <?php if($k==$order[count($order)-1]){?>omega<?php }?>">
-		<h3><?php echo ucfirst($k)?></h3>
-		<?php if($k=="datasources")
-		{?>
-			<?php $pinf=$plugins[$k];?>
-			<?php if(count($pinf)>0){?>
-			<select name="PLUGINS_DATASOURCES:class">
-			
-			<?php foreach($pinf as $pclass)
-			{
-			$pinst=Magmi_PluginHelper::getInstance()->createInstance($pclass);
-			$pinfo=$pinst->getPluginInfo();
-			?>
-			<option value="<?php echo $pclass?>"<?php  if($conf->isPluginEnabled($k,$pclass)){?>selected="selected"<?php }?>><?php echo $pinfo["name"]." v".$pinfo["version"];?></option>
-			<?php }?>
-					
-			</select>
-			<?php }else{
-						$conf_ok=0;
-				
-				?>
-			Magmi needs a datasource plugin, please install one
-			<?php }?>
-			<?php 
-		}
-		else
-		{?>
-		<ul>
-		<?php $pinf=$plugins[$k];?>
-		<?php foreach($pinf as $pclass)	{
-			$pinst=Magmi_PluginHelper::getInstance()->createInstance($pclass);
-			$pinfo=$pinst->getPluginInfo();
-		?>
-		<li><input type="checkbox" class="pl_<?php echo strtoupper($k)?>" name="<?php echo $pclass?>" <?php if($conf->isPluginEnabled($k,$pclass)){?>checked="checked"<?php }?>><?php echo $pinfo["name"]." v".$pinfo["version"];?></input></li>
-		<?php }?>	
-		</ul>
-		<input type="hidden" id="plc_<?php echo strtoupper($k)?>" value="<?php echo implode(",",$conf->getEnabledPluginClasses($k))?>" name="PLUGINS_<?php echo strtoupper($k)?>:classes"></input>
-		<?php 
-		}?>
+	<div class="container_12">
+		<div style="float:right">
+		<input type="submit" value="Save Common Configuration"></input>
+		</div>
 	</div>
-	<?php }?>
-	<div style="float:right">
-		<input type="submit" value="Apply Configuration" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>></input>
 	</div>
-</div>
+	
 </form>
-<div class="container_12">
-<form method="post" enctype="multipart/form-data" action="plugin_upload.php">
-	<div class="grid_12 col"><h3>Upload New Plugins</h3>
-		<input type="file" name="plugin_package"></input>
-		<input type="submit" value="Upload Plugins"></input>
-<?php if(isset($_SESSION["plugin_install_error"])){?>
-<div class="plupload_error">
-<?php echo $_SESSION["plugin_install_error"];?>
-</div>
-<?php }?>
-</div>
-</form>
-</div>
+<div class="clear"></div>

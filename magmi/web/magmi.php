@@ -1,41 +1,12 @@
-<?php
-	set_include_path(get_include_path().PATH_SEPARATOR."../inc");
-	ini_set("display_errors",1);
-	ini_set("error_reporting",E_ALL);
-	require_once("magmi_importer.php");
+<html>
+<?php require_once("head.php")?>
+<body>
+<?php require_once("header.php")?>
+<?
 	require_once("magmi_config.php");
 	require_once("fshelper.php");
 	require_once("magmi_web_utils.php");
-	session_start();
-?>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
-<title>Magento Mass Importer by Dweeves - version <?php echo MagentoMassImporter::$version ?></title>
-<link rel="stylesheet" href="css/960.css"></link>
-<link rel="stylesheet" href="css/reset.css"></link>
-<link rel="stylesheet" href="css/magmi.css"></link>
-<script type="text/javascript" src="js/prototype/prototype.js"></script>
-<script type="text/javascript" src="js/ScrollBox.js"></script>
-<script type="text/javascript" src="js/magmi_utils.js"></script>
-
-<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
-<META HTTP-EQUIV="Expires" CONTENT="-1">
-</head>
-<body>
-<div class="container_12">
-	<div class="grid_12 title  omega">
-		<span>
-  		Magento Mass Importer by Dweeves
- 		</span>
- 		<span class="version">
- 		version <?php echo MagentoMassImporter::$version ?>
- 		</span>
-	</div>
-	<div class="clear"></div>
-</div>
-<?php
 	$badrights=array();
 	foreach(array("../state","../conf","../plugins") as $dirname)
 	{
@@ -46,23 +17,28 @@
 	}
 	if(count($badrights)==0)
 	{
-	
-		if(isset($_REQUEST["run"]) && file_exists("../conf/magmi.ini"))
+		if(Magmi_StateManager::getState()=="running")
 		{
-			if($_REQUEST["run"]==2 ||Magmi_StateManager::getState()=="running" )
+			require_once("magmi_import_run.php");		
+		}
+		else
+		{
+			Magmi_StateManager::setState("idle",true);
+		}	
+			
+		if(isset($_REQUEST["configstep"]))
+		{
+			if($_REQUEST["configstep"]==2)
 			{
-				require_once("magmi_import_run.php");
-			}
-			else
-			{
-				Magmi_StateManager::setState("idle",true);
-				require_once("magmi_import_config.php");
+				require_once("magmi_profile_config.php");
 			}
 		}
 		else
 		{
 			require_once("magmi_config_setup.php");
-		}
+			
+		}	
+		
 	}
 	else
 	{
@@ -83,5 +59,6 @@
 		<?php 
 	}
 ?>
+<?php require_once("footer.php")?>
 </body>
 </html>
