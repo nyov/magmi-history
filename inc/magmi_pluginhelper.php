@@ -1,7 +1,5 @@
 <?php
-
-
-
+require_once("magmi_config.php");
 
 class Magmi_PluginHelper
 {
@@ -10,12 +8,13 @@ class Magmi_PluginHelper
 	static $_instance=null;
 	public $base_dir;
 	public $plugin_dir;
+	protected $_profile;
 	
-	
-	public function __construct()
+	public function __construct($profile=null)
 	{
+		$this->_profile=$profile;
 		$this->base_dir=dirname(__FILE__);
-		$this->plugin_dir=realpath(dirname(__FILE__)."/../plugins");
+		$this->plugin_dir=realpath(dirname(dirname(__FILE__)).DS."plugins");
 		//set include path to inclue plugins inc & base dir
 		set_include_path(ini_get("include_path").PATH_SEPARATOR."$this->plugin_dir/inc".PATH_SEPARATOR."$this->base_dir");
 		//add base classes in context
@@ -24,11 +23,11 @@ class Magmi_PluginHelper
 		require_once("magmi_generalimport_plugin.php");
 		
 	}
-	public static function getInstance()
+	public static function getInstance($profile=null)
 	{
 		if(!isset(self::$_instance))
 		{
-			self::$_instance=new Magmi_PluginHelper();
+			self::$_instance=new Magmi_PluginHelper($profile);
 		}
 		return self::$_instance;
 	}
@@ -38,7 +37,17 @@ class Magmi_PluginHelper
 		return strcmp(basename($f1),basename($f2));	
 	}
 		
-  
+  	public function savePluginsConfig($params,$dir)
+  	{
+  		$this->scanPlugins();
+  		foreach(self::_plugins_cache as $k=>$pinfoarr)
+  		{
+  			$class=$pinfoarr["class"];
+			$plinst=$this->createInstance($class,$params);
+			$plinst->persistParams($plinst->getPluginParams($params)); 				
+  		}
+  	}
+  	
 	public function initPluginInfos($baseclass)
 	{
 		$candidates=glob("$this->plugin_dir/*/*/*/*.php");
@@ -106,7 +115,7 @@ class Magmi_PluginHelper
 	}
 	
 	
-	public function createInstance($pclass)
+	public function createInstance($pclass,$params=null)
 	{
 	
 		if(self::$_plugins_cache==null)
@@ -114,7 +123,7 @@ class Magmi_PluginHelper
 			self::scanPlugins();
 		}
 		$plinst=new $pclass();
-		$plinst->pluginInit(null,null,false);
+		$plinst->pluginInit(null,$params,false,$this->_profile);
 		return $plinst;
 	}
 	

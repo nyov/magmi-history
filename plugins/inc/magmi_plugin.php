@@ -1,14 +1,23 @@
 <?php
 require_once("../inc/magmi_config.php");
 
-class Magmi_PluginConfig extends Properties
+class Magmi_PluginConfig extends ProfileBasedConfig
 {
 	protected $_prefix;
 	protected $_conffile;
-	public function __construct($pname)
+	public function __construct($pname,$profile=null)
 	{
 		$this->_prefix=$pname;
-		$this->_conffile=Magmi_Config::getConfDir().DIRECTORY_SEPARATOR."$this->_prefix.conf";
+		parent::__construct("$this->_prefix.conf",$profile);
+	}
+	
+	public function load($name=null)
+	{
+		$cname=($name==null?$this->_confname:$name);
+		if(file_exists($cname))
+		{
+			parent::load($cname);
+		}	
 	}
 	
 	public function getIniStruct($arr)
@@ -26,21 +35,7 @@ class Magmi_PluginConfig extends Properties
 		}
 		return $conf;
 	}
-	
-	public function save()
-	{
-		parent::save(Magmi_Config::getConfDir()."/$this->_prefix.conf");
-	}
-	
-	public function load()
-	{
 		
-		
-		if(file_exists($this->_conffile))
-		{
-			parent::load($this->_conffile);
-		}
-	}
 	
 	public function getConfig()
 	{
@@ -108,7 +103,6 @@ abstract class Magmi_Plugin
 	
 	public function __construct()
 	{
-		$this->_config=new Magmi_PluginConfig(get_class($this));	
 	}
 	
 	public function getParam($pname,$default=null)
@@ -195,10 +189,11 @@ abstract class Magmi_Plugin
 		
 	}
 	
-	public final function pluginInit($mmi,$params=null,$doinit=true)
+	public final function pluginInit($mmi,$params=null,$doinit=true,$profile=null)
 	{		
 		$this->_mmi=$mmi;
 		$this->_class=get_class($this);
+		$this->_config=new Magmi_PluginConfig(get_class($this),$profile);	
 		$this->_config->load();
 		$this->_params=isset($params)?array_merge($this->_config->getConfig(),$params):$this->_config->getConfig();
 		if(isset($mmi))
@@ -246,6 +241,29 @@ abstract class Magmi_Plugin
 	public function getOptionsPanel()
 	{
 		return new Magmi_PluginOptionsPanel($this);
+	}
+	
+	public function getShortDescription()
+	{
+		$panel=$this->getOptionsPanel()->getHtml();
+		$info=null;
+		if(preg_match('|<div class="plugin_description">(.*?)</div>|smi',$panel,$match))
+		{
+			
+			$info=$match[1];
+			$delims=array(".",":");
+			foreach($delims as $delim)
+			{
+				$p=strpos($info,$delim);
+				if($p!==false)
+				{
+					$info=substr($info,0,$p);
+					break;
+				}
+			}
+			
+		}
+		return $info;
 	}
 	
 	public function __call($data,$arg)
