@@ -26,6 +26,11 @@ class Properties
 		$this->_props=$this->getIniStruct($flatarr);
 	}
 	
+	public function setProps($proparr)
+	{
+		$this->_props=$proparr;
+	}
+	
 	public function load($file)
 	{
 		if(!file_exists($file))
@@ -164,6 +169,19 @@ class Properties
 		else
 		{
 			return array();
+		}
+	}
+	
+	public function hasSection($secname)
+	{
+		return isset($this->_props[$secname]);
+	}
+	
+	public function removeSection($secname)
+	{
+		if($this->hasSection($secname))
+		{
+			unset($this->_props[$secname]);
 		}
 	}
 	
