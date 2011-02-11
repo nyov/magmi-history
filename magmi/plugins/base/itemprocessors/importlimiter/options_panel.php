@@ -1,5 +1,5 @@
 <div class="plugin_description">
-This plugin is made to limit magmi import to selected record ranges or matching values
+This plugin is made to limit magmi import to selected record ranges or matching values.
 ranges are ranges of rows to be imported
 filters are regexps or strings that if matched will exclude record from import
 </div>

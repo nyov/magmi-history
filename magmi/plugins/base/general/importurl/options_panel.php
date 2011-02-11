@@ -12,7 +12,8 @@ current settings.
 	<textarea id="GETURL:url" cols="132" rows="5"></textarea>
 </div>
 <script type="text/javascript">
-	magmi_getimporturl=function()
+/*
+magmi_getimporturl=function()
 	{
 		var mode=$F('GETURL:mode');
 		old_action=$('import_form').action;
@@ -47,5 +48,5 @@ current settings.
 		magmi_getimporturl();
 		
 	});
-	
+	*/
 </script>

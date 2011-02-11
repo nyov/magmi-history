@@ -249,6 +249,99 @@ span.version
 	border-collapse: collapse;
 	padding-bottom: 2px;
 }
+
+#common_config input[type=text],#common_config input[type=password]
+{
+	width:180px;
+}
+
+#common_config ul.formline li.label
+{
+	width:120px;
+	height:18px;
+	padding-top:3px;
+}
+
+#profile_action li.label
+{
+	height:18px;
+	padding-top:3px;
+}
+
+
+.pluginselect
+{
+	width:400px;
+	clear:both;
+	float:left;
+}
+
+.pluginselect input[type=checkbox]
+{
+	margin:0px;
+	padding:0px;
+	height:20px;
+	margin-top:3px;
+}
+
+.plugininfo
+{
+	float:left;
+	position:relative;
+	padding-top:2px;
+	background-color:#eeeeee;
+	height:18px;
+	margin-bottom:1px;
+}
+
+.pluginname
+{
+}
+
+.plugininfo .plugininfohover
+{
+	position:absolute;
+	top:-9999px;
+	left:-9999px;
+}
+
+div.plugininfo:hover
+{
+background-color:#ccffcc;
+}
+
+div.pluginconf
+{
+ float:left;
+ margin-left:10px;
+}
+
+select
+{
+ border:1px solid #888888;
+ background: #ffffff;
+}
+
+div.plugininfo:hover div.plugininfohover
+{
+ width:400px;
+ border:1px solid #000000;
+ background:#eeeecc;
+ top:0px;
+ left:100%;
+ z-index:200;
+}
+
+div.pluginconfpanel
+{
+ display:none;
+}
+div.pluginconfpanel.selected
+{
+	display:block;
+	clear:both;
+}
+
 #import_current
 {
 	position:absolute;
