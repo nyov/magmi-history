@@ -17,6 +17,6 @@ values of column to map to all mapped columns !!!</b>
 <script type="text/javascript">
 var cm_vals=<?php echo tdarray_to_js($this,'CMAP:columnlist','CMAP')?>;
 var cm_linetpl='<ul class="formline"><li class="label">New name for col {fieldname}</li><li class="value"><input type="text" name="CMAP:{fieldname.enc}" value="{value}"></input></li></ul>';
-var cmap_mf=new magmi_multifield('CMAP:columnlist','CMAP:columnsetup',cm_linetpl,cm_vals);
+cmap_mf=new magmi_multifield('CMAP:columnlist','CMAP:columnsetup',cm_linetpl,cm_vals);
 cmap_mf.buildparamlist();
 </script>
