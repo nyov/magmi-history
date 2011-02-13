@@ -7,6 +7,10 @@ $profile=null;
 if(isset($_REQUEST["profile"]))
 {
 	$profile=$_REQUEST["profile"];
+	if($profile=="default")
+	{
+		$profile=null;
+	}
 }
 $plconf=new EnabledPlugins_Config($profile);
 $plconf->load();

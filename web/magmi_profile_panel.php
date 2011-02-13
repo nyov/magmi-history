@@ -36,6 +36,13 @@
 	};
 </script>
 <div class="container_12" id="profile_action">
+<div class="grid_12 subtitle">Profile Configuration (<?php echo isset($profile)?$profile:"Default"?>) </div>
+<div class="grid_12 msg" id="commonconf_msg">
+<?php 
+$eplconf=new EnabledPlugins_Config($profile);
+?>
+Saved:<?php echo $eplconf->getLastSaved("%c")?>
+</div>
 <div class="grid_12 col">
 	<form action="magmi_chooseprofile.php" method="POST" id="chooseprofile" >
 	<h3>Profile to configure</h3>
@@ -62,8 +69,8 @@
 ?>
 </form>
 </div>
-
-
+</div>
+<div class="container_12" id="profile_cfg">
 <form action="magmi_saveprofile.php" method="POST" >
 	<input type="hidden" name="profile" value="<?php echo $profile?>">
 	<?php foreach($order as $k)
@@ -126,14 +133,16 @@
 
 		<?php 
 			  $info=$pinst->getShortDescription();
-		if($info!==null){?>
-		<div class="plugininfo">
-			<span>info</span>
+		?>
+			  <div class="plugininfo">
+		<?php if($info!==null){?>
+		<span>info</span>
 			<div class="plugininfohover">
 				<?php echo $info?>
 			</div>
-		</div>
 		<?php }?>
+
+		</div>
 
 		<?php $enabled=$plconf->isPluginEnabled($k,$pclass)?>
 		<div class="pluginconf"  <?php if(!$enabled){?>style="display:none"<?php }?>>
@@ -153,10 +162,11 @@
 
 	</div>
 	<?php }?>
-	<div style="float:right">
-		<input type="submit" value="Save Current Profile (<?php echo $profile==null?"Default":$profile ?>)" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>></input>
-	</div>
 </form>
+<div style="float:right">
+	<a id="saveprofile" href="javascript:void(0)" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>>Save Profile (<?php echo ($profile==null?"Default":$profile)?>)</a>
+</div>
+
 </div>
 <script type="text/javascript">
 initConfigureLink=function(maincont)
@@ -167,7 +177,18 @@ initConfigureLink=function(maincont)
  	cfgdiv=cfgdiv[0];
  	var confpanel=maincont.select('.pluginconfpanel');
 	 confpanel=confpanel[0]
- 	cfgdiv.observe('click',function(ev){confpanel.toggleClassName('selected');});
+	cfgdiv.stopObserving('click');
+ 	cfgdiv.observe('click',function(ev){
+ 	 	confpanel.toggleClassName('selected');
+ 		 confpanel.select('.ifield').each(function(it){
+ 			it.select('.fieldhelp').each(function(fh){
+ 				fh.observe('click',function(ev){
+ 					it.select('.fieldsyntax').each(function(el){el.toggle();})
+ 						});
+ 				});
+ 			});
+ 	 	});
+
  }
 }
 showConfLink=function(maincont)
@@ -179,18 +200,29 @@ showConfLink=function(maincont)
 	cfgdiv=cfgdiv[0];
 	cfgdiv.show();
 	 }
+	
 }
 
 loadConfigPanel=function(container,profile,plclass)
 {
- new Ajax.Updater({success:container},'ajax_pluginconf.php',{parameters:{profile:profile,pluginclass:plclass},evalScripts:true,onComplete:showConfLink(container.parentNode)});
+ new Ajax.Updater({success:container},'ajax_pluginconf.php',
+	{parameters:{
+		profile:profile,
+		pluginclass:plclass},
+		evalScripts:true,
+		onComplete:
+	 	function(){
+	 		showConfLink(container.parentNode);
+	 		initConfigureLink(container.parentNode);
+	 	}});
 }
 removeConfigPanel=function(container)
 {
 var cfgdiv=container.parentNode.select('.pluginconf');
 cfgdiv=cfgdiv[0];
+cfgdiv.stopObserving('click');
  cfgdiv.hide();
- container.hide();
+ container.removeClassName('selected');
  container.update('');
 }
 
@@ -229,5 +261,9 @@ initDefaultPanels=function()
 
 initAjaxConf();
 initDefaultPanels();
-
+$('saveprofile').observe('click',function()
+		{
+			new Ajax.Request('/magmi_saveprofile.php',{parameters:$('saveprofile').serialize(true),
+					onComplete:function(){}});
+		});
 </script>
