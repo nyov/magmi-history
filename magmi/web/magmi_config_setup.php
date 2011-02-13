@@ -7,6 +7,10 @@ $conf_ok=1;
 ?>
 <?php $profile=(isset($_REQUEST["profile"]) && $_REQUEST["profile"]!=="default")?$_REQUEST["profile"]:null;?>
 <!-- MAGMI UPLOADER -->
+<div class="container_12" >
+<div class="grid_12 subtitle"><span>Update Magmi</span>
+</div>
+</div>
 <div class="container_12">
 <form method="post" enctype="multipart/form-data" action="magmi_upload.php">
 	<div class="grid_12 col"><h3>Update Magmi Release</h3>
@@ -35,12 +39,16 @@ $conf_ok=1;
 </div>
 </form>
 </div>
-
+<div class="container_12" >
+<div class="grid_12 subtitle"><span>Run Magmi</span>
+</div>
+</div>
 	<div class="container_12">
 		<div class="grid_12 col" id="globalops">
 			<h3>Global Maintenance operations</h3>
 			<ul class="formline">
-				<li class="label">Clear Magento catalog</li>
+				<li class="label"><a href="#" id="clearcatalog">Clear Magento catalog</a></li>
+				<li class="value"><div id="clearcatalog_msg" class="message" style="display:none"></div></li>
 			</ul>
 		</div>
 	</div>
@@ -71,9 +79,10 @@ $conf_ok=1;
 </form>
 	
 <div class="container_12" >
-<div class="grid_12 subtitle">Common Configuration </div>
-<div class="grid_12 msg" id="commonconf_msg">
+<div class="grid_12 subtitle"><span>Configure Global Parameters</span>
+<span id="commonconf_msg" class="saveinfo">
 Saved:<?php echo $conf->getLastSaved("%c")?>
+</span>
 </div>
 </div>
 
@@ -130,15 +139,18 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 <div class="clear"></div>
 
 	<div class="container_12">
+	<div class="grid_12">
 		<div style="float:right">
 		<a id="save_commonconf" class="actionbutton" href="#">Save Common Configuration</a>
 		</div>
+	</div>
 	</div>
 	</div>
 </form>
 
 <div class="clear"></div>
 <script type="text/javascript">
+
 $('save_commonconf').observe('click',function()
 {
 	new Ajax.Updater('commonconf_msg',
@@ -147,8 +159,23 @@ $('save_commonconf').observe('click',function()
 				  onSuccess:function(){$('commonconf_msg').show();}
 	  			});							
 });
+
 $('runprofile').observe('change',function(ev)
 		{
 			document.location='magmi.php?profile='+Event.element(ev).value;
 		});
+
+$('clearcatalog').observe('click',function(ev)
+		{	
+			var res=confirm('Are you sure ?, it will destroy all existing items in catalog!!!')
+			if(res==false)
+			{
+				Event.stop(ev);
+				return;
+			}
+			new Ajax.Updater('clearcatalog_msg',
+			 "clearcatalog.php",{
+			  onSuccess:function(){$('clearcatalog_msg').show();}
+ 			});
+		});							
 </script>
