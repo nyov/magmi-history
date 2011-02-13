@@ -2,13 +2,13 @@
 	set_include_path(get_include_path().PATH_SEPARATOR."../inc");
 	ini_set("display_errors",1);
 	ini_set("error_reporting",E_ALL);
-	require_once("magmi_importer.php");
+	require_once("magmi_version.php");
 	session_start();
 ?>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Magento Mass Importer by Dweeves - version <?php echo MagentoMassImporter::$version ?></title>
+<title>Magento Mass Importer by Dweeves - version <?php echo Magmi_Version::$version ?></title>
 <link rel="stylesheet" href="css/960.css"></link>
 <link rel="stylesheet" href="css/reset.css"></link>
 <link rel="stylesheet" href="css/magmi.css"></link>
