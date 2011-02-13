@@ -36,12 +36,13 @@
 	};
 </script>
 <div class="container_12" id="profile_action">
-<div class="grid_12 subtitle">Profile Configuration (<?php echo isset($profile)?$profile:"Default"?>) </div>
-<div class="grid_12 msg" id="commonconf_msg">
+<div class="grid_12 subtitle"><span>Configure Current Profile (<?php echo isset($profile)?$profile:"Default"?>)</span>
+<span class="saveinfo" id="commonconf_msg">
 <?php 
 $eplconf=new EnabledPlugins_Config($profile);
 ?>
 Saved:<?php echo $eplconf->getLastSaved("%c")?>
+</span>
 </div>
 <div class="grid_12 col">
 	<form action="magmi_chooseprofile.php" method="POST" id="chooseprofile" >

@@ -1,5 +1,5 @@
 <div class="container_12">
-	<div class="grid_12 title  omega">
+	<div class="grid_12 title ">
 		<span>
   		Magento Mass Importer by Dweeves
  		</span>

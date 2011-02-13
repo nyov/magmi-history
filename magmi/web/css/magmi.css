@@ -89,8 +89,19 @@ body
 	width:100%;
 	line-height: 2em;
 	font-size: large;
+	background: #8888cc;
+	color: #ffffff;
+	font-weight: bold;
+	margin-top:5px;
 }
 
+.saveinfo
+{
+	float:right;
+	font-size: small;
+	font-weight:normal;
+	padding-right:5px;
+}
 span.version
 {
 	float: right;
@@ -433,6 +444,10 @@ div.log_error
 .magmi_error li
 {
 	list-style: disc inside;
+}
+.message
+{
+	padding-top:4px;
 }
 
 .fieldhelp
