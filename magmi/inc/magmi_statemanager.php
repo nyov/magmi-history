@@ -1,15 +1,25 @@
 <?php
+if(!defined("DS"))
+{
+	define("DS",DIRECTORY_SEPARATOR);
+}
 class Magmi_StateManager
 {
 	private static $_statefile=null;
 	private static $_script=__FILE__;
 	private static $_state="idle";
 	
+	
 	public static function getStateFile()
 	{
-		return dirname(self::$_script)."/../state/.magmistate";
+		return dirname(dirname(self::$_script)).DS."state".DS."magmistate";
 	}
 
+	public static function getProgressFile()
+	{
+		return dirname(dirname(self::$_script)).DS."state".DS."progress.txt";
+	}
+	
 	public static function setState($state,$force=false)
 	{
 	

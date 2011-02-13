@@ -13,6 +13,16 @@ class DirbasedConfig extends Properties
 		$this->_confname=$basedir.DS.$confname;
 	}
 	
+	public function getConfFile()
+	{
+		return $this->_confname;
+	}
+	
+	public function getLastSaved($fmt)
+	{
+		return strftime($fmt,filemtime($this->getConfFile()));
+	}
+	
 	public function load($name=null)
 	{
 		if($name==null)

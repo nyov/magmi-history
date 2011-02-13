@@ -203,10 +203,6 @@ abstract class Magmi_Plugin
 		if($doinit)
 		{
 			$this->initialize($params);
-			if(!isset($params["nopersist"]))
-			{
-				$this->persistParams($this->getPluginParams($params));
-			}
 		}
 	}
 	
