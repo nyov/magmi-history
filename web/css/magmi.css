@@ -11,6 +11,7 @@ ul.formline
 	width:100%;
 	padding-left:0px;
 	clear:both;
+	height:24px;
 }
 
 ul.formline li
@@ -25,6 +26,7 @@ ul.formline li.label
 {
 	text-align: left;
 	width:200px;
+	padding-top:4px;
 }
 
 ul.formline li.value
@@ -305,6 +307,12 @@ span.version
 	left:-9999px;
 }
 
+div.plugininfo
+{
+	width:50px;
+	text-align: center;
+}
+
 div.plugininfo:hover
 {
 background-color:#ccffcc;
@@ -340,6 +348,7 @@ div.pluginconfpanel.selected
 {
 	display:block;
 	clear:both;
+	border:1px solid #888888;
 }
 
 #import_current
@@ -433,4 +442,9 @@ div.log_error
 	height:24px;
 	margin-right:4px;
 	background: url('fieldhelp.png') transparent no-repeat;
+}
+
+#directrun ul.formline li.label
+{
+ width:200px;	
 }

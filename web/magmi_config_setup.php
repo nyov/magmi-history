@@ -1,10 +1,11 @@
 <?php 
 require_once("magmi_config.php");
+require_once("magmi_statemanager.php");
 $conf=Magmi_Config::getInstance();
 $conf->load();
 $conf_ok=1;
 ?>
-
+<?php $profile=(isset($_REQUEST["profile"]) && $_REQUEST["profile"]!=="default")?$_REQUEST["profile"]:null;?>
 <!-- MAGMI UPLOADER -->
 <div class="container_12">
 <form method="post" enctype="multipart/form-data" action="magmi_upload.php">
@@ -35,12 +36,49 @@ $conf_ok=1;
 </form>
 </div>
 
+	<div class="container_12">
+		<div class="grid_12 col" id="globalops">
+			<h3>Global Maintenance operations</h3>
+			<ul class="formline">
+				<li class="label">Clear Magento catalog</li>
+			</ul>
+		</div>
+	</div>
+<form method="POST" id="runmagmi" action="magmi.php">
+	<input type="hidden" name="run" value="2"></input>
+	<input type="hidden" name="logfile" value="<?php echo Magmi_StateManager::getProgressFile()?>"></input>
+	<div class="container_12">
+		<div class="grid_12 col" id="directrun">	
+			<h3>Directly run magmi with existing profile</h3>
+			<div class="formline">
+				<span class="label">Run Magmi With Profile:</span>
+				<?php $profilelist=$conf->getProfileList(); ?>
+				<select name="profile" id="runprofile">
+					<option <?php if(null==$profile){?>selected="selected"<?php }?> value="default">Default</option>
+					<?php foreach($profilelist as $profilename){?>
+					<option <?php if($profilename==$profile){?>selected="selected"<?php }?> value="<?php echo $profilename?>"><?php echo $profilename?></option>
+					<?php }?>
+				</select>
+			<span>using mode:</span>
+				<select name="mode" id="mode">
+					<option value="update">Update existing items,skip new ones</option>
+					<option value="create">create new items &amp; update existing ones</option>
+				</select>
+			<input type="submit" value="Run Import"></input>
+			</div>
+		</div>
+		</div>
+</form>
+	
 <div class="container_12" >
 <div class="grid_12 subtitle">Common Configuration </div>
+<div class="grid_12 msg" id="commonconf_msg">
+Saved:<?php echo $conf->getLastSaved("%c")?>
+</div>
 </div>
 
 <div class="clear"></div>
-<form method="post" action="magmi_saveconfig.php">
+<form method="post" action="magmi_saveconfig.php" id="commonconf_form">
 <div class="container_12" id="common_config">
 	<div class="grid_4 col">
 	<h3>Database</h3>
@@ -93,10 +131,24 @@ $conf_ok=1;
 
 	<div class="container_12">
 		<div style="float:right">
-		<input type="submit" value="Save Common Configuration"></input>
+		<a id="save_commonconf" class="actionbutton" href="#">Save Common Configuration</a>
 		</div>
 	</div>
 	</div>
-	
 </form>
+
 <div class="clear"></div>
+<script type="text/javascript">
+$('save_commonconf').observe('click',function()
+{
+	new Ajax.Updater('commonconf_msg',
+				 "magmi_saveconfig.php",
+				 {parameters:$('commonconf_form').serialize('true'),
+				  onSuccess:function(){$('commonconf_msg').show();}
+	  			});							
+});
+$('runprofile').observe('change',function(ev)
+		{
+			document.location='magmi.php?profile='+Event.element(ev).value;
+		});
+</script>

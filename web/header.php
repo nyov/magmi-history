@@ -4,7 +4,7 @@
   		Magento Mass Importer by Dweeves
  		</span>
  		<span class="version">
- 		version <?php echo MagentoMassImporter::$version ?>
+ 		version <?php echo Magmi_Version::$version ?>
  		</span>
 	</div>
 </div>
