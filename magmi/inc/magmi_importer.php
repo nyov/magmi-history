@@ -735,72 +735,7 @@ class MagentoMassImporter extends DBHelper
 		return $this->_extra_attrs;
 	}
 
-	/**
-	 * Clear all products from catalog
-	 */
-	public function clearProducts()
-	{
-		$this->log("Clearing product list....","reset");
-		$sql="SET FOREIGN_KEY_CHECKS = 0";
-		$this->exec_stmt($sql);
-		$tables=array("catalog_product_bundle_option",
-					  "catalog_product_bundle_option_value",
-					  "catalog_product_bundle_selection",
-					  "catalog_product_entity_datetime",
-					  "catalog_product_entity_decimal",
-					  "catalog_product_entity_gallery",
-					  "catalog_product_entity_int",
-					  "catalog_product_entity_media_gallery",
-					  "catalog_product_entity_media_gallery_value",
-					  "catalog_product_entity_text",
-					  "catalog_product_entity_tier_price",
-					  "catalog_product_entity_varchar",
-					  "catalog_product_link",
-					  "catalog_product_link_attribute",
-					  "catalog_product_link_attribute_decimal",
-					  "catalog_product_link_attribute_int",
-					  "catalog_product_link_attribute_varchar",
-					  "catalog_product_link_type",
-					  "catalog_product_option",
-					  "catalog_product_option_price",
-					  "catalog_product_option_title",
-					  "catalog_product_option_type_price",
-					  "catalog_product_option_type_title",
-					  "catalog_product_option_type_value",		
-					  "catalog_product_super_attribute_label",
-					  "catalog_product_super_attribute_pricing",
-					  "catalog_product_super_attribute",
-					  "catalog_product_super_link",
-					  "catalog_product_enabled_index",
-					  "catalog_product_website",
-					  "catalog_category_product_index",
-					  "catalog_category_product",
-					  "cataloginventory_stock_item",
-					  "cataloginventory_stock_status",
-					  "cataloginventory_stock");
-
-
-		foreach($tables as $table)
-		{
-			$this->exec_stmt("TRUNCATE TABLE `".$this->tablename($table)."`");
-		}
-
-		$sql="INSERT INTO `".$this->tablename("catalog_product_link_type")."` (`link_type_id`,`code`) VALUES (1,'relation'),(2,'bundle'),(3,'super'),(4,'up_sell'),(5,'cross_sell')";
-		$this->insert($sql);
-		$sql="INSERT INTO `".$this->tablename("catalog_product_link_attribute")."` (`product_link_attribute_id`,`link_type_id`,`product_link_attribute_code`,`data_type`) VALUES (1,2,'qty','decimal'),(2,1,'position','int'),(3,4,'position','int'),(4,5,'position','int'),(6,1,'qty','decimal'),(7,3,'position','int'),(8,3,'qty','decimal')";
-		$this->insert($sql);
-		$sql="INSERT INTO `".$this->tablename("cataloginventory_stock")."`(`stock_id`,`stock_name`) VALUES (1,'Default')";
-		$this->insert($sql);
-		$sql="TRUNCATE TABLE `".$this->tablename("catalog_product_entity")."`;\n";
-		$this->exec_stmt($sql);
-		$sql="SET FOREIGN_KEY_CHECKS = 1";
-
-		$this->exec_stmt($sql);
-		//clearing all option values for products
-		
-		$this->log("OK","reset");
-	}
-
+	
 
 	/**
 	 * update product stock
@@ -1253,14 +1188,8 @@ class MagentoMassImporter extends DBHelper
 			$nitems=$this->lookup();
 			Magmi_StateManager::setState("running");
 			//store reset flag
-			$this->reset=$reset;
 			$this->mode=$mode;
 			//if reset
-			if($this->reset)
-			{
-				//clear all products
-				$this->clearProducts();
-			}
 			if($nitems>0)
 			{
 				//intialize store id cache
