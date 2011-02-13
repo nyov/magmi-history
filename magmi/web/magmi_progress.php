@@ -5,7 +5,7 @@ require_once("progress_parser.php");
 $logfile=$_REQUEST["logfile"];
 if(!isset($logfile))
 {
-	$logfile=dirname(Magmi_StateManager::getStateFile())."/tmp_out.txt";
+	$logfile=Magmi_StateManager::getProgressFile();
 }
 if(file_exists($logfile))
 {
@@ -167,14 +167,12 @@ else
 	<div class='log_warning'>Canceled by user</div>
 	<div class='log_warning'>
 	<span><a href='magmi.php'>Back to Configuration Page</a></span>
-	<span><a href='magmi.php?run=1'>Back to Import</a></span>
 	</div>
 	<script type="text/javascript">endImport();</script>
 <?php else:?>	
 	<?php if($parser->getData("ended")):?>
 		<div class='log_end <?php if(count($parser->getData("error"))>0){?> log_error<?php }?>'>
 		<span><a href='magmi.php'>Back to Configuration Page</a></span>
-		<span><a href='magmi.php?run=1'>Back to Import</a></span>
 		</div>
 		<script type="text/javascript">endImport();</script>
 	<?php endif?>

@@ -1,27 +1,9 @@
 <?php 
-	session_start();
-	if(isset($_SESSION["magmi_import_params"]))
-	{
-		$params=$_SESSION["magmi_import_params"];
-	}
-	else
-	{
-		$params=array();
-		foreach($_REQUEST as $k=>$v)
-		{
-			$params[urldecode($k)]=urldecode($v);
-		}
-		
-	}
-	session_write_close();
-	if(count($params)==0)
-	{
-		die("No Parameters set, abort import");
-	}
+	$params=$_REQUEST;
+	print_r($params);
 	ini_set("display_errors",1);
 	require_once("../inc/magmi_statemanager.php");
 	require_once("../inc/magmi_importer.php");
-
 	class FileLogger
 	{
 		protected $_fname;
@@ -43,13 +25,30 @@
 		
 	}
 	
+	class EchoLogger
+	{
+		public function log($data,$type)
+		{
+			echo("$type:$data<br>");
+		}
+		
+	}
 	if(Magmi_StateManager::getState()!=="running")
 	{
 		Magmi_StateManager::setState("idle");
 		set_time_limit(0);
 		$mmi_imp=new MagentoMassImporter();
-		$logfile=isset($params["logfile"])?$params["logfile"]:dirname(Magmi_StateManager::getStateFile())."/tmp_out.txt";
-		$mmi_imp->setLogger(new FileLogger($logfile));		
+		$logfile=isset($params["logfile"])?$params["logfile"]:null;
+		if(isset($logfile) && $logfile!="")
+		{
+			echo "set logfile to:".$logfile;
+			$mmi_imp->setLogger(new FileLogger($logfile));
+		}	
+		else
+		{
+			$mmi_imp->setLogger(new EchoLogger());
+		
+		}
 		$mmi_imp->import($params);
 		
 	}

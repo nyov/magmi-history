@@ -4,9 +4,10 @@
 <?php require_once("header.php")?>
 <?
 	require_once("magmi_config.php");
+	require_once("magmi_statemanager.php");
+	
 	require_once("fshelper.php");
 	require_once("magmi_web_utils.php");
-
 	$badrights=array();
 	foreach(array("../state","../conf","../plugins") as $dirname)
 	{
@@ -17,27 +18,16 @@
 	}
 	if(count($badrights)==0)
 	{
-		if(Magmi_StateManager::getState()=="running")
+		if(Magmi_StateManager::getState()=="running" || isset($_REQUEST["run"]))
 		{
 			require_once("magmi_import_run.php");		
 		}
 		else
 		{
 			Magmi_StateManager::setState("idle",true);
-		}	
-			
-		if(isset($_REQUEST["configstep"]))
-		{
-			if($_REQUEST["configstep"]==2)
-			{
-				require_once("magmi_profile_config.php");
-			}
-		}
-		else
-		{
-			require_once("magmi_config_setup.php");
-			
-		}	
+			require_once("magmi_config_setup.php");		
+			require_once("magmi_profile_config.php");		
+		}		
 		
 	}
 	else

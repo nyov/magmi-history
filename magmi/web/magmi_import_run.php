@@ -1,13 +1,8 @@
 	<?php 
 	ini_set('magic_gpc_quotes',0);
-	$tmp=array();
-	foreach($_POST as $k=>$v)
-	{
-		$tmp[urldecode($k)]=urldecode($v);
-	}
-	$_SESSION["magmi_import_params"]=$tmp;
-	unset($tmp);
-	session_write_close();
+	$profile=$_REQUEST['profile'];
+	$mode=$_REQUEST['mode'];
+	$logfile=$_REQUEST['logfile'];
 	?>
 	<div class="clear"></div>
 	<div id="import_log" class="container_12">
@@ -38,7 +33,8 @@
 
 	startProgress=function()
 	{
-		window.upd=new Ajax.PeriodicalUpdater("runlog","./magmi_progress.php",{frequency:1,evalScripts:true});
+		window.upd=new Ajax.PeriodicalUpdater("runlog","./magmi_progress.php",{frequency:1,evalScripts:true,parameters:{
+		logfile:'<?php echo $logfile ?>'}});
 	}
 	
 	startImport=function(filename)
@@ -46,7 +42,9 @@
 		if(window._sr==null)
 		{
 			var rq=new Ajax.Request('./magmi_run.php',{method:'get',
-									 parameters:{'PHPSESSID':'<?php echo session_id();?>'},
+									 parameters:{'profile':'<?php echo $profile?>',
+										 		 'mode':'<?php echo $mode?>',
+										 		 'logfile':'<?php echo $logfile?>'},
 									onCreate:function(r){window._sr=r}});
 			startProgress.delay(0.5);
 		}

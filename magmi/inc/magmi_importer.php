@@ -15,18 +15,21 @@ require_once("dbhelper.class.php");
 require_once("magmi_statemanager.php");
 require_once("magmi_pluginhelper.php");
 require_once("magmi_config.php");
+require_once("magmi_version.php");
 
 ini_set("allow_url_fopen",true);
+//utilities method
+// return null for empty string
 function nullifempty($val)
 {
 	return (isset($val)?(strlen($val)==0?null:$val):null);
 }
-
+// return false for empty string
 function falseifempty($val)
 {
 	return (isset($val)?(strlen($val)==0?false:$val):false);
 }
-
+//test for empty string
 function testempty($arr,$val)
 {
 	
@@ -53,7 +56,6 @@ class MagentoMassImporter extends DBHelper
 	public $mode="update";
 	public static $state=null;
 	protected static $_statefile=null;
-	public static $version="0.6.18";
 	public $customip=null;
 	public  static $_script=__FILE__;
 	private $_pluginclasses=array();
@@ -94,7 +96,7 @@ class MagentoMassImporter extends DBHelper
 	 * load properties
 	 * @param string $conf : configuration .ini filename
 	 */
-	public function init()
+	public function init($profile)
 	{
 		if($this->_initialized)
 		{
@@ -102,19 +104,22 @@ class MagentoMassImporter extends DBHelper
 		}
 		try
 		{
-			$pluginclasses=Magmi_PluginHelper::getInstance()->getPluginClasses();
+			$pluginclasses=Magmi_PluginHelper::getInstance($profile)->getPluginClasses();
 			$this->_activeplugins=array("general"=>array(),"processors"=>array());
+			//Common configuration
 			$this->_conf=Magmi_Config::getInstance();
 			$this->_conf->load();
 			$this->magversion=$this->_conf->get("MAGENTO","version");
 			$this->magdir=$this->_conf->get("MAGENTO","basedir");
 			$this->tprefix=$this->_conf->get("DATABASE","table_prefix");
-			$this->enabled_label=$this->_conf->get("MAGENTO","enabled_status_label","Enabled");
-			$enproc=explode(",",$this->_conf->get("PLUGINS_ITEMPROCESSORS","classes",implode(",",$pluginclasses["itemprocessors"])));
-			$this->_pluginclasses["processors"]=array_intersect($enproc,$pluginclasses["itemprocessors"]);
-			$this->datasource_class=$this->_conf->get("PLUGINS_DATASOURCES","class",$pluginclasses["datasources"][0]);
+			//Profile configuration
+			$enabledplugins=new EnabledPlugins_Config($profile);
+			$enabledplugins->load();
+			$this->_pluginclasses["processors"]=$enabledplugins->getEnabledPluginClasses("ITEMPROCESSORS");	
+			$ds=$enabledplugins->getEnabledPluginClasses("DATASOURCES");
+			$this->datasource_class=$ds[0];
 			$engen=explode(",",$this->_conf->get("PLUGINS_GENERAL","classes",implode(",",$pluginclasses["general"])));
-			$this->_pluginclasses["general"]=array_intersect($engen,$pluginclasses["general"]);
+			$this->_pluginclasses["general"]=$enabledplugins->getEnabledPluginClasses("DATASOURCES");
 			$this->_initialized=true;
 		}
 		catch(Exception $e)
@@ -1227,16 +1232,16 @@ class MagentoMassImporter extends DBHelper
 	{
 		$item["__MAGMI_LAST__"]=1;
 	}
-	public function import($params)
+	public function import($params=array())
 	{
-		$this->init();
-		$reset=$this->getParam($params,"reset",false);
+		$profile=$this->getParam($params,"profile",null);
+		$this->init($profile);
 		$mode=$this->getParam($params,"mode","update");
 		//initializing datasource
 		try
 		{
 				
-			$this->log("Magento Mass Importer by dweeves - version:".MagentoMassImporter::$version,"title");
+			$this->log("Magento Mass Importer by dweeves - version:".Magmi_Version::$version,"title");
 			$this->log("step:".$this->getProp("GLOBAL","step",100),"step");
 			//initialize db connectivity
 			$this->connectToMagento();
