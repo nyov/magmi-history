@@ -79,6 +79,11 @@ class ProfileBasedConfig extends DirbasedConfig
 		parent::__construct($this->getProfileDir(),$fname);
 	}
 	
+	public function getProfile()
+	{
+		return $this->_profile;
+	}
+	
 }
 
 
@@ -88,8 +93,7 @@ class Magmi_Config extends DirbasedConfig
 	private $_defaultconfigname=null;
 	public static $conffile=null;
 	private static $_script=__FILE__;
-	private static $_profile=null;
-
+	
 		
 	public function getConfDir()
 	{
@@ -102,6 +106,7 @@ class Magmi_Config extends DirbasedConfig
 		parent::__construct($this->getConfDir(),"magmi.ini");
 		
 	}
+	
 	
 	
 	public static function getInstance()
@@ -177,6 +182,10 @@ class EnabledPlugins_Config extends ProfileBasedConfig
 	
 	public function __construct($profile=null)
 	{
+		if($profile=="default")
+		{
+			$profile=null;
+		}
 		parent::__construct("plugins.conf",$profile);
 	}
 	

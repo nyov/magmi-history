@@ -22,5 +22,3 @@ foreach($plist as $pclass)
 		$plinst->persistParams($plinst->getPluginParams($_REQUEST));
 	}
 }
-session_start();
-header("Location: magmi.php?configstep=2&profile=$profile");
