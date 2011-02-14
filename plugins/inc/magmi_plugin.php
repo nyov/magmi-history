@@ -11,6 +11,11 @@ class Magmi_PluginConfig extends ProfileBasedConfig
 		parent::__construct("$this->_prefix.conf",$profile);
 	}
 	
+	public function getConfDir()
+	{
+		return dirname($this->_confname);
+	}
+	
 	public function load($name=null)
 	{
 		$cname=($name==null?$this->_confname:$name);
@@ -47,16 +52,18 @@ class Magmi_PluginOptionsPanel
 {
 	private $_plugin;
 	private $_defaulthtml="";
-	
-	public function __construct($pinst)
+	private $_file=null;
+	public function __construct($pinst,$file=null)
 	{
 		$this->_plugin=$pinst;
+		$this->_file=($file==null?"options_panel.php":$file);
 		$this->initDefaultHtml();
+		
 	}
 	
 	public function getFile()
 	{
-		return 	"options_panel.php";
+		return 	$this->_file;
 	}
 
 	public final function initDefaultHtml()
@@ -68,6 +75,7 @@ class Magmi_PluginOptionsPanel
 		ob_end_clean();		
 		
 	}
+	
 	public function getHtml()
 	{
 		$plugin=$this->_plugin;
@@ -99,6 +107,7 @@ abstract class Magmi_Plugin
 	protected $_mmi=null;
 	protected $_class;
 	protected $_plugintype;
+	protected $_plugindir;
 	protected $_config;
 	
 	public function __construct()
@@ -189,9 +198,15 @@ abstract class Magmi_Plugin
 		
 	}
 	
-	public final function pluginInit($mmi,$params=null,$doinit=true,$profile=null)
+	public function getConfig()
+	{
+		return $this->_config;
+	}
+	
+	public final function pluginInit($mmi,$dir,$params=null,$doinit=true,$profile=null)
 	{		
 		$this->_mmi=$mmi;
+		$this->_plugindir=$dir;
 		$this->_class=get_class($this);
 		$this->_config=new Magmi_PluginConfig(get_class($this),$profile);	
 		$this->_config->load();
@@ -202,7 +217,7 @@ abstract class Magmi_Plugin
 		}
 		if($doinit)
 		{
-			$this->initialize($params);
+			$this->initialize($this->_params);
 		}
 	}
 	
@@ -233,10 +248,10 @@ abstract class Magmi_Plugin
 			$this->_config->save();
 		}
 	}
-	
-	public function getOptionsPanel()
+
+	public function getOptionsPanel($file=null)
 	{
-		return new Magmi_PluginOptionsPanel($this);
+		return new Magmi_PluginOptionsPanel($this,$file);
 	}
 	
 	public function getShortDescription()
@@ -260,6 +275,11 @@ abstract class Magmi_Plugin
 			
 		}
 		return $info;
+	}
+	
+	public function getPluginDir()
+	{
+		return $this->_plugindir;
 	}
 	
 	public function __call($data,$arg)

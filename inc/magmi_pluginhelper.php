@@ -123,7 +123,7 @@ class Magmi_PluginHelper
 			self::scanPlugins();
 		}
 		$plinst=new $pclass();
-		$plinst->pluginInit(null,$params,false,$this->_profile);
+		$plinst->pluginInit(null,$this->getPluginDir($plinst),$params,false,$this->_profile);
 		return $plinst;
 	}
 	

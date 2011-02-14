@@ -119,7 +119,7 @@ class MagentoMassImporter extends DBHelper
 			$ds=$enabledplugins->getEnabledPluginClasses("DATASOURCES");
 			$this->datasource_class=$ds[0];
 			$engen=explode(",",$this->_conf->get("PLUGINS_GENERAL","classes",implode(",",$pluginclasses["general"])));
-			$this->_pluginclasses["general"]=$enabledplugins->getEnabledPluginClasses("DATASOURCES");
+			$this->_pluginclasses["general"]=$enabledplugins->getEnabledPluginClasses("GENERAL");
 			$this->_initialized=true;
 		}
 		catch(Exception $e)

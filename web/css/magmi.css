@@ -102,6 +102,32 @@ body
 	font-weight:normal;
 	padding-right:5px;
 }
+
+.actionbutton
+{
+	border:1px solid #ccccff;
+		background:#eeeeff;
+	
+	text-decoration: none;
+	font-size: small;
+}
+.actionbutton:hover
+{
+	border:1px solid #8888cc;
+	background:#ccccff;
+	
+}
+
+.error
+{
+ color:#cc0000;
+}
+
+li.value span
+{
+ padding-top:4px;
+ height:16px;
+}
 span.version
 {
 	float: right;
