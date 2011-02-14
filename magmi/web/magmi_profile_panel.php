@@ -72,7 +72,7 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 </div>
 </div>
 <div class="container_12" id="profile_cfg">
-<form action="magmi_saveprofile.php" method="POST" >
+<form action="" method="POST" id="saveprofile_form">
 	<input type="hidden" name="profile" value="<?php echo $profile?>">
 	<?php foreach($order as $k)
 	{?>
@@ -82,9 +82,7 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 		{?>
 			<?php $pinf=$plugins[$k];?>
 			<?php if(count($pinf)>0){?>
-			<ul>
-			<li>
-			<div class="pluginselect">
+			<div class="pluginselect" style="float:left">
 			<select name="PLUGINS_DATASOURCES:class">
 			
 			
@@ -108,8 +106,6 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 			<div class="pluginconfpanel selected">
 			<?php echo $sinst->getOptionsPanel()->getHtml();?>
 			</div>
-			</li>
-			</ul>
 			<?php }else{
 						$conf_ok=0;
 				
@@ -164,10 +160,11 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 	</div>
 	<?php }?>
 </form>
+<div class="grid_12">
 <div style="float:right">
-	<a id="saveprofile" href="javascript:void(0)" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>>Save Profile (<?php echo ($profile==null?"Default":$profile)?>)</a>
+	<a id="saveprofile" class="actionbutton" href="javascript:void(0)" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>>Save Profile (<?php echo ($profile==null?"Default":$profile)?>)</a>
 </div>
-
+</div>
 </div>
 <script type="text/javascript">
 initConfigureLink=function(maincont)
@@ -264,7 +261,7 @@ initAjaxConf();
 initDefaultPanels();
 $('saveprofile').observe('click',function()
 		{
-			new Ajax.Request('/magmi_saveprofile.php',{parameters:$('saveprofile').serialize(true),
+			new Ajax.Request('magmi_saveprofile.php',{parameters:$('saveprofile_form').serialize(true),
 					onComplete:function(){}});
 		});
 </script>

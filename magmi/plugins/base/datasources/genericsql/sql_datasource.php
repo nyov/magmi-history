@@ -3,10 +3,14 @@ require_once("dbhelper.class.php");
 
 class ExtDBHelper extends DBHelper
 {
-	public function initDBMysql($dbname,$host,$port,$pass,$init)
+	public function initDBMysql($dbname,$host,$user,$pass,$init)
 	{
-		$this->_db=new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass,array(PDO::MYSQL_ATTR_INIT_COMMAND => "$init"));
-	
+		
+		if($init!="")
+		{
+			$init=array(PDO::MYSQL_ATTR_INIT_COMMAND => "$init");
+		}
+		$this->_db=new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass,$init);
 	}
 	
 	public function initDBPDOStr($user,$pass,$pdostr)
@@ -27,8 +31,8 @@ class SQL_Datasource extends Magmi_Datasource
 	{
 		$this->dbh=new ExtDBHelper();
 		$cdbtype=$this->getParam("SQL:dbtype");
-		$cdbusr=$this->getParam("SQL:user");
-		$cdbpass=$this->getParam("SQL:pass");	
+		$cdbusr=$this->getParam("SQL:dbuser");
+		$cdbpass=$this->getParam("SQL:dbpass");	
 		if($cdbtype=="other")
 		{
 			$cdbpdostr=$this->getParam("SQL:pdostr","");
@@ -38,9 +42,9 @@ class SQL_Datasource extends Magmi_Datasource
 		else
 		{
 			$cdbname=$this->getParam("SQL:dbname");
-			$cdbhost=$this->getParam("SQL:host");
-			$extra=$this->getParam("SQL:extra");
-			$this->dbh->initDbMysql($cdbhost,$cdbname,$cdbusr, $cdbpass);
+			$cdbhost=$this->getParam("SQL:dbhost");
+			$extra=$this->getParam("SQL:dbextra");
+			$this->dbh->initDbMysql($cdbname,$cdbhost,$cdbusr, $cdbpass,$extra);
 			
 		}			
 		if(isset($extra) && $extra!="")
@@ -67,7 +71,7 @@ class SQL_Datasource extends Magmi_Datasource
 	
 	public function getPluginParamNames()
 	{
-		return array("SQL:dbname","SQL:host","SQL:user","SQL:pass","SQL:extra","SQL:queryfile","SQL:pdostr");
+		return array("SQL:dbtype","SQL:dbname","SQL:dbhost","SQL:dbuser","SQL:dbpass","SQL:dbextra","SQL:queryfile","SQL:pdostr");
 	}
 
 	public function startImport()
