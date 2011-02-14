@@ -141,7 +141,7 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 	<div class="container_12">
 	<div class="grid_12">
 		<div style="float:right">
-		<a id="save_commonconf" class="actionbutton" href="#">Save Common Configuration</a>
+		<a id="save_commonconf" class="actionbutton" href="#">Save global parameters</a>
 		</div>
 	</div>
 	</div>
