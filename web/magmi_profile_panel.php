@@ -201,13 +201,13 @@ loadConfigPanel=function(container,profile,plclass)
 		evalScripts:true,
 		onComplete:
 	 	function(){
-	 		showConfLink(container.parentNode);
-	 		initConfigureLink(container.parentNode);
+	 		showConfLink($(container.parentNode));
+	 		initConfigureLink($(container.parentNode));
 	 	}});
 }
 removeConfigPanel=function(container)
 {
-var cfgdiv=container.parentNode.select('.pluginconf');
+var cfgdiv=$(container.parentNode).select('.pluginconf');
 cfgdiv=cfgdiv[0];
 cfgdiv.stopObserving('click');
  cfgdiv.hide();
@@ -230,7 +230,7 @@ initAjaxConf=function(profile)
 			var el=Event.element(ev);
 			var plclass=(el.tagName=="SELECT")?el.value:el.name;
 			var doload=(el.tagName=="SELECT")?true:el.checked;	
-			var targets=pls.parentNode.select(".pluginconfpanel");
+			var targets=$(pls.parentNode).select(".pluginconfpanel");
 			var container=targets[0];
 			if(doload)
 			{
@@ -245,7 +245,7 @@ initAjaxConf=function(profile)
 }
 initDefaultPanels=function()
 {
-	$$('.pluginselect').each(function(it){initConfigureLink(it.parentNode);});
+	$$('.pluginselect').each(function(it){initConfigureLink($(it.parentNode));});
 }
 
 initAjaxConf();
