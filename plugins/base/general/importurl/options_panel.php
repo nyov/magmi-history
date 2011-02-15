@@ -9,7 +9,7 @@ current settings.
 	<option value="rawurl">just url</option>
 </select>
 <div id="GETURL:urlcontainer">
-	<textarea id="GETURL:url" cols="132" rows="5"></textarea>
+	<textarea id="GETURL:url" cols="100" rows="5"></textarea>
 </div>
 <script type="text/javascript">
 
