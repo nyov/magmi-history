@@ -32,7 +32,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.0.7"
+            "version" => "0.0.8"
             );
 	}
 	public function handleGalleryTypeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
@@ -283,8 +283,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			else
 			{
 				$tfile=($imgfile[0]==DIRECTORY_SEPARATOR?substr($imgfile,1):$imgfile);
-				$fname=realpath($this->imgsourcedir.DIRECTORY_SEPARATOR.$tfile);
-				$exists=($fname!==false);
+				$fname=$this->imgsourcedir.DIRECTORY_SEPARATOR.$tfile;
+				$exists=(realpath($fname)!==false);
 			}
 			if(!$exists)
 			{
@@ -323,7 +323,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	public function processColumnList(&$cols,$params=null)
 	{
 		//automatically add modified attributes if not found in datasource
-		$cols=array_unique(array_merge(array_keys($this->errattrs),$cols));
+		//automatically add media_gallery for attributes to handle
+		$cols=array_unique(array_merge(array_keys($this->errattrs),array_merge($cols,array("media_gallery"))));
 		return true;
 	}
 	
