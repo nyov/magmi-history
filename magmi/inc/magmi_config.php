@@ -41,18 +41,19 @@ class DirbasedConfig extends Properties
 		{
 			$this->setPropsFromFlatArray($arr);
 		}
-		parent::save($this->_confname);
+		return parent::save($this->_confname);
 	}
 
 	public function saveTo($arr,$newdir)
 	{
 		if(!file_exists($newdir))
 		{
-			mkdir($newdir,0664);
+			mkdir($newdir,0775);
 		}	
-		parent::save($newdir.DS.basename($this->_confname));
+		$val=parent::save($newdir.DS.basename($this->_confname));
 		$this->_basedir=$newdir;
 		$this->_confname=$newdir.DS.basename($this->_confname);
+		return $val;
 	}
 	
 	public function getConfDir()
@@ -158,7 +159,7 @@ class Magmi_Config extends DirbasedConfig
 			}
 		}
 		}
-		parent::save($arr);		
+		return parent::save($arr);		
 	}
 	
 	public function getProfileList()
