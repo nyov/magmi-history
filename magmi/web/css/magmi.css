@@ -1,5 +1,9 @@
 @CHARSET "UTF-8";
 
+body
+{
+ behavior:url("csshover3.htc");
+}
 .datasource_plugin_config,.itemprocessor_plugin_config,.general_plugin_config
 {
 	clear:both;
@@ -323,7 +327,7 @@ span.version
 	margin-top:3px;
 }
 
-.plugininfo
+a span.plugininfo
 {
 	float:left;
 	position:relative;
@@ -337,20 +341,20 @@ span.version
 {
 }
 
-.plugininfo .plugininfohover
+a span.plugininfo .plugininfohover
 {
 	position:absolute;
 	top:-9999px;
 	left:-9999px;
 }
 
-div.plugininfo
+a span.plugininfo
 {
 	width:50px;
 	text-align: center;
 }
 
-div.plugininfo:hover
+a:hover .plugininfo
 {
 background-color:#ccffcc;
 }
@@ -367,7 +371,7 @@ select
  background: #ffffff;
 }
 
-div.plugininfo:hover div.plugininfohover
+a:hover span.plugininfo .plugininfohover
 {
  width:400px;
  border:1px solid #000000;
