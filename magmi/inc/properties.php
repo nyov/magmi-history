@@ -85,7 +85,7 @@ class Properties
 		{
 			$fname==$this->inifile;
 		}
-		$this->write_ini_file($this->_props,$fname,true);
+		return $this->write_ini_file($this->_props,$fname,true);
 	}
 	
 	public function esc($str)
@@ -99,6 +99,7 @@ class Properties
 	
 	public function write_ini_file($assoc_arr, $path, $has_sections=FALSE) { 
     $content = ""; 
+   
     if ($has_sections) { 
         foreach ($assoc_arr as $key=>$elem) { 
             $content .= "[".$key."]\n"; 
@@ -135,6 +136,7 @@ class Properties
     if (!fwrite($handle, $content)) { 
         return false; 
     } 
+    @chmod($path,0664);
     fclose($handle); 
     return true; 
 }

@@ -203,14 +203,18 @@ abstract class Magmi_Plugin
 		return $this->_config;
 	}
 	
+	public final function setMmiRef($mmi)
+	{
+		$this->_mmi=$mmi;
+	}
 	public final function pluginInit($mmi,$dir,$params=null,$doinit=true,$profile=null)
 	{		
-		$this->_mmi=$mmi;
+		$this->setMmiRef($mmi);
 		$this->_plugindir=$dir;
 		$this->_class=get_class($this);
 		$this->_config=new Magmi_PluginConfig(get_class($this),$profile);	
 		$this->_config->load();
-		$this->_params=isset($params)?array_merge($this->_config->getConfig(),$params):$this->_config->getConfig();
+		$this->_params=($params!=null?array_merge($this->_config->getConfig(),$params):$this->_config->getConfig());
 		if(isset($mmi))
 		{
 			$this->pluginHello();		
@@ -245,8 +249,9 @@ abstract class Magmi_Plugin
 		if(count($plist)>0)
 		{
 			$this->_config->setPropsFromFlatArray($plist);
-			$this->_config->save();
+			return $this->_config->save();
 		}
+		return true;
 	}
 
 	public function getOptionsPanel($file=null)

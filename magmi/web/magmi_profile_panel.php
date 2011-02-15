@@ -1,20 +1,10 @@
+<?php 
+if(isset($_REQUEST["profile"]))
+{
+	$profile=$_REQUEST["profile"];
+}
+?>
 <script type="text/javascript">
-		var MagmiImporter=Class.create({
-			bsfcallbacks:[],
-			registerBeforeSubmit:function(cb){this.bsfcallbacks.push(cb)},
-			submit:function(){
-				var context={results:[]};
-				this.bsfcallbacks.each(function(bsc,o){this.results.push(bsc())},context);
-				for(i=0;i<context.results.length;i++)
-				{
-					if(context.results[i]!="" && context.results[i]==false)
-					{
-						return false;
-					}
-				}
-				$('import_form').submit();}
-		});
-		var magmi_import=new MagmiImporter();
 		var profile="<?php echo $profile?>";
 	</script>
 <script type="text/javascript">
@@ -37,7 +27,7 @@
 </script>
 <div class="container_12" id="profile_action">
 <div class="grid_12 subtitle"><span>Configure Current Profile (<?php echo isset($profile)?$profile:"Default"?>)</span>
-<span class="saveinfo" id="commonconf_msg">
+<span class="saveinfo" id="profileconf_msg">
 <?php 
 $eplconf=new EnabledPlugins_Config($profile);
 ?>
@@ -73,7 +63,7 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 </div>
 <div class="container_12" id="profile_cfg">
 <form action="" method="POST" id="saveprofile_form">
-	<input type="hidden" name="profile" value="<?php echo $profile?>">
+	<input type="hidden" name="profile" id="curprofile" value="<?php echo $profile?>">
 	<?php foreach($order as $k)
 	{?>
 	<div class="grid_12 col <?php if($k==$order[count($order)-1]){?>omega<?php }?>">
@@ -119,7 +109,7 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 		<ul >
 		<?php $pinf=$plugins[$k];?>
 		<?php foreach($pinf as $pclass)	{
-			$pinst=Magmi_PluginHelper::getInstance()->createInstance($pclass);
+			$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pclass);
 			$pinfo=$pinst->getPluginInfo();
 		?>
 		<li>
@@ -261,7 +251,10 @@ initAjaxConf();
 initDefaultPanels();
 $('saveprofile').observe('click',function()
 		{
-			new Ajax.Request('magmi_saveprofile.php',{parameters:$('saveprofile_form').serialize(true),
-					onComplete:function(){}});
-		});
-</script>
+	new Ajax.Updater('profileconf_msg',
+			 "magmi_saveprofile.php",
+			 {parameters:$('saveprofile_form').serialize('true'),
+			  onSuccess:function(){$('profileconf_msg').show();}
+ 			});
+		});							
+	</script>
