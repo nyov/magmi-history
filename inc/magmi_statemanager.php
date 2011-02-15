@@ -32,7 +32,7 @@ class Magmi_StateManager
 		$f=fopen(self::getStateFile(),"w");
 		fwrite($f,self::$_state);
 		fclose($f);
-		chmod(self::getStateFile(),0664);
+		@chmod(self::getStateFile(),0664);
 	}
 	
 	public static function getState($cached=false)
