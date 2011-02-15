@@ -1129,8 +1129,7 @@ class MagentoMassImporter extends DBHelper
 	{
 		foreach($this->_pluginclasses["general"] as $giclass)
 		{
-			$gi=Magmi_PluginHelper::getInstance($this->_profile)->createInstance($giclass,$params);
-			$gi->setMmiRef($this);
+			$gi=Magmi_PluginHelper::getInstance($this->_profile)->createInstance($giclass,$params,$this);
 			$this->_activeplugins["general"][]=$gi;
 		}
 
@@ -1142,8 +1141,7 @@ class MagentoMassImporter extends DBHelper
 		$this->_pluginclasses["processors"][]="Magmi_DefaultAttributeItemProcessor";
 		foreach($this->_pluginclasses["processors"] as $ipclass)
 		{
-			$ip=Magmi_PluginHelper::getInstance($this->_profile)->createInstance($ipclass,$params);
-			$ip->setMmiRef($this);
+			$ip=Magmi_PluginHelper::getInstance($this->_profile)->createInstance($ipclass,$params,$this);
 			$this->_activeplugins["processors"][]=$ip;
 		}
 	}
@@ -1156,8 +1154,7 @@ class MagentoMassImporter extends DBHelper
 	public function createDatasource($params)
 	{
 		$dsclass=$this->datasource_class;
-		$this->datasource=Magmi_PluginHelper::getInstance($this->_profile)->createInstance($dsclass,$params);
-		$this->datasource->setMmiRef($this);
+		$this->datasource=Magmi_PluginHelper::getInstance($this->_profile)->createInstance($dsclass,$params,$this);
 	}
 
 	public function isLastItem($item)
