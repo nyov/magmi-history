@@ -8,22 +8,7 @@ if(isset($_REQUEST["profile"]))
 		var profile="<?php echo $profile?>";
 	</script>
 <script type="text/javascript">
-	addclass=function(it,o)
-	{
-		if(it.checked){
-			this.arr.push(it.name);
-		}
-	};
-	
-	gatherclasses=function(tlist)
-	{
-		tlist.each(function(t,o){
-			var context={arr:[]};
-			$$(".pl_"+t).each(addclass,context);
-			var target=$("plc_"+t);
-			target.value=context.arr.join(",");
-		});
-	};
+
 </script>
 <div class="container_12" id="profile_action">
 <div class="grid_12 subtitle"><span>Configure Current Profile (<?php echo isset($profile)?$profile:"Default"?>)</span>
@@ -157,6 +142,22 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 </div>
 </div>
 <script type="text/javascript">
+addclass=function(it,o)
+{
+	if(it.checked){
+		this.arr.push(it.name);
+	}
+};
+
+gatherclasses=function(tlist)
+{
+	tlist.each(function(t,o){
+		var context={arr:[]};
+		$$(".pl_"+t).each(addclass,context);
+		var target=$("plc_"+t);
+		target.value=context.arr.join(",");
+	});
+};
 initConfigureLink=function(maincont)
 {
  var cfgdiv=maincont.select('.pluginconf');
@@ -251,6 +252,7 @@ initAjaxConf();
 initDefaultPanels();
 $('saveprofile').observe('click',function()
 		{
+		gatherclasses(['GENERAL','ITEMPROCESSORS']);
 	new Ajax.Updater('profileconf_msg',
 			 "magmi_saveprofile.php",
 			 {parameters:$('saveprofile_form').serialize('true'),
