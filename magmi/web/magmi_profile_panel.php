@@ -106,15 +106,16 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 		<?php 
 			  $info=$pinst->getShortDescription();
 		?>
-			  <div class="plugininfo">
+			  <a >
 		<?php if($info!==null){?>
-		<span>info</span>
-			<div class="plugininfohover">
+			<span class="plugininfo">info
+			<span class="plugininfohover">
 				<?php echo $info?>
-			</div>
+			</span>
+			</span>
 		<?php }?>
 
-		</div>
+		</a>
 
 		<?php $enabled=$plconf->isPluginEnabled($k,$pclass)?>
 		<div class="pluginconf"  <?php if(!$enabled){?>style="display:none"<?php }?>>
