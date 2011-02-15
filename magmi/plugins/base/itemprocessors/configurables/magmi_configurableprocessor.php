@@ -15,7 +15,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.0.0"
+            "version" => "1.0.1"
             );
 	}
 	
@@ -73,6 +73,7 @@ public function initConfigurableOpts($cols)
 		$data_sa=array();
 		$ins_sal=array();
 		$data_sal=array();
+		$confopts=$this->_configurable_attrs;
 		foreach($confopts as $confopt)
 		{
 			$attrinfo=$this->getAttrInfo($confopt);
