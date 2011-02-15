@@ -115,7 +115,7 @@ class Magmi_PluginHelper
 	}
 	
 	
-	public function createInstance($pclass,$params=null)
+	public function createInstance($pclass,$params=null,$mmi=null)
 	{
 	
 		if(self::$_plugins_cache==null)
@@ -123,7 +123,7 @@ class Magmi_PluginHelper
 			self::scanPlugins();
 		}
 		$plinst=new $pclass();
-		$plinst->pluginInit(null,$this->getPluginDir($plinst),$params,false,$this->_profile);
+		$plinst->pluginInit($mmi,$this->getPluginDir($plinst),$params,false,$this->_profile);
 		return $plinst;
 	}
 	
