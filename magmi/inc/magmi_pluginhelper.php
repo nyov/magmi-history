@@ -5,7 +5,7 @@ class Magmi_PluginHelper
 {
 	
 	static $_plugins_cache=null;
-	static $_instance=null;
+	static $_instances=array();
 	public $base_dir;
 	public $plugin_dir;
 	protected $_profile;
@@ -25,11 +25,12 @@ class Magmi_PluginHelper
 	}
 	public static function getInstance($profile=null)
 	{
-		if(!isset(self::$_instance))
+		$key=($profile==null?"default":$profile);
+		if(!isset(self::$_instances[$key]))
 		{
-			self::$_instance=new Magmi_PluginHelper($profile);
+			self::$_instances[$key]=new Magmi_PluginHelper($profile);
 		}
-		return self::$_instance;
+		return self::$_instances[$key];
 	}
 	
 	public static function fnsort($f1,$f2)

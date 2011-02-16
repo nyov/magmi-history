@@ -40,7 +40,7 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 	<input type="submit" value="Copy Profile &amp; switch"></input>
 	<?php
 	require_once("magmi_pluginhelper.php");
-	$plugins=Magmi_PluginHelper::getInstance()->getPluginClasses();
+	$plugins=Magmi_PluginHelper::getInstance('main')->getPluginClasses();
 	$order=array("datasources","general","itemprocessors");
 ?>
 </form>
