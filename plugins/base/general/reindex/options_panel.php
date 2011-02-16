@@ -11,6 +11,7 @@
 		fcheck=function(t)
 		{
 			$$('._magindex').each(function(it){it.checked=t});
+			updateIndexes();
 			
 		}
 
@@ -18,16 +19,16 @@
 		{
 			$('indexes').value=getIndexes();
 		}
-		
-		magmi_import.registerBeforeSubmit(updateIndexes);
-				
+
+		$$('._magindex').each(function(it){it.observe('click',updateIndexes)});
 	</script>
 	<div class="plugin_description">
 This plugin calls magento reindex script via calling php cli. please ensure security configuration enable "exec()" calls from php
 </div>
 	<input type="hidden" name="REINDEX:indexes" id="indexes" value="<?php echo $this->getParam("REINDEX:indexes")?>"></input>
 	<div>
-	<span>Indexing:</span><a href="#" onclick="fcheck(1);">All</a>&nbsp;<a href="#" onclick="fcheck(0)">None</a>
+	<a name="REINDEX:config"></a>
+	<span>Indexing:</span><a href="#REINDEX:config" onclick="fcheck(1);">All</a>&nbsp;<a href="#REINDEX:config" onclick="fcheck(0)">None</a>
 	<ul>
 	<?php 
 	    $idxarr=explode(",",$this->_plugin->getIndexList());
