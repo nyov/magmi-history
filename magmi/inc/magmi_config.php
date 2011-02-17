@@ -20,19 +20,22 @@ class DirbasedConfig extends Properties
 	
 	public function getLastSaved($fmt)
 	{
-		return strftime($fmt,filemtime($this->getConfFile()));
+		
+		return strftime($fmt,filemtime($this->_confname));
 	}
 	
 	public function load($name=null)
 	{
 		if($name==null)
 		{
-			parent::load($this->_confname);
+			$name=$this->_confname;
 		}
-		else
+		
+		if(!file_exists($name))
 		{
-			parent::load($name);
+			$this->save();				
 		}
+		parent::load($name);
 	}
 	
 	public function save($arr=null)
