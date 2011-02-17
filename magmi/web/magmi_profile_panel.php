@@ -125,17 +125,15 @@ else{?>
 		<?php 
 			  $info=$pinst->getShortDescription();
 		?>
-			  <a >
+		<div class="plugininfo">
 		<?php if($info!==null){?>
-			<span class="plugininfo">info
-			<span class="plugininfohover">
+			<span>info</span>
+			<div class="plugininfohover">
 				<?php echo $info?>
-			</span>
-			</span>
+			</div>
+			
 		<?php }?>
-
-		</a>
-
+		</div>
 		<?php $enabled=$plconf->isPluginEnabled($k,$pclass)?>
 		<div class="pluginconf"  <?php if(!$enabled){?>style="display:none"<?php }?>>
 			<span><a href="javascript:void(0)">configure</a></span>
