@@ -3,6 +3,11 @@ if(isset($_REQUEST["profile"]))
 {
 	$profile=$_REQUEST["profile"];
 }
+if($profile=="")
+{
+	$profile=null;
+}
+$profilename=isset($profile)?$profile:"Default";
 ?>
 <script type="text/javascript">
 		var profile="<?php echo $profile?>";
@@ -11,12 +16,20 @@ if(isset($_REQUEST["profile"]))
 
 </script>
 <div class="container_12" id="profile_action">
-<div class="grid_12 subtitle"><span>Configure Current Profile (<?php echo isset($profile)?$profile:"Default"?>)</span>
-<span class="saveinfo" id="profileconf_msg">
+<div class="grid_12 subtitle"><span>Configure Current Profile (<?php echo $profilename?>)</span>
 <?php 
 $eplconf=new EnabledPlugins_Config($profile);
+$eplconf->load();
+$conf_ok=$eplconf->hasSection("PLUGINS_DATASOURCES");
 ?>
+<span class="saveinfo<?php if(!$conf_ok){?> log_warning<?php }?>" id="profileconf_msg">
+<?php if($conf_ok){?>
 Saved:<?php echo $eplconf->getLastSaved("%c")?>
+<?php }
+else{?>
+<?php echo $profilename?> Profile Config not saved yet
+<?php 
+}?>
 </span>
 </div>
 <div class="grid_12 col">
@@ -25,7 +38,7 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 	<ul class="formline">
 		<li class="label">Current Magmi Profile:</li>
 		<li class="value">	
-			<select name="profile" onchange="$(chooseprofile).submit()">
+			<select name="profile" onchange="$('chooseprofile').submit()">
 			<option <?php if(null==$profile){?>selected="selected"<?php }?> value="default">Default</option>
 			<?php foreach($profilelist as $profilename){?>
 			<option <?php if($profilename==$profile){?>selected="selected"<?php }?> value="<?php echo $profilename?>"><?php echo $profilename?></option>
@@ -66,6 +79,11 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 			foreach($pinf as $pclass)
 			{
 				$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pclass);
+				if($sinst==null)
+				{
+					
+					$sinst=$pinst;
+				}
 				$pinfo=$pinst->getPluginInfo();
 					
 				if($plconf->isPluginEnabled($k,$pclass))
@@ -74,7 +92,8 @@ Saved:<?php echo $eplconf->getLastSaved("%c")?>
 				}
 			?>
 				<option value="<?php echo $pclass?>"<?php  if($sinst==$pinst){?>selected="selected"<?php }?>><?php echo $pinfo["name"]." v".$pinfo["version"]?></option>
-			<?php }?>
+			<?php }
+			?>
 			
 			</select>
 			</div>
@@ -257,7 +276,13 @@ $('saveprofile').observe('click',function()
 	new Ajax.Updater('profileconf_msg',
 			 "magmi_saveprofile.php",
 			 {parameters:$('saveprofile_form').serialize('true'),
-			  onSuccess:function(){$('profileconf_msg').show();}
+			  onSuccess:function(){
+			  <?php if(!$conf_ok){?>
+					$('chooseprofile').submit();					
+			  <?php }else{?>
+			  		$('profileconf_msg').show();
+			  <?php }?>}
+			 
  			});
 		});							
 	</script>
