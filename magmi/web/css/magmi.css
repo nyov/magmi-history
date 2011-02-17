@@ -327,7 +327,7 @@ span.version
 	margin-top:3px;
 }
 
-a span.plugininfo
+div.plugininfo
 {
 	float:left;
 	position:relative;
@@ -341,20 +341,20 @@ a span.plugininfo
 {
 }
 
-a span.plugininfo .plugininfohover
+div.plugininfo div.plugininfohover
 {
 	position:absolute;
 	top:-9999px;
 	left:-9999px;
 }
 
-a span.plugininfo
+div.plugininfo
 {
 	width:50px;
 	text-align: center;
 }
 
-a:hover .plugininfo
+div.plugininfo:hover 
 {
 background-color:#ccffcc;
 }
@@ -371,7 +371,7 @@ select
  background: #ffffff;
 }
 
-a:hover span.plugininfo .plugininfohover
+div.plugininfo:hover div.plugininfohover
 {
  width:400px;
  border:1px solid #000000;
