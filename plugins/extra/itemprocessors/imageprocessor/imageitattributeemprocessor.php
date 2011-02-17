@@ -6,6 +6,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	protected $magdir=null;
 	protected $imgsourcedir=null;
 	protected $errattrs=array();
+	protected $_lastnotfound="";
 	
 	public function initialize($params)
 	{
@@ -32,7 +33,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.0.8a"
+            "version" => "0.0.9"
             );
 	}
 	public function handleGalleryTypeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
@@ -265,6 +266,10 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		$te="$l2d/$bimgfile";
 		
 		$result="/$i1/$i2/$bimgfile";
+		if($imgfile==$this->_lastnotfound)
+		{
+			return false;
+		}
 		/* test if imagefile comes from export */
 		if(!file_exists("$te") || $this->getParam("IMG:writemode")=="override")
 		{
@@ -290,6 +295,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{
 				$this->log("$fname not found, skipping image","warning");
 				$this->fillErrorAttributes($item);
+				$this->_lastnotfound=$imgfile;
 				return false;
 			}
 			/* test if 1st level product media dir exists , create it if not */
