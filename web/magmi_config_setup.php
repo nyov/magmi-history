@@ -3,9 +3,18 @@ require_once("magmi_config.php");
 require_once("magmi_statemanager.php");
 $conf=Magmi_Config::getInstance();
 $conf->load();
+
 $conf_ok=1;
 ?>
 <?php $profile=(isset($_REQUEST["profile"]) && $_REQUEST["profile"]!=="default")?$_REQUEST["profile"]:null;?>
+<?php 
+$eplconf=new EnabledPlugins_Config($profile);
+$eplconf->load();
+if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
+{
+	$conf_ok=0;
+}
+?>
 <!-- MAGMI UPLOADER -->
 <div class="container_12" >
 <div class="grid_12 subtitle"><span>Update Magmi</span>
@@ -41,6 +50,9 @@ $conf_ok=1;
 </div>
 <div class="container_12" >
 <div class="grid_12 subtitle"><span>Run Magmi</span>
+<?php if(!$conf_ok){?>
+<span class="saveinfo log_warning"><b>No Profile saved yet, Run disabled!!</b></span>
+<?php }?>
 </div>
 </div>
 	<div class="container_12">
@@ -52,6 +64,7 @@ $conf_ok=1;
 			</ul>
 		</div>
 	</div>
+<?php if($conf_ok){?>
 <form method="POST" id="runmagmi" action="magmi.php">
 	<input type="hidden" name="run" value="2"></input>
 	<input type="hidden" name="logfile" value="<?php echo Magmi_StateManager::getProgressFile()?>"></input>
@@ -72,12 +85,12 @@ $conf_ok=1;
 					<option value="update">Update existing items,skip new ones</option>
 					<option value="create">create new items &amp; update existing ones</option>
 				</select>
-			<input type="submit" value="Run Import"></input>
+			<input type="submit" value="Run Import" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>></input>
 			</div>
 		</div>
 		</div>
 </form>
-	
+<?php }?>
 <div class="container_12" >
 <div class="grid_12 subtitle"><span>Configure Global Parameters</span>
 <span id="commonconf_msg" class="saveinfo">
@@ -159,12 +172,12 @@ $('save_commonconf').observe('click',function()
 				  onSuccess:function(){$('commonconf_msg').show();}
 	  			});							
 });
-
+<?php if($conf_ok){?>
 $('runprofile').observe('change',function(ev)
 		{
 			document.location='magmi.php?profile='+Event.element(ev).value;
 		});
-
+<?php }?>
 $('clearcatalog').observe('click',function(ev)
 		{	
 			var res=confirm('Are you sure ?, it will destroy all existing items in catalog!!!')
