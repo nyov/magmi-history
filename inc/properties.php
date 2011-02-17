@@ -35,7 +35,8 @@ class Properties
 	{
 		if(!file_exists($file))
 		{
-			throw new FileNotFoundException();
+			return;
+			//throw new FileNotFoundException();
 			
 		}
 		try
@@ -99,7 +100,8 @@ class Properties
 	
 	public function write_ini_file($assoc_arr, $path, $has_sections=FALSE) { 
     $content = ""; 
-   
+    if(count($assoc_arr)>0)
+    {
     if ($has_sections) { 
         foreach ($assoc_arr as $key=>$elem) { 
             $content .= "[".$key."]\n"; 
@@ -128,6 +130,7 @@ class Properties
             else if($elem=="") $content .= $key2." = \n"; 
             else $content .= $key2." = \"".$this->esc($elem)."\"\n"; 
         } 
+    }
     } 
 
     if (!$handle = fopen($path, 'w')) { 
