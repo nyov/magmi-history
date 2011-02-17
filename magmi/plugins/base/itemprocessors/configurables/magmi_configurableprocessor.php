@@ -2,7 +2,7 @@
 class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 {
 
-	private $_matchmode="auto";
+	
 	private $_configurable_attrs=array();
 	
 	public function initialize($params)
@@ -15,7 +15,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.0.1"
+            "version" => "1.0.2"
             );
 	}
 	
@@ -48,6 +48,46 @@ public function initConfigurableOpts($cols)
 		return true;
 	}
 	
+	public function doLink($pid,$cond)
+	{
+			$cpsl=$this->tablename("catalog_product_super_link");
+			$cpr=$this->tablename("catalog_product_relation");
+			$sql="DELETE cpsl.*,cpsr.* FROM $cpsl as cpsl
+				JOIN $cpr as cpsr ON cpsr.parent_id=cpsl.parent_id
+				WHERE cpsl.parent_id=?";
+			$this->delete($sql,array($pid));
+			//recreate associations
+			$sql="INSERT INTO $cpsl (`parent_id`,`product_id`) SELECT cpec.entity_id as parent_id,cpes.entity_id  as product_id  
+				  FROM catalog_product_entity as cpec 
+				  JOIN catalog_product_entity as cpes ON cpes.type_id='simple' AND cpes.sku $cond
+			  	  WHERE cpec.entity_id=?";
+			$this->insert($sql,array($pid));
+			$sql="INSERT INTO $cpr (`parent_id`,`child_id`) SELECT cpec.entity_id as parent_id,cpes.entity_id  as child_id  
+				  FROM catalog_product_entity as cpec 
+				  JOIN catalog_product_entity as cpes ON cpes.type_id='simple' AND cpes.sku $cond
+			  	  WHERE cpec.entity_id=?";
+			$this->insert($sql,array($pid));
+		
+	}
+	
+	public function quote(&$it)
+	{
+		return addslashes($it);
+	}
+	
+	public function autoLink($pid)
+	{
+		dolink($pid,"LIKE CONCAT(cpec.sku,'%')");
+	}
+	
+	public function fixedLink($pid,$skulist)
+	{
+		$arr=explode(",",$skulist);
+		array_walk($arr,$this->quote);
+		$skulist=implode($arr);
+		dolink($pid,"IN ($skulist)");		
+	}
+	
 	public function processItemAfterId(&$item,$params)
 	{
 		//if item is not configurable, nothing to do
@@ -55,10 +95,15 @@ public function initConfigurableOpts($cols)
 		{
 			return true;
 		}
+		//if no configurable attributes, nothing to do
 		if(count($this->_configurable_attrs)==0)
 		{
 			return true;
 		}
+		//matching mode
+		//if associated skus 
+		$matchmode=(isset($item["simples_skus"])?(trim($item["simples_skus"])!=""?"none":"fixed"):"auto");
+		
 		
 		//check if item has exising options
 		
@@ -95,27 +140,22 @@ public function initConfigurableOpts($cols)
 			$sql="INSERT INTO `$cpsal` (`product_super_attribute_id`,`store_id`,`use_default`,`value`) VALUES ".implode(",",$ins);
 			$this->insert($sql,$data);
 		}
-		if($this->_matchmode=="auto")
+		
+		switch($matchmode)
 		{
-			//destroy old associations
-			$cpsl=$this->tablename("catalog_product_super_link");
-			$cpr=$this->tablename("catalog_product_relation");
-			$sql="DELETE cpsl.*,cpsr.* FROM $cpsl as cpsl
-				JOIN $cpr as cpsr ON cpsr.parent_id=cpsl.parent_id
-				WHERE cpsl.parent_id=?";
-			$this->delete($sql,array($pid));
-			//recreate associations
-			$sql="INSERT INTO $cpsl (`parent_id`,`product_id`) SELECT cpec.entity_id as parent_id,cpes.entity_id  as product_id  
-				  FROM catalog_product_entity as cpec 
-				  JOIN catalog_product_entity as cpes ON cpes.type_id='simple' AND cpes.sku LIKE CONCAT(cpec.sku,'%')
-			  	  WHERE cpec.entity_id=?";
-			$this->insert($sql,array($pid));
-			$sql="INSERT INTO $cpr (`parent_id`,`child_id`) SELECT cpec.entity_id as parent_id,cpes.entity_id  as child_id  
-				  FROM catalog_product_entity as cpec 
-				  JOIN catalog_product_entity as cpes ON cpes.type_id='simple' AND cpes.sku LIKE CONCAT(cpec.sku,'%')
-			  	  WHERE cpec.entity_id=?";
-			$this->insert($sql,array($pid));
+			case "none":
+				break;
+			case "auto":
+				//destroy old associations
+				autoLink($pid);
+				break;
+			case "fixed":
+				fixedLink($pid,$item["associated_skus"]);
+				break;
+			default:
+				break;
 		}
+		
 		return true;
 	}
 }

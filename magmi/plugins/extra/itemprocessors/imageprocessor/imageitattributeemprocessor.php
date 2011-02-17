@@ -32,7 +32,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.0.8"
+            "version" => "0.0.8a"
             );
 	}
 	public function handleGalleryTypeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
@@ -295,12 +295,25 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			/* test if 1st level product media dir exists , create it if not */
 			if(!file_exists("$l1d"))
 			{
-				mkdir($l1d,0777);
+				$result=@mkdir($l1d,0777);
+				if(!$result)
+				{
+					$errors= error_get_last();
+					$this->log("error creating $l1d: {$errors["type"]},{$errors["message"]}","warning");
+					return false;
+				}
 			}
 			/* test if 2nd level product media dir exists , create it if not */
 			if(!file_exists("$l2d"))
 			{
-				mkdir($l2d,0777);
+				$result=@mkdir($l2d,0777);
+				if(!$result)
+				{
+					$errors= error_get_last();
+					$errors= error_get_last();
+					$this->log("error creating $l2d: {$errors["type"]},{$errors["message"]}","warning");
+					return false;
+				}
 			}
 
 			/* test if image already exists ,if not copy from source to media dir*/
@@ -311,9 +324,10 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				{
 					$errors= error_get_last();
 					$this->fillErrorAttributes($item);
-					$this->log("error copying $l2d/$bimgfile : ${$errors["type"]},${$errors["message"]}","warning");
+					$this->log("error copying $l2d/$bimgfile : {$errors["type"]},{$errors["message"]}","warning");
 					return false;
 				}
+				@chmod("$l2d/$bimgfile",0664);
 			}
 		}
 		/* return image file name relative to media dir (with leading / ) */
