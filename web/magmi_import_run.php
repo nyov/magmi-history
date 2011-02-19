@@ -1,8 +1,12 @@
 	<?php 
+	
 	ini_set('magic_gpc_quotes',0);
-	$profile=$_REQUEST['profile'];
-	$mode=$_REQUEST['mode'];
-	$logfile=$_REQUEST['logfile'];
+	$logfile=isset($_REQUEST['logfile'])?$_REQUEST['logfile']:Magmi_StateManager::getProgressFile();
+	
+	$profile=isset($_REQUEST['profile'])?$_REQUEST['profile']:null;
+	$mode=isset($_REQUEST['mode'])?$_REQUEST['mode']:null;
+	
+	
 	?>
 	<div class="clear"></div>
 	<div id="import_log" class="container_12">
@@ -63,7 +67,10 @@
 		window._sr=null;
 	}
 	
-	
+	<?php if($mode!==null){?>
 	startImport();
-	
+	<?php }else{
+	?>
+	startProgress();
+	<?php }?>
 </script>
