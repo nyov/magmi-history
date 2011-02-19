@@ -7,6 +7,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	protected $imgsourcedir=null;
 	protected $errattrs=array();
 	protected $_lastnotfound="";
+	protected $_lastimage="";
 	
 	public function initialize($params)
 	{
@@ -244,7 +245,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			$cname=$fname;	
 		}
-		$cname=strtolower(preg_replace("/%[0-9][0-9|A-F]/","_",urlencode($cname)));
+		$cname=strtolower(preg_replace("/%[0-9][0-9|A-F]/","_",rawurlencode($cname)));
 		
 		return $cname;
 	}
@@ -253,8 +254,9 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		if(function_exists("curl_init"))
 		{
-			$handle = curl_init($url);
+			$handle = curl_init(str_replace(" ","%20",$url));
 		}
+		return $handle;
 	}
 	public function destroyUrlContext($context)
 	{
@@ -308,12 +310,16 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		}
 		else
 		{
-			$fp = @fopen("$l2d/$bimgfile", 'wb');
+			$fp = @fopen($target, 'wb');
 			if($fp!==false)
 			{
+				curl_setopt($context, CURLOPT_RETURNTRANSFER, false);
+				curl_setopt( $context, CURLOPT_CUSTOMREQUEST, 'GET' ); 
+				curl_setopt( $context, CURLOPT_NOBODY, false);
 				curl_setopt($context, CURLOPT_FILE, $fp);
 				curl_setopt($context, CURLOPT_HEADER, 0);
 				curl_setopt($context, CURLOPT_FOLLOWLOCATION, 1);
+				
 				curl_exec($context);
 				return true;
 			}
@@ -321,7 +327,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{
 				$errors= error_get_last();
 				$this->fillErrorAttributes($item);
-				$this->log("error copying $l2d/$bimgfile : {$errors["type"]},{$errors["message"]}","warning");
+				$this->log("error copying $target : {$errors["type"]},{$errors["message"]}","warning");
 				return false;
 			}
 		}
@@ -340,6 +346,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			return false;
 		}
+		
 		$curlh=false;
 		$bimgfile=$this->getTargetName(basename($imgfile),$item,$extra);
 		//source file exists
@@ -349,6 +356,11 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		$l2d="$l1d/$i2";
 		$te="$l2d/$bimgfile";
 		$result="/$i1/$i2/$bimgfile";
+		/* test for same image */
+		if($imgfile==$this->_lastimage)
+		{
+			return $result;
+		}
 		/* test if imagefile comes from export */
 		if(!file_exists("$te") || $this->getParam("IMG:writemode")=="override")
 		{
@@ -356,7 +368,9 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			$fname=$imgfile;
 			if(preg_match("|.*?://.*|",$imgfile))
 			{
-				$curlh=createUrlContext($imgfile);
+				$imgfile=str_replace($bimgfile,urlencode($bimgfile),$imgfile);
+				
+				$curlh=$this->createUrlContext($imgfile);
 				$exists=$this->Urlexists($imgfile,$curlh);
 			}
 			else
@@ -370,7 +384,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				$this->log("$fname not found, skipping image","warning");
 				$this->fillErrorAttributes($item);
 				$this->_lastnotfound=$imgfile;
-				$this->destroyContext($context);
+				$this->destroyUrlContext($context);
 				return false;
 			}
 			/* test if 1st level product media dir exists , create it if not */
@@ -381,7 +395,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				{
 					$errors= error_get_last();
 					$this->log("error creating $l1d: {$errors["type"]},{$errors["message"]}","warning");
-					$this->destroyContext($context);
+					$this->destroyUrlContext($context);
 					return false;
 				}
 			}
@@ -393,7 +407,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				{
 					$errors= error_get_last();
 					$this->log("error creating $l2d: {$errors["type"]},{$errors["message"]}","warning");
-					$this->destroyContext($context);
+					$this->destroyUrlContext($context);
 					return false;
 				}
 			}
@@ -401,19 +415,19 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			/* test if image already exists ,if not copy from source to media dir*/
 			if(!file_exists("$l2d/$bimgfile"))
 			{
-				if(!$this->saveImage($imgfile,"$l2d/$bimgfile",$context))
+				if(!$this->saveImage($imgfile,"$l2d/$bimgfile",$curlh))
 				{
 					$errors=error_get_last();
 					$this->fillErrorAttributes($item);
 					$this->log("error copying $l2d/$bimgfile : {$errors["type"]},{$errors["message"]}","warning");
-					$this->destroyContext($context);
+					$this->destroyUrlContext($context);
 					return false;
 				}
-				$this->destroyContext($context);
+				$this->destroyUrlContext($context);
 				@chmod("$l2d/$bimgfile",0664);
 			}
 		}
-		
+		$this->_lastimage=$imgfile;
 		/* return image file name relative to media dir (with leading / ) */
 		return $result;
 	}
