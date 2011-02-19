@@ -500,3 +500,13 @@ div.trace
 {
  width:200px;	
 }
+
+ul#globstep input[type=text]
+{
+	 width:100px;
+}
+
+ul#globstep.formline li.label
+{
+	 width:200px;
+}
