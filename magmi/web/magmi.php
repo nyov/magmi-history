@@ -1,6 +1,3 @@
-<html>
-<?php require_once("head.php")?>
-<body>
 <?php require_once("header.php")?>
 <?
 	require_once("magmi_config.php");
@@ -50,5 +47,4 @@
 	}
 ?>
 <?php require_once("footer.php")?>
-</body>
-</html>
+<?php ?>

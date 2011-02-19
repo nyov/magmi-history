@@ -1,3 +1,4 @@
+<?php require_once("head.php")?>
 <div class="container_12">
 	<div class="grid_12 title ">
 		<span>
