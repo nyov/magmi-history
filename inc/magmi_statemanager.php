@@ -15,6 +15,12 @@ class Magmi_StateManager
 		return dirname(dirname(self::$_script)).DS."state".DS."magmistate";
 	}
 
+	public static function getTraceFile()
+	{
+		return dirname(dirname(self::$_script)).DS."state".DS."trace.txt";
+		
+	}
+	
 	public static function getProgressFile()
 	{
 		return dirname(dirname(self::$_script)).DS."state".DS."progress.txt";
@@ -33,6 +39,12 @@ class Magmi_StateManager
 		fwrite($f,self::$_state);
 		fclose($f);
 		@chmod(self::getStateFile(),0664);
+		if($state=="running")
+		{
+			$f=fopen(self::getTraceFile(),"w");
+			fclose($f);
+			@chmod(self::getTraceFile(),0664);	
+		}
 	}
 	
 	public static function getState($cached=false)

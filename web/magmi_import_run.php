@@ -19,10 +19,12 @@
 				<div id="import_current">&nbsp;</div>
 			</div>
 		</div>
+
 		<div id="runlog" class="grid_12">
 		</div>
 	</div>
 <script type="text/javascript">
+	var pcall=0;
 	endImport=function(t)
 	{
 		$('cancel_button').hide();
