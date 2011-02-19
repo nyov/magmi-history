@@ -215,11 +215,12 @@ class MagentoMassImporter extends DBHelper
 		}
 	}
 	
-	public function trace($tid,$e)
+	public function trace($e)
 	{
+		$this->_excid++;
 		$traces=$e->getTrace();
 		$f=fopen(Magmi_StateManager::getTraceFile(),"a");
-		fwrite($f,"---- TRACE : $tid -----\n");
+		fwrite($f,"---- TRACE : $this->_excid -----\n");
 		$trstr="";
 		foreach($traces as $trace)
 		{
@@ -227,7 +228,7 @@ class MagentoMassImporter extends DBHelper
 			$trstr.= $fname.":".$trace["line"]." - ".$trace["function"]."(".implode(",",$trace["args"]).")\n";	
 		}
 		fwrite($f,$trstr);
-		fwrite($f,"---- ENDTRACE : $tid -----\n");
+		fwrite($f,"---- ENDTRACE : $this->_excid -----\n");
 		fclose($f);
 		
 	}
@@ -1106,10 +1107,11 @@ class MagentoMassImporter extends DBHelper
 		}
 		catch(Exception $e)
 		{
-			$this->_excid++;
+
 			$this->callProcessors("exception",$item,array("exception"=>$e),"processItem");
+			$this->trace($e);
 			$this->log($this->_excid.":".$e->getMessage()." - {$this->_laststmt->queryString}","error");
-			$this->trace($this->_excid,$e);
+			
 			//if anything got wrong, rollback
 			$this->rollbackTransaction();
 		}
@@ -1277,7 +1279,8 @@ class MagentoMassImporter extends DBHelper
 					}
 					catch(Exception $e)
 					{
-						$this->log("ERROR - RECORD #$this->_current_row - ".$e->getMessage(),"error");
+						$this->trace($e);
+						$this->log($this->_excid.":ERROR - RECORD #$this->_current_row - ".$e->getMessage(),"error");
 					}
 					if($this->isLastItem($item))
 					{
