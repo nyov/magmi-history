@@ -60,12 +60,12 @@ else
 						$(detdiv).addClassName("loaded");
 						$(dtype+'_link').update("Hide Details");
 						$(detdiv).show();
-						}});
+						},evalScripts:true});
 	
 		}
 	};
 </script>
-<div class='log_info'>Import Started</div>
+		<div class='log_info'>Import Started</div>
 <div class="col"><h3>Plugins</h3>
 <?php foreach($parser->getData("plugins") as $pinfo):?>
 	<div class="log_standard"><?php echo $pinfo["name"]?> (<?php echo $pinfo["ver"]?>) by <?php echo $pinfo["auth"]?></div>
@@ -134,7 +134,7 @@ else
 	</div>
 	</div>	
 <?php endif?>
-		
+
 <?php foreach(array("error","warning") as $gtype):
 		$arr=$parser->getData($gtype);
 	   if(count($arr)>0){?>

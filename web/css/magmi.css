@@ -489,6 +489,13 @@ div.log_error
 	background: url('fieldhelp.png') transparent no-repeat;
 }
 
+div.trace
+{
+	font-size:small;
+	font-family:courier,monospace;
+	background-color:#;
+	border:1px solid #cc0000;
+}
 #directrun ul.formline li.label
 {
  width:200px;	

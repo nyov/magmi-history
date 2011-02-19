@@ -73,7 +73,7 @@ class MagentoMassImporter extends DBHelper
 	public $magversion;
 	private $_extra_attrs;
 	private $_profile;
-
+	private $_excid=0;
 	public function setLogger($logger)
 	{
 		$this->logger=$logger;
@@ -123,6 +123,7 @@ class MagentoMassImporter extends DBHelper
 			$this->_pluginclasses["general"]=$enabledplugins->getEnabledPluginClasses("GENERAL");
 			$this->_initialized=true;
 			$this->_profile=$profile;
+			
 		}
 		catch(Exception $e)
 		{
@@ -212,6 +213,23 @@ class MagentoMassImporter extends DBHelper
 			print "$type:($data)\n";
 			flush();
 		}
+	}
+	
+	public function trace($tid,$e)
+	{
+		$traces=$e->getTrace();
+		$f=fopen(Magmi_StateManager::getTraceFile(),"a");
+		fwrite($f,"---- TRACE : $tid -----\n");
+		$trstr="";
+		foreach($traces as $trace)
+		{
+			$fname=str_replace(dirname(dirname(__FILE__)),"",$trace["file"]);
+			$trstr.= $fname.":".$trace["line"]." - ".$trace["function"]."(".implode(",",$trace["args"]).")\n";	
+		}
+		fwrite($f,$trstr);
+		fwrite($f,"---- ENDTRACE : $tid -----\n");
+		fclose($f);
+		
 	}
 	/**
 	 * Initilialize webstore list
@@ -1024,6 +1042,7 @@ class MagentoMassImporter extends DBHelper
 		$itemids=$this->getItemIds($item);
 		$pid=$itemids["pid"];
 		$isnew=false;
+		
 		if(!isset($pid))
 		{
 			//if not found & mode !=update
@@ -1087,8 +1106,10 @@ class MagentoMassImporter extends DBHelper
 		}
 		catch(Exception $e)
 		{
+			$this->_excid++;
 			$this->callProcessors("exception",$item,array("exception"=>$e),"processItem");
-			$this->log($e->getMessage()." - {$this->_laststmt->queryString}","error");
+			$this->log($this->_excid.":".$e->getMessage()." - {$this->_laststmt->queryString}","error");
+			$this->trace($this->_excid,$e);
 			//if anything got wrong, rollback
 			$this->rollbackTransaction();
 		}
@@ -1175,10 +1196,11 @@ class MagentoMassImporter extends DBHelper
 		}
 		$this->init($profile);
 		$mode=$this->getParam($params,"mode","update");
+		$this->_excid=0;
 		//initializing datasource
 		try
 		{
-				
+			
 			$this->log("Magento Mass Importer by dweeves - version:".Magmi_Version::$version,"title");
 			$this->log("step:".$this->getProp("GLOBAL","step",100),"step");
 			//initialize db connectivity
