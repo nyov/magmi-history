@@ -2,8 +2,7 @@
 	
 	ini_set('magic_gpc_quotes',0);
 	$logfile=isset($_REQUEST['logfile'])?$_REQUEST['logfile']:Magmi_StateManager::getProgressFile();
-	
-	$profile=isset($_REQUEST['profile'])?$_REQUEST['profile']:null;
+	$profile=isset($_REQUEST['profile'])?$_REQUEST['profile']:'default';
 	$mode=isset($_REQUEST['mode'])?$_REQUEST['mode']:null;
 	
 	
