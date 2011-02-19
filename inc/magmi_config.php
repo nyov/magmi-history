@@ -146,6 +146,12 @@ class Magmi_Config extends DirbasedConfig
 			$this->save();
 			
 		}
+		//Migration step (to percent) , 0.7beta4
+		if($this->get("GLOBAL","step",0)==0 || floatval($this->get("GLOBAL","step",0.5))>20)
+		{
+			$this->set("GLOBAL","step",0.5);
+			$this->save();	
+		}
 		return $this;
 	}
 		
