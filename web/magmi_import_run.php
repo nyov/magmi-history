@@ -40,7 +40,7 @@
 	startProgress=function()
 	{
 		window.upd=new Ajax.PeriodicalUpdater("runlog","./magmi_progress.php",{frequency:1,evalScripts:true,parameters:{
-		logfile:'<?php echo $logfile ?>'}});
+		logfile:'<?php echo addslashes($logfile) ?>'}});
 	}
 	
 	startImport=function(filename)
@@ -50,7 +50,7 @@
 			var rq=new Ajax.Request('./magmi_run.php',{method:'get',
 									 parameters:{'profile':'<?php echo $profile?>',
 										 		 'mode':'<?php echo $mode?>',
-										 		 'logfile':'<?php echo $logfile?>'},
+										 		 'logfile':'<?php echo addslashes($logfile)?>'},
 									onCreate:function(r){window._sr=r}});
 			startProgress.delay(0.5);
 		}
