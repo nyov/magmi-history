@@ -143,9 +143,9 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 	</div>
 	<div class="grid_4 col omega">
 	<h3>Global</h3>
-	<ul class="formline">
-		<li class="label">Reporting step:</li>
-		<li class="value"><input type="text" name="GLOBAL:step" value="<?php echo $conf->get("GLOBAL","step")?>"></input></li>
+	<ul class="formline" id="globstep" >
+		<li class="label">Reporting step in %:</li>
+		<li class="value"><input type="text" name="GLOBAL:step" size="5" value="<?php echo $conf->get("GLOBAL","step")?>"></input></li>
 	</ul>
 	
 	</div>
