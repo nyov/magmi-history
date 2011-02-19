@@ -1204,7 +1204,7 @@ class MagentoMassImporter extends DBHelper
 		{
 			
 			$this->log("Magento Mass Importer by dweeves - version:".Magmi_Version::$version,"title");
-			$this->log("step:".$this->getProp("GLOBAL","step",100),"step");
+			$this->log("step:".$this->getProp("GLOBAL","step",0.5)."%","step");
 			//initialize db connectivity
 			$this->connectToMagento();
 			$this->createDatasource($params);
@@ -1242,11 +1242,8 @@ class MagentoMassImporter extends DBHelper
 				$tdiff=$tstart;
 				//intermediary report step
 				$this->initDbqStats();
-				$mstep=$this->getProp("GLOBAL","step",100);
-				if(!isset($mstep))
-				{
-					$mstep=100;
-				}
+				$pstep=$this->getProp("GLOBAL","step",0.5);
+				$rstep=ceil(($nitems*$pstep)/100);
 				//read each line
 				$lastrec=0;
 				$lastdbtime=0;
@@ -1267,7 +1264,7 @@ class MagentoMassImporter extends DBHelper
 							$this->log("ERROR - RECORD #$this->__current_row - INVALID RECORD","error");
 						}
 						//intermediary measurement
-						if($this->_current_row%$mstep==0)
+						if($this->_current_row%$rstep==0)
 						{
 							$tend=microtime(true);
 							$this->log($this->_current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");

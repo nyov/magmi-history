@@ -144,6 +144,10 @@ class Properties
     return true; 
 }
 	
+	public function set($secname,$pname,$val)
+	{
+		$this->_props[$secname][$pname]=$val;
+	}
 
 	/**
 	 * retrieve property value with default if not found
