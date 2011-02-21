@@ -20,11 +20,6 @@ if(file_exists($logfile))
 		$percent=round(((float)$count*100/$lu["nlines"]),2);
 		$stepd=$parser->getData("step");
 		$step=$stepd["value"];
-		$lstep=$count%$step;
-		if($lstep!=0)
-		{
-			$step=$lstep;
-		}
 	}
 	else
 	{
