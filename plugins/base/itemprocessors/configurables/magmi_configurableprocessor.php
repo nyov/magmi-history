@@ -158,6 +158,7 @@ public function initConfigurableOpts($cols)
 				break;
 			case "fixed":
 				$this->fixedLink($pid,$item["simples_skus"]);
+				unset($item["simples_skus"]);
 				break;
 			default:
 				break;
