@@ -15,7 +15,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.0.2"
+            "version" => "1.0.3"
             );
 	}
 	
@@ -72,20 +72,27 @@ public function initConfigurableOpts($cols)
 	
 	public function quote(&$it)
 	{
-		return addslashes($it);
+		$val="'".addslashes($it)."'";
+		return $val;
 	}
 	
 	public function autoLink($pid)
 	{
-		dolink($pid,"LIKE CONCAT(cpec.sku,'%')");
+		$this->dolink($pid,"LIKE CONCAT(cpec.sku,'%')");
 	}
 	
 	public function fixedLink($pid,$skulist)
 	{
-		$arr=explode(",",$skulist);
-		array_walk($arr,$this->quote);
-		$skulist=implode($arr);
-		dolink($pid,"IN ($skulist)");		
+		$arrin=explode(",",$skulist);
+		$arrout=array();
+		foreach($arrin as $v)
+		{
+			$arrout[]=$this->quote($v);
+		}
+		$skulist=implode(",",$arrout);
+		unset($arrin);
+		unset($arrout);
+		$this->dolink($pid,"IN ($skulist)");		
 	}
 	
 	public function processItemAfterId(&$item,$params)
@@ -102,7 +109,7 @@ public function initConfigurableOpts($cols)
 		}
 		//matching mode
 		//if associated skus 
-		$matchmode=(isset($item["simples_skus"])?(trim($item["simples_skus"])!=""?"none":"fixed"):"auto");
+		$matchmode=(isset($item["simples_skus"])?(trim($item["simples_skus"])!=""?"fixed":"none"):"auto");
 		
 		
 		//check if item has exising options
@@ -147,10 +154,10 @@ public function initConfigurableOpts($cols)
 				break;
 			case "auto":
 				//destroy old associations
-				autoLink($pid);
+				$this->autoLink($pid);
 				break;
 			case "fixed":
-				fixedLink($pid,$item["associated_skus"]);
+				$this->fixedLink($pid,$item["simples_skus"]);
 				break;
 			default:
 				break;
