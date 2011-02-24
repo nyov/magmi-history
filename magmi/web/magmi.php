@@ -1,5 +1,4 @@
-<?php require_once("header.php")?>
-<?
+<?php require_once("header.php");
 	require_once("magmi_config.php");
 	require_once("magmi_statemanager.php");
 	
@@ -46,5 +45,4 @@
 		<?php 
 	}
 ?>
-<?php require_once("footer.php")?>
-<?php ?>
+<?php require_once("footer.php");?>
