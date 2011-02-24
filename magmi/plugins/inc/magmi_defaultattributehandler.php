@@ -28,7 +28,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		//force convert decimal separator to dot
 		$ivalue=str_replace(",",".",$ivalue);
-		$ovalue=falseifempty($ivalue);
+		$ovalue=deleteifempty($ivalue);
 		return $ovalue;
 	}
 
@@ -42,7 +42,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	 */
 	public function handleDatetimeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
-		$ovalue=nullifempty($ivalue);
+		$ovalue=deleteifempty($ivalue);
 		return $ovalue;
 	}
 
