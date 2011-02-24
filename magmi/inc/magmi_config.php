@@ -72,7 +72,7 @@ class ProfileBasedConfig extends DirbasedConfig
 	
 	public function getProfileDir()
 	{
-		$subdir=($this->_profile==null?"":DS.$this->_profile);
+		$subdir=($this->_profile=="default"?"":DS.$this->_profile);
 		$confdir=realpath(dirname(dirname(self::$_script)).DS."conf$subdir");
 		return $confdir;
 	}
@@ -190,12 +190,8 @@ class Magmi_Config extends DirbasedConfig
 class EnabledPlugins_Config extends ProfileBasedConfig
 {
 	
-	public function __construct($profile=null)
+	public function __construct($profile="default")
 	{
-		if($profile=="default")
-		{
-			$profile=null;
-		}
 		parent::__construct("plugins.conf",$profile);
 	}
 	
