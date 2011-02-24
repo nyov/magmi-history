@@ -7,7 +7,7 @@ if($profile=="")
 {
 	$profile=null;
 }
-$profilename=isset($profile)?$profile:"Default";
+$profilename=($profile!=null?$profile:"Default");
 ?>
 <script type="text/javascript">
 		var profile="<?php echo $profile?>";
@@ -40,8 +40,8 @@ else{?>
 		<li class="value">	
 			<select name="profile" onchange="$('chooseprofile').submit()">
 			<option <?php if(null==$profile){?>selected="selected"<?php }?> value="default">Default</option>
-			<?php foreach($profilelist as $profilename){?>
-			<option <?php if($profilename==$profile){?>selected="selected"<?php }?> value="<?php echo $profilename?>"><?php echo $profilename?></option>
+			<?php foreach($profilelist as $profname){?>
+			<option <?php if($profname==$profile){?>selected="selected"<?php }?> value="<?php echo $profname?>"><?php echo $profname?></option>
 			<?php }?>
 			</select>
 		</li>
@@ -155,7 +155,7 @@ else{?>
 </form>
 <div class="grid_12">
 <div style="float:right">
-	<a id="saveprofile" class="actionbutton" href="javascript:void(0)" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>>Save Profile (<?php echo ($profile==null?"Default":$profile)?>)</a>
+	<a id="saveprofile" class="actionbutton" href="javascript:void(0)" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>>Save Profile (<?php echo $profilename?>)</a>
 </div>
 </div>
 </div>
