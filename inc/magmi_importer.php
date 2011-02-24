@@ -22,7 +22,7 @@ ini_set("allow_url_fopen",true);
 // return null for empty string
 function nullifempty($val)
 {
-	return (isset($val)?(strlen($val)==0?null:$val):null);
+	return (isset($val)?(trim($val)==""?null:$val):null);
 }
 // return false for empty string
 function falseifempty($val)
@@ -34,6 +34,11 @@ function testempty($arr,$val)
 {
 	
 	return !isset($arr[$val]) || strlen(trim($arr[$val]))==0;
+}
+
+function deleteifempty($val)
+{
+	return (isset($val)?(trim($val)==""?"__MAGMI_DELETE__":$val):"__MAGMI_DELETE__");
 }
 
 /* here inheritance from DBHelper is used for syntactic convenience */
@@ -627,6 +632,9 @@ class MagentoMassImporter extends DBHelper
 			$data=array();
 			//inserts to perform on backend type eav
 			$inserts=array();
+			//deletes to perform on backend type eav
+			$deletes=array();
+		
 			//use reflection to find special handlers
 			$typehandler="handle".ucfirst($tp)."Attribute";
 			//iterate on all attribute descriptions for the given backend type
@@ -643,7 +651,6 @@ class MagentoMassImporter extends DBHelper
 				
 				$store_ids=$this->getItemStoreIds($item,$attrdesc["is_global"]);
 				
-				$deletes=array();
 				//do not handle empty generic int values in create mode
 				if($ivalue=="" && $this->mode=="create" && $tp=="int")
 				{
@@ -689,31 +696,37 @@ class MagentoMassImporter extends DBHelper
 					//if handled value is a "DELETE"
 					if($ovalue=="__MAGMI_DELETE__")
 					{
-						$deletes[]=array($attid,$store_id,$pid);
-						$ddata=array($this->prod_etype,$attid,$store_id,$pid);
-						$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id=? AND entity_id=?";
-						$this->delete($sql,$ddata);
-						unset($ddata);
+						$deletes[]=$attid;
 					}
 					else
 					if($ovalue!==false)
 					{
-						$inserts[]="(?,?,?,?,?)";
+						
 						$data[]=$this->prod_etype;
 						$data[]=$attid;
 						$data[]=$store_id;
 						$data[]=$pid;
-						$data[]=$ovalue;
+						if($ovalue==null)
+						{
+							$insstr="(?,?,?,?,NULL)";
+						}
+						else
+						{
+							$insstr="(?,?,?,?,?)";
+							$data[]=$ovalue;
+						}
+						$inserts[]=$insstr;
 					}
 		
 					//if one of the store in the list is admin
 					if($store_id==0)
 					{
+						$sids=$store_ids;
 						//remove all values bound to the other stores for this attribute,so that they default to "use admin value"
-						array_pop($store_ids);
-						if(count($store_ids)>0)
+						array_pop($sids);
+						if(count($sids)>0)
 						{
-							$sidlist=implode(",",$store_ids);
+							$sidlist=implode(",",$sids);
 							$ddata=array($this->prod_etype,$attid,$pid);
 							$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id IN ($sidlist) AND entity_id=?";
 							$this->delete($sql,$ddata);
@@ -723,7 +736,8 @@ class MagentoMassImporter extends DBHelper
 				}
 			}
 			
-			unset($store_ids);
+		
+			
 			if(!empty($inserts))
 			{
 				//now perform insert for all values of the the current backend type in one
@@ -737,21 +751,26 @@ class MagentoMassImporter extends DBHelper
 				$sql.=" ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)";
 				$this->insert($sql,$data);
 			}
-			else
+			
 			if(!empty($deletes))
 			{
-				unset($deletes);
+					$sidlist=implode(",",$store_ids);
+					$attidlist=implode(",",$deletes);
+					$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id IN ($attidlist) AND store_id IN ($sidlist) AND entity_id=?";
+					$this->delete($sql,array($this->prod_etype,$pid));
 			}
-			else
+			
+			if(empty($deletes) && empty($inserts))
 			{
 				if(!$this->_same)
 				{
 					$this->log("No $tp Attributes created for sku ".$item["sku"],"warning");
 				}
 			}
+			unset($store_ids);
 			unset($data);
 			unset($inserts);
-			
+			unset($deletes);
 		}
 		return $this->_extra_attrs;
 	}
