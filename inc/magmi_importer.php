@@ -1210,11 +1210,7 @@ class MagentoMassImporter extends DBHelper
 	}
 	public function import($params=array())
 	{
-		$profile=$this->getParam($params,"profile",null);
-		if($profile=="default")
-		{
-			$profile=null;
-		}
+		$profile=$this->getParam($params,"profile","default");
 		$this->init($profile);
 		$mode=$this->getParam($params,"mode","update");
 		$this->_excid=0;
