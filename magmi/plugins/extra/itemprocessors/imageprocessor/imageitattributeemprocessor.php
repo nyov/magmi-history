@@ -34,7 +34,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.0"
+            "version" => "0.1.1"
             );
 	}
 	public function handleGalleryTypeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
@@ -299,11 +299,11 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	}
 	
 	
-	public function saveImage($fname,$target,$context)
+	public function saveImage($imgfile,$target,$context)
 	{
 		if($context==false)
 		{
-			if(!@copy($fname,$target))
+			if(!@copy($this->getImageFSPath($imgfile),$target))
 			{
 				return false;
 			}
@@ -332,6 +332,13 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			}
 		}
 		return true;
+	}
+	
+	public function getImageFSPath($imgfile,$rp=false)
+	{
+		$tfile=($imgfile[0]==DIRECTORY_SEPARATOR?substr($imgfile,1):$imgfile);
+		$fspath=$this->imgsourcedir.DIRECTORY_SEPARATOR.$tfile;
+		return $rp?realpath($fspath):$fspath;
 	}
 	/**
 	 * copy image file from source directory to
@@ -374,10 +381,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				$exists=$this->Urlexists($imgfile,$curlh);
 			}
 			else
-			{
-				$tfile=($imgfile[0]==DIRECTORY_SEPARATOR?substr($imgfile,1):$imgfile);
-				$fname=$this->imgsourcedir.DIRECTORY_SEPARATOR.$tfile;
-				$exists=(realpath($fname)!==false);
+			{			
+				$exists=($this->getImageFSPath($imgfile,true)!==false);
 			}
 			if(!$exists)
 			{
