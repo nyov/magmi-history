@@ -42,7 +42,10 @@
 		if(isset($logfile) && $logfile!="")
 		{
 			echo "set logfile to:".$logfile;
-			$mmi_imp->setLogger(new FileLogger($logfile));
+			$fname=Magmi_StateManager::getStateDir().DS.$logfile;
+			echo "ABS PATH:$fname";
+			$mmi_imp->setLogger(new FileLogger($fname));
+			
 		}	
 		else
 		{
