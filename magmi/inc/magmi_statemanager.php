@@ -21,9 +21,16 @@ class Magmi_StateManager
 		
 	}
 	
-	public static function getProgressFile()
+	public static function getStateDir()
 	{
-		return dirname(dirname(self::$_script)).DS."state".DS."progress.txt";
+		return dirname(dirname(self::$_script)).DS."state";
+	}
+	
+	public static function getProgressFile($full=false)
+	{
+		$fullname=self::getStateDir().DS."progress.txt";
+		$pfname=($full?$fullname:"progress.txt");
+		return $pfname;
 	}
 	
 	public static function setState($state,$force=false)
