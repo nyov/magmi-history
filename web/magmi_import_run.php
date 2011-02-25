@@ -47,9 +47,9 @@
 		if(window._sr==null)
 		{
 			var rq=new Ajax.Request('./magmi_run.php',{method:'get',
-									 parameters:{'profile':'<?php echo $profile?>',
-										 		 'mode':'<?php echo $mode?>',
-										 		 'logfile':'<?php echo addslashes($logfile)?>'},
+									 parameters:{profile:'<?php echo $profile?>',
+										 		 mode:'<?php echo $mode?>',
+										 		 logfile:'<?php echo addslashes($logfile)?>'},
 									onCreate:function(r){window._sr=r}});
 			startProgress.delay(0.5);
 		}
