@@ -11,8 +11,24 @@ if(!isset($genlist))
 {
 	$genlist="";
 }
+$pflist=array();
 
-$plist=array_merge(explode(",",$dslist),explode(",",$genlist),explode(",",$iplist));
+foreach(explode(",",$dslist) as $pclass)
+{
+	$pflist[$pclass]="datasources";		
+}
+
+foreach(explode(",",$genlist) as $pclass)
+{
+	$pflist[$pclass]="general";		
+}
+
+foreach(explode(",",$iplist) as $pclass)
+{
+	$pflist[$pclass]="itemprocessors";		
+}
+
+
 require_once("../inc/magmi_pluginhelper.php");
 require_once("../inc/magmi_config.php");
 //saving plugin selection
@@ -25,11 +41,11 @@ if($epc->save())
 	
 
 //saving plugins params
-foreach($plist as $pclass)
+foreach($pflist as $pclass=>$pfamily)
 {
 	if($pclass!="")
 	{
-		$plinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pclass,$_REQUEST);		
+		$plinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pfamily,$pclass,$_REQUEST);		
 		if(!$plinst->persistParams($plinst->getPluginParams($_REQUEST)))
 		{
 				$lasterr=error_get_last();
