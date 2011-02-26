@@ -4,11 +4,16 @@ require_once("magmi_config.php");
 class Magmi_PluginHelper
 {
 	
-	static $_plugins_cache=null;
+	
+	static $_plugins_cache=array();
 	static $_instances=array();
 	public $base_dir;
 	public $plugin_dir;
 	protected $_profile;
+	protected $_plmeta=array("datasources"=>array("Magmi_Datasource","*/*"),
+							 "itemprocessors"=>array("Magmi_ItemProcessor","*/*"),
+							 "general"=>array("Magmi_GeneralImportPlugin","*/*"),
+							 "utilities"=>array("Magmi_UtilityPlugin","utilities"));
 	
 	public function __construct($profile=null)
 	{
@@ -21,6 +26,7 @@ class Magmi_PluginHelper
 		require_once("magmi_item_processor.php");
 		require_once("magmi_datasource.php");
 		require_once("magmi_generalimport_plugin.php");
+		require_once("magmi_utility_plugin.php");
 		
 	}
 	public static function getInstance($profile=null)
@@ -38,20 +44,10 @@ class Magmi_PluginHelper
 		return strcmp(basename($f1),basename($f2));	
 	}
 		
-  	public function savePluginsConfig($params,$dir)
-  	{
-  		$this->scanPlugins();
-  		foreach(self::_plugins_cache as $k=>$pinfoarr)
-  		{
-  			$class=$pinfoarr["class"];
-			$plinst=$this->createInstance($class,$params);
-			$plinst->persistParams($plinst->getPluginParams($params)); 				
-  		}
-  	}
-  	
-	public function initPluginInfos($baseclass)
+ 
+	public function initPluginInfos($baseclass,$basedir="*/*")
 	{
-		$candidates=glob("$this->plugin_dir/*/*/*/*.php");
+		$candidates=glob("$this->plugin_dir/$basedir/*/*.php");
 		usort($candidates,array("Magmi_PluginHelper","fnsort"));
 		$pluginclasses=array();
 		foreach($candidates as $pcfile)
@@ -70,16 +66,16 @@ class Magmi_PluginHelper
 		return $pluginclasses;
 	}
 
-	public function getPluginClasses()
+	public function getPluginClasses($pltypes)
 	{
-		return self::getPluginsInfo("class");
+		return self::getPluginsInfo($pltypes,"class");
 	}
 	
-	public function getPluginsInfo($filter=null)
+	public function getPluginsInfo($pltypes,$filter=null)
 	{
 		if(self::$_plugins_cache==null)
 		{
-			self::scanPlugins();
+			self::scanPlugins($pltypes);
 		}
 		
 		if(isset($filter))
@@ -105,23 +101,29 @@ class Magmi_PluginHelper
 		return $plugins;
 		
 	}
-	public function scanPlugins()
+	
+	public function scanPlugins($pltypes)
 	{
-		if(!isset(self::$_plugins_cache))
+		if(!is_array($pltypes))
 		{
-			self::$_plugins_cache=array("itemprocessors"=>self::initPluginInfos("Magmi_ItemProcessor"),
-				"datasources"=>self::initPluginInfos("Magmi_Datasource"),
-				"general"=>self::initPluginInfos("Magmi_GeneralImportPlugin"));
+			$pltypes=array($pltypes);
+		}
+		foreach($pltypes as $pltype)
+		{
+			if(!isset(self::$_plugins_cache[$pltype]))
+			{
+				self::$_plugins_cache[$pltype]=self::initPluginInfos($this->_plmeta[$pltype][0],$this->_plmeta[$pltype][1]);
+			}
 		}
 	}
 	
 	
-	public function createInstance($pclass,$params=null,$mmi=null)
+	public function createInstance($ptype,$pclass,$params=null,$mmi=null)
 	{
 	
-		if(self::$_plugins_cache==null)
+		if(!isset(self::$_plugins_cache[$ptype]))
 		{
-			self::scanPlugins();
+			self::scanPlugins($ptype);
 		}
 		$plinst=new $pclass();
 		$plinst->pluginInit($mmi,$this->getPluginDir($plinst),$params,($mmi!=null),$this->_profile);

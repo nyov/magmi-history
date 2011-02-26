@@ -5,9 +5,9 @@ if(isset($_REQUEST["profile"]))
 }
 if($profile=="")
 {
-	$profile=null;
+	$profile="default";
 }
-$profilename=($profile!=null?$profile:"Default");
+$profilename=($profile!="default"?$profile:"Default");
 ?>
 <script type="text/javascript">
 		var profile="<?php echo $profile?>";
@@ -53,8 +53,9 @@ else{?>
 	<input type="submit" value="Copy Profile &amp; switch"></input>
 	<?php
 	require_once("magmi_pluginhelper.php");
-	$plugins=Magmi_PluginHelper::getInstance('main')->getPluginClasses();
 	$order=array("datasources","general","itemprocessors");
+	$plugins=Magmi_PluginHelper::getInstance('main')->getPluginClasses($order);
+	
 ?>
 </form>
 </div>
@@ -71,14 +72,14 @@ else{?>
 			<?php $pinf=$plugins[$k];?>
 			<?php if(count($pinf)>0){?>
 			<div class="pluginselect" style="float:left">
-			<select name="PLUGINS_DATASOURCES:class">
+			<select name="PLUGINS_DATASOURCES:class" class="pl_<?php echo $k?>">
 			
 			
 			<?php 
 			$sinst=null;
 			foreach($pinf as $pclass)
 			{
-				$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pclass);
+				$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($k,$pclass);
 				if($sinst==null)
 				{
 					
@@ -113,12 +114,12 @@ else{?>
 		<ul >
 		<?php $pinf=$plugins[$k];?>
 		<?php foreach($pinf as $pclass)	{
-			$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pclass);
+			$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($k,$pclass);
 			$pinfo=$pinst->getPluginInfo();
 		?>
 		<li>
 		<div class="pluginselect">
-		<input type="checkbox" class="pl_<?php echo strtoupper($k)?>" name="<?php echo $pclass?>" <?php if($plconf->isPluginEnabled($k,$pclass)){?>checked="checked"<?php }?>>
+		<input type="checkbox" class="pl_<?php echo $k?>" name="<?php echo $pclass?>" <?php if($plconf->isPluginEnabled($k,$pclass)){?>checked="checked"<?php }?>>
 		<span class="pluginname"><?php echo $pinfo["name"]." v".$pinfo["version"];?></span>
 		</div>
 
@@ -210,11 +211,12 @@ showConfLink=function(maincont)
 	
 }
 
-loadConfigPanel=function(container,profile,plclass)
+loadConfigPanel=function(container,profile,plclass,pltype)
 {
  new Ajax.Updater({success:container},'ajax_pluginconf.php',
 	{parameters:{
 		profile:profile,
+		plugintype:pltype,
 		pluginclass:plclass},
 		evalScripts:true,
 		onComplete:
@@ -247,12 +249,15 @@ initAjaxConf=function(profile)
 		{
 			var el=Event.element(ev);
 			var plclass=(el.tagName=="SELECT")?el.value:el.name;
+			var elclasses=el.classNames();
+			var pltype="";
+			elclasses.each(function(it){if(it.substr(0,3)=="pl_"){pltype=it.substr(3);}});
 			var doload=(el.tagName=="SELECT")?true:el.checked;	
 			var targets=$(pls.parentNode).select(".pluginconfpanel");
 			var container=targets[0];
 			if(doload)
 			{
-				loadConfigPanel(container,profile,plclass);
+				loadConfigPanel(container,profile,plclass,pltype);
 			}
 			else
 			{
@@ -266,7 +271,7 @@ initDefaultPanels=function()
 	$$('.pluginselect').each(function(it){initConfigureLink($(it.parentNode));});
 }
 
-initAjaxConf();
+initAjaxConf('<?php echo $profile?>');
 initDefaultPanels();
 $('saveprofile').observe('click',function()
 		{

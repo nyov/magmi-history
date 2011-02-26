@@ -321,6 +321,27 @@ class MagentoMassImporter extends DBHelper
 	 * @param array $cols : array of attribute names
 	 */
 	
+	public function quotearr($arr)
+	{
+		$arrout=array();
+		foreach($arr as $v)
+		{
+			$arrout[]="'$v'";
+		}
+		return $arrout;
+	}
+	public function checkRequired($cols)
+	{
+		$eav_attr=$this->tablename("eav_attribute");
+		$sql="SELECT attribute_code FROM $eav_attr WHERE  
+		AND attribute_code NOT IN (".implode(",",$this->quotearr($cols)).") AND 
+		AND is_required=1
+		AND frontend_input!=''
+		AND frontend_label!=''
+		entity_type_id=?";
+		$required=$this->selectAll($sql,$this->prod_etype);
+		return $required;
+	}
 	public function initAttrInfos($cols)
 	{
 		//Find product entity type
@@ -378,7 +399,7 @@ class MagentoMassImporter extends DBHelper
 			}
 			$this->attrbytype[$bt]["ids"]=implode(",",$idlist);
 		}
-
+		
 		/*now we have 2 index arrays
 		 1. $this->attrinfo  which has the following structure:
 		 key : attribute_code
@@ -1171,7 +1192,7 @@ class MagentoMassImporter extends DBHelper
 	{
 		foreach($this->_pluginclasses["general"] as $giclass)
 		{
-			$gi=Magmi_PluginHelper::getInstance($this->_profile)->createInstance($giclass,$params,$this);
+			$gi=Magmi_PluginHelper::getInstance($this->_profile)->createInstance("general",$giclass,$params,$this);
 			$this->_activeplugins["general"][]=$gi;
 		}
 
@@ -1183,7 +1204,7 @@ class MagentoMassImporter extends DBHelper
 		$this->_pluginclasses["processors"][]="Magmi_DefaultAttributeItemProcessor";
 		foreach($this->_pluginclasses["processors"] as $ipclass)
 		{
-			$ip=Magmi_PluginHelper::getInstance($this->_profile)->createInstance($ipclass,$params,$this);
+			$ip=Magmi_PluginHelper::getInstance($this->_profile)->createInstance("itemprocessors",$ipclass,$params,$this);
 			$this->_activeplugins["processors"][]=$ip;
 		}
 	}
@@ -1196,7 +1217,7 @@ class MagentoMassImporter extends DBHelper
 	public function createDatasource($params)
 	{
 		$dsclass=$this->datasource_class;
-		$this->datasource=Magmi_PluginHelper::getInstance($this->_profile)->createInstance($dsclass,$params,$this);
+		$this->datasource=Magmi_PluginHelper::getInstance($this->_profile)->createInstance("datasources",$dsclass,$params,$this);
 	}
 
 	public function isLastItem($item)
@@ -1237,6 +1258,7 @@ class MagentoMassImporter extends DBHelper
 				//intialize store id cache
 				$this->initStores();
 				setLocale(LC_COLLATE,"fr_FR.UTF-8");
+			
 				$this->datasource->startImport();
 					
 				//initializing item processors
@@ -1247,7 +1269,10 @@ class MagentoMassImporter extends DBHelper
 				$this->log(count($cols),"columns");
 				$this->callProcessors("columnList",$cols,null,"process");
 				//initialize attribute infos & indexes from column names
-					
+				if($this->mode=="create")
+				{
+					$this->checkRequired($cols);
+				}
 				$this->initAttrInfos($cols);
 				//counter
 				$this->_current_row=0;
