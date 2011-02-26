@@ -55,18 +55,10 @@ if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 <?php }?>
 </div>
 </div>
-	<div class="container_12">
-		<div class="grid_12 col" id="globalops">
-			<h3>Global Maintenance operations</h3>
-			<ul class="formline">
-				<li class="label"><a href="#" id="clearcatalog">Clear Magento catalog</a></li>
-				<li class="value"><div id="clearcatalog_msg" class="message" style="display:none"></div></li>
-			</ul>
-		</div>
-	</div>
+
 <?php if($conf_ok){?>
 <form method="POST" id="runmagmi" action="magmi.php">
-	<input type="hidden" name="run" value="2"></input>
+	<input type="hidden" name="run" value="import"></input>
 	<input type="hidden" name="logfile" value="<?php echo Magmi_StateManager::getProgressFile()?>"></input>
 	<div class="container_12">
 		<div class="grid_12 col" id="directrun">	
@@ -177,18 +169,5 @@ $('runprofile').observe('change',function(ev)
 		{
 			document.location='magmi.php?profile='+Event.element(ev).value;
 		});
-<?php }?>
-$('clearcatalog').observe('click',function(ev)
-		{	
-			var res=confirm('Are you sure ?, it will destroy all existing items in catalog!!!')
-			if(res==false)
-			{
-				Event.stop(ev);
-				return;
-			}
-			new Ajax.Updater('clearcatalog_msg',
-			 "clearcatalog.php",{
-			  onSuccess:function(){$('clearcatalog_msg').show();}
- 			});
-		});							
+<?php }?>	
 </script>

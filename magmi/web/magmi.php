@@ -14,7 +14,9 @@
 	}
 	if(count($badrights)==0)
 	{
-		if(Magmi_StateManager::getState()=="running" || isset($_REQUEST["run"]))
+		$state=Magmi_StateManager::getState();
+		
+		if($state=="running" || (isset($_REQUEST["run"]) && $_REQUEST["run"]=="import"))
 		{
 			require_once("magmi_import_run.php");		
 		}
