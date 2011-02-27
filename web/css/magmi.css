@@ -510,3 +510,36 @@ ul#globstep.formline li.label
 {
 	 width:200px;
 }
+
+li.utility
+{
+	margin-top:2px;
+}
+.utility .pluginselect
+{
+	height:20px;
+	vertical-align: middle;
+}
+
+.utility .plugininfo
+{
+	height:20px;
+	vertical-align: middle;
+}
+
+.utility .utility_run
+{
+	float:right;
+	height:20px;
+}
+
+.utility .utility_run a
+{
+	margin-top:2px;
+}
+
+.utility .pluginoptionpanel
+{
+	clear:both;
+	border:1px solid #000000;
+}
