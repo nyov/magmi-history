@@ -50,7 +50,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	{
 		return array("name"=>"CSV Datasource",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.4");
+					 "version"=>"1.0.5");
 	}
 	
 	public function getRecordsCount()
@@ -111,7 +111,8 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		{
 			$row=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
 			$this->_curline++;			
-			if(!$this->isemptyline($row) && count($row)!=$this->_nhcols)
+			$rcols=count($row);
+			if(!$this->isemptyline($row) && $rcols!=$this->_nhcols)
 			{				
 				$this->log("warning: line $this->_curline , wrong column number : $rcols found over $this->_nhcols, line skipped","warning");
 			}			
