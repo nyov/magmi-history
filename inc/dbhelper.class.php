@@ -211,6 +211,16 @@ class DBHelper
 		return $this->selectone($sql,$params,$col)!=null;
 	}
 
+	public function quotearr($arr)
+	{
+		$arrout=array();
+		foreach($arr as $v)
+		{
+			$arrout[]="'$v'";
+		}
+		return $arrout;
+	}
+	
 	/**
 	 * begins a transaction
 	 */
