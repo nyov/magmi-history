@@ -87,7 +87,7 @@ class MagentoMassImporter extends DBHelper
 		}
 		try
 		{
-			$pluginclasses=Magmi_PluginHelper::getInstance($profile)->getPluginClasses();
+			$pluginclasses=Magmi_PluginHelper::getInstance($profile)->getPluginClasses(array("general","datasources","itemprocessors"));
 			$this->_activeplugins=array("general"=>array(),"processors"=>array());
 			//Common configuration
 			$this->_conf=Magmi_Config::getInstance();
@@ -101,8 +101,11 @@ class MagentoMassImporter extends DBHelper
 			$this->_pluginclasses["processors"]=$enabledplugins->getEnabledPluginClasses("ITEMPROCESSORS");	
 			$ds=$enabledplugins->getEnabledPluginClasses("DATASOURCES");
 			$this->datasource_class=$ds[0];
-			$engen=explode(",",$this->_conf->get("PLUGINS_GENERAL","classes",implode(",",$pluginclasses["general"])));
-			$this->_pluginclasses["general"]=$enabledplugins->getEnabledPluginClasses("GENERAL");
+			if(isset($pluginclasses["general"]))
+			{
+				$engen=explode(",",$this->_conf->get("PLUGINS_GENERAL","classes",implode(",",$pluginclasses["general"])));
+				$this->_pluginclasses["general"]=$enabledplugins->getEnabledPluginClasses("GENERAL");
+			}
 			$this->_initialized=true;
 			$this->_profile=$profile;
 			
@@ -113,6 +116,12 @@ class MagentoMassImporter extends DBHelper
 		}
 	}
 
+	public function initProdType()
+	{
+		$tname=$this->tablename("eav_entity_type");
+		$this->prod_etype=$this->selectone("SELECT entity_type_id FROM $tname WHERE entity_type_code=?","catalog_product","entity_type_id");
+	}
+	
 	public function getProp($sec,$val,$default=null)
 	{
 		return $this->_conf->get($sec,$val,$default);
@@ -302,13 +311,15 @@ class MagentoMassImporter extends DBHelper
 	public function checkRequired($cols)
 	{
 		$eav_attr=$this->tablename("eav_attribute");
-		$sql="SELECT attribute_code FROM $eav_attr WHERE  
-		AND attribute_code NOT IN (".implode(",",$this->quotearr($cols)).") AND 
-		AND is_required=1
-		AND frontend_input!=''
-		AND frontend_label!=''
-		entity_type_id=?";
+		$sql="SELECT attribute_code FROM $eav_attr WHERE  is_required=1
+		AND frontend_input!='' AND frontend_label!='' AND entity_type_id=?";
 		$required=$this->selectAll($sql,$this->prod_etype);
+		$reqcols=array();
+		foreach($required as $line)
+		{
+			$reqcols[]=$line["attribute_code"];
+		}
+		$required=array_diff($reqcols,$cols);
 		return $required;
 	}
 	public function initAttrInfos($cols)
@@ -1237,6 +1248,7 @@ class MagentoMassImporter extends DBHelper
 				$cols=$this->datasource->getColumnNames();
 				$this->log(count($cols),"columns");
 				$this->callProcessors("columnList",$cols,null,"process");
+				$this->initProdType();
 				//initialize attribute infos & indexes from column names
 				if($this->mode=="create")
 				{
