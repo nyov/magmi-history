@@ -33,7 +33,7 @@ class DirbasedConfig extends Properties
 		{
 			$name=$this->_confname;
 		}
-		
+	
 		if(!file_exists($name))
 		{
 			$this->save();				
@@ -76,8 +76,12 @@ class ProfileBasedConfig extends DirbasedConfig
 	public function getProfileDir()
 	{
 		$subdir=($this->_profile=="default"?"":DS.$this->_profile);
-		$confdir=realpath(dirname(dirname(self::$_script)).DS."conf$subdir");
-		return $confdir;
+		$confdir=dirname(dirname(self::$_script)).DS."conf$subdir";
+		if(!file_exists($confdir))
+		{
+			@mkdir($confdir,0777);
+		}
+		return realpath($confdir);
 	}
 	
 	public function __construct($fname,$profile=null)

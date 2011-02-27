@@ -16,30 +16,7 @@ require_once("magmi_statemanager.php");
 require_once("magmi_pluginhelper.php");
 require_once("magmi_config.php");
 require_once("magmi_version.php");
-
-ini_set("allow_url_fopen",true);
-//utilities method
-// return null for empty string
-function nullifempty($val)
-{
-	return (isset($val)?(trim($val)==""?null:$val):null);
-}
-// return false for empty string
-function falseifempty($val)
-{
-	return (isset($val)?(strlen($val)==0?false:$val):false);
-}
-//test for empty string
-function testempty($arr,$val)
-{
-	
-	return !isset($arr[$val]) || strlen(trim($arr[$val]))==0;
-}
-
-function deleteifempty($val)
-{
-	return (isset($val)?(trim($val)==""?"__MAGMI_DELETE__":$val):"__MAGMI_DELETE__");
-}
+require_once("magmi_utils.php");
 
 /* here inheritance from DBHelper is used for syntactic convenience */
 class MagentoMassImporter extends DBHelper
@@ -321,15 +298,7 @@ class MagentoMassImporter extends DBHelper
 	 * @param array $cols : array of attribute names
 	 */
 	
-	public function quotearr($arr)
-	{
-		$arrout=array();
-		foreach($arr as $v)
-		{
-			$arrout[]="'$v'";
-		}
-		return $arrout;
-	}
+	
 	public function checkRequired($cols)
 	{
 		$eav_attr=$this->tablename("eav_attribute");
