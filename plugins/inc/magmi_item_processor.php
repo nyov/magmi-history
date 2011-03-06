@@ -6,7 +6,7 @@
  * This class enables to perform custom modifications on item 
  * 
  * class principle:
- * methods should be called processItemXxx where Xxx is an import step of the MagentoMassImporter
+ * methods should be called processItemXxx where Xxx is an import step of the Magmi_ProductImportEngine
  *
  * all processItemXxx methods are optional, you need only to define methods you need to implement
  * 
@@ -15,7 +15,7 @@
  * 
  *  processItemXxx($mmi,&$item,$params=null) where
  *  
- *  $mmi : reference to MagentoMassImporterClass instance
+ *  $mmi : reference to Magmi_Engine instance
  *  &$item : array reference to item 
  *  $params : step dependent array, may be null
  *  
