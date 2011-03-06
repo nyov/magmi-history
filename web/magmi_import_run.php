@@ -49,7 +49,8 @@
 			var rq=new Ajax.Request('magmi_run.php',{method:'get',
 									 parameters:{profile:'<?php echo $profile?>',
 										 		 mode:'<?php echo $mode?>',
-										 		 logfile:'<?php echo addslashes($logfile)?>'},
+										 		 logfile:'<?php echo addslashes($logfile)?>',
+											 	 engine:'magmi_productimportengine:Magmi_ProductImportEngine'},
 									onCreate:function(r){window._sr=r}});
 			startProgress.delay(0.5);
 		}
@@ -63,7 +64,7 @@
 
 	cancelImport=function()
 	{
-		var rq=new Ajax.Request("./magmi_cancel.php",{method:'get'});
+		var rq=new Ajax.Request("magmi_cancel.php",{method:'get'});
 		window._sr.transport.abort();
 		window._sr=null;
 	}
