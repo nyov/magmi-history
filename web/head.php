@@ -8,7 +8,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Magento Mass Importer by Dweeves - version <?php echo Magmi_Version::$version ?></title>
+<title>MAGMI (MAGento Mass Importer) by Dweeves - version <?php echo Magmi_Version::$version ?></title>
 <link rel="stylesheet" href="css/960.css"></link>
 <link rel="stylesheet" href="css/reset.css"></link>
 <link rel="stylesheet" href="css/magmi.css"></link>
