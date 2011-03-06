@@ -5,4 +5,9 @@ class Magmi_UtilityPlugin extends Magmi_Plugin
 	{
 		//Put Running code 
 	}
+	
+	public function getWarning()
+	{
+		return null;
+	}
 }
