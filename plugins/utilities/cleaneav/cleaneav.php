@@ -10,11 +10,20 @@ class CleanEav extends Magmi_UtilityPlugin
 	
 	public function runUtility()
 	{
-	
+		$types=array("datetime","decimal","varchar","int");
+		foreach($types as $type)
+		{
+			$tname=$this->tablename("catalog_product_entity_$type");
+			$sql="DELETE FROM $tname WHERE value IS NULL";
+			$this->delete($sql);
+		}
+			
+		echo "EAV Cleaned";
 	}
 	
 	public function getStatistics()
 	{
+		$this->connectToMagento();
 		$types=array("datetime","decimal","varchar","int");
 		$stats=array();
 		foreach($types as $type)
@@ -27,8 +36,10 @@ class CleanEav extends Magmi_UtilityPlugin
 			$result=$result[0];
 			$stats[$type]=$result;
 		}
+		$this->disconnectFromMagento();
 		return $stats;
 	}
+	
 	
 	public function getShortDescription()
 	{
