@@ -184,7 +184,7 @@ class Magmi_Config extends DirbasedConfig
 		$candidates=scandir($this->getConfDir());
 		foreach($candidates as $candidate)
 		{
-			if(is_dir($this->getConfDir().DS.$candidate) && $candidate[0]!=".")
+			if(is_dir($this->getConfDir().DS.$candidate) && $candidate[0]!="." && substr($candidate,0,2)!="__")
 			{
 				$proflist[]=$candidate;
 			}
