@@ -202,22 +202,34 @@ class EnabledPlugins_Config extends ProfileBasedConfig
 		parent::__construct("plugins.conf",$profile);
 	}
 	
+	public function getEnabledPluginFamilies($typelist)
+	{
+		$btlist=array();
+		if(!is_array($typelist))
+		{
+			$typelist=explode(",",$typelist);
+		}
+		foreach($typelist as $pfamily)
+		{
+			$btlist[$pfamily]=$this->getEnabledPluginClasses($pfamily);
+		}
+		return $btlist;
+	}
+	
 	public function getEnabledPluginClasses($type)
 	{	
 		$type=strtoupper($type);
-		if($type=="DATASOURCES")
+		$cslist=$this->get("PLUGINS_$type","classes");
+		if($cslist==null)
 		{
-			return array($this->get("PLUGINS_$type","class"));
+			$cslist=$this->get("PLUGINS_$type","class");
+			$epc=($cslist==null?array():array($cslist));
 		}
 		else
 		{
-			$v=explode(",",$this->get("PLUGINS_$type","classes",""));
-			if(count($v)==1 && $v[0]=="")
-			{
-				return array();
-			}
-			return $v;
+			$epc=($cslist==""?array():explode(",",$cslist));
 		}
+		return $epc;
 	}
 	
 	public function isPluginEnabled($type,$pclass)
