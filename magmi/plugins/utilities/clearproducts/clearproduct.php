@@ -52,8 +52,13 @@ class ClearProductUtility extends Magmi_UtilityPlugin
 		$sql="SET FOREIGN_KEY_CHECKS = 1";
 
 		$this->exec_stmt($sql);
+		echo "Catalog cleared";
 	}
 	
+	public function getWarning()
+	{
+		return "Are you sure?, it will destroy all existing items in catalog!!!";
+	}
 	public function getShortDescription()
 	{
 		return "This Utility clears the catalog";	
