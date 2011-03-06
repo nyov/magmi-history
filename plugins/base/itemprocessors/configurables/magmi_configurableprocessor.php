@@ -15,7 +15,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.0.3"
+            "version" => "1.0.4"
             );
 	}
 	
@@ -107,13 +107,17 @@ public function initConfigurableOpts($cols)
 		{
 			return true;
 		}
+		
+		//set product to have options & required
+		$tname=$this->tablename('catalog_product_entity');
+		$sql="UPDATE $tname SET has_options=1,required_options=1 WHERE entity_id=?";
+		$this->update($sql,$params["product_id"]);
 		//matching mode
 		//if associated skus 
 		$matchmode=(isset($item["simples_skus"])?(trim($item["simples_skus"])!=""?"fixed":"none"):"auto");
 		
 		
 		//check if item has exising options
-		
 		$pid=$params["product_id"];
 		$psa=$this->tablename("catalog_product_super_attribute");
 		$sql="DELETE FROM `$psa` WHERE `product_id`=?";
