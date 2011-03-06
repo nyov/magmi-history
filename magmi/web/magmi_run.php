@@ -1,9 +1,18 @@
 <?php 
 	$params=$_REQUEST;
-	print_r($params);
 	ini_set("display_errors",1);
 	require_once("../inc/magmi_statemanager.php");
-	require_once("../inc/magmi_importer.php");
+	try
+	{
+		$engdef=explode(":",$params["engine"]);
+		$engine_name=$engdef[0];
+		$engine_class=$engdef[1];
+		require_once("../engines/$engine_name.php");
+	}
+	catch(Exception $e)
+	{
+		die("ERROR");
+	}
 	class FileLogger
 	{
 		protected $_fname;
@@ -37,22 +46,19 @@
 	{
 		Magmi_StateManager::setState("idle");
 		set_time_limit(0);
-		$mmi_imp=new MagentoMassImporter();
+		$mmi_imp=new $engine_class();
 		$logfile=isset($params["logfile"])?$params["logfile"]:null;
 		if(isset($logfile) && $logfile!="")
 		{
-			echo "set logfile to:".$logfile;
 			$fname=Magmi_StateManager::getStateDir().DS.$logfile;
-			echo "ABS PATH:$fname";
 			$mmi_imp->setLogger(new FileLogger($fname));
-			
 		}	
 		else
 		{
 			$mmi_imp->setLogger(new EchoLogger());
 		
 		}
-		$mmi_imp->import($params);
+		$mmi_imp->run($params);
 		
 	}
 ?>
