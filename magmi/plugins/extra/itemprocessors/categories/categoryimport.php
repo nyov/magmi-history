@@ -205,7 +205,9 @@ class CategoryImporter extends Magmi_ItemProcessor
 				{
 					$catdef="$root/$catdef";
 				}
-				$catids=array_unique(array_merge($catids,$this->getCategoryIdsFromDef($catdef)));
+				$cdef=$this->getCategoryIdsFromDef($catdef);
+				
+				$catids=array_unique(array_merge($catids,array(array_pop($cdef))));
 			}
 			$item["category_ids"]=implode(",",$catids);
 		}

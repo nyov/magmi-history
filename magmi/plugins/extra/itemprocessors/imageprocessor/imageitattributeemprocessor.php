@@ -106,7 +106,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{
 				$label=$item[$attrcode."_label"];
 			}
-			$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$label,true);
+			$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$label,$attrcode);
 		}
 		return $ovalue;
 	}
@@ -136,12 +136,25 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @param string $imgname : image file name (relative to /products/media in magento dir)
 	 * @return bool : if image is already present in gallery for a given product id
 	 */
-	public function getImageId($pid,$attid,$imgname)
+	public function getImageId($pid,$attid,$imgname,$refid=null)
 	{
 		$t=$this->tablename('catalog_product_entity_media_gallery');
-		$imgid=$this->selectone("SELECT value_id FROM $t WHERE value=? AND entity_id=? AND attribute_id=?" ,
-		array($imgname,$pid,$attid),
-								'value_id');
+	
+		$sql="SELECT value_id FROM $t ";
+		if($refid!=null)
+		{
+			$vc=$this->tablename('catalog_product_entity_varchar');
+			$sql.=" JOIN $vc ON $t.entity_id=$vc.entity_id AND $t.value=$vc.value AND $t.attribute_id=?
+					WHERE $t.entity_id=?";
+		
+			$imgid=$this->selectone($sql,array($refid,$attid),'value_id');
+		}
+		else
+		{	
+			$sql.=" WHERE value=? AND entity_id=? AND attribute_id=?";
+			$imgid=$this->selectone($sql,array($refid,$attid),'value_id');
+		}
+	
 		if($imgid==null)
 		{
 			// insert image in media_gallery
@@ -151,6 +164,13 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				(?,?,?)";
 
 			$imgid=$this->insert($sql,array($attid,$pid,$imgname));
+		}
+		else
+		{
+			$sql="UPDATE $t
+				 SET value=?
+				 WHERE value_id=?";
+			$this->update($sql,array($imgname,$imgid));
 		}
 		return $imgid;
 	}
@@ -174,12 +194,12 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @param array $attrdesc : product attribute description
 	 * @param string $imgname : image file name (relative to /products/media in magento dir)
 	 */
-	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$imglabel=null,$excluded=false)
+	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$imglabel=null,$excluded=false,$force=false)
 	{
 		$gal_attinfo=$this->getAttrInfo("media_gallery");
 			$tg=$this->tablename('catalog_product_entity_media_gallery');
 			$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
-		$vid=$this->getImageId($pid,$gal_attinfo["attribute_id"],$imgname);
+		$vid=$this->getImageId($pid,$gal_attinfo["attribute_id"],$imgname,$force);
 		if($vid!=null)
 		{
 		
@@ -481,10 +501,13 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		$tg=$this->tablename('catalog_product_entity_media_gallery');
 		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
-		$sql="UPDATE $tgv SET label=? WHERE 
-			$tgv.value_id=(SELECT value_id FROM $tg WHERE entity_id=? AND attribute_id=?)
-			AND store_id IN (".implode(",",$sids).")"; 
-		$this->update($sql,array($label,$pid,$attrdesc["attribute_id"]));
+		$vc=$this->tablename('catalog_product_entity_varchar');
+		$sql="UPDATE $tgv as emgv 
+		JOIN $tg as emg ON emg.value_id=emgv.value_id AND emg.entity_id=?
+		JOIN $vc  as ev ON ev.entity_id=emg.entity_id AND ev.value=emg.value and ev.attribute_id=? 
+		SET label=? 
+		WHERE emgv.store_id IN (".implode(",",$sids).")";
+		$this->update($sql,array($pid,$attrdesc["attribute_id"],$label));
 	}
 	
 	public function processItemAfterId(&$item,$params)
