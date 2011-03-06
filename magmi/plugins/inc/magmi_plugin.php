@@ -295,7 +295,7 @@ abstract class Magmi_Plugin
 		}
 		else
 		{
-			die("Invalid Method Call: $data - Not found in Plugin nor MagentoMassImporter");
+			die("Invalid Method Call: $data - Not found in Plugin nor associated Magmi engine instance");
 		}
 	}
 }
