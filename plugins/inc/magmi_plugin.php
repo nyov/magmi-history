@@ -215,10 +215,12 @@ abstract class Magmi_Plugin
 		$this->_config=new Magmi_PluginConfig(get_class($this),$profile);	
 		$this->_config->load();
 		$this->_params=($params!=null?array_merge($this->_config->getConfig(),$params):$this->_config->getConfig());
+
 		if(isset($mmi))
 		{
 			$this->pluginHello();		
 		}
+		
 		if($doinit)
 		{
 			$this->initialize($this->_params);
@@ -285,6 +287,11 @@ abstract class Magmi_Plugin
 	public function getPluginDir()
 	{
 		return $this->_plugindir;
+	}
+	
+	public function getPluginClass()
+	{
+		return $this->_class;
 	}
 	
 	public function __call($data,$arg)
