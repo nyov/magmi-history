@@ -13,6 +13,7 @@
 require_once("../inc/magmi_engine.php");
 require_once("../inc/magmi_pluginhelper.php");
 
+
 /* Magmi ProductImporter is now a Magmi_Engine instance */
 class Magmi_UtilityEngine extends Magmi_Engine
 {
@@ -25,6 +26,12 @@ class Magmi_UtilityEngine extends Magmi_Engine
 	{
 	}
 
+	public function getEnabledPluginClasses($profile)
+	{
+		$clist=Magmi_PluginHelper::getInstance("main")->getPluginsInfo("utilities","class");
+		return $clist;
+	}
+	
 	public function getEngineName()
 	{
 		return "Magmi Utilities Engine";
@@ -35,18 +42,14 @@ class Magmi_UtilityEngine extends Magmi_Engine
 	 * @param string $conf : configuration .ini filename
 	 */
 
-	
-	public function initPlugins($profile)
+	public function getPluginFamilies()
 	{
+		return array("utilities");
 	}
-	
-
 
 	public function engineInit($params)
 	{
-		$this->_profile=$this->getParam($params,"profile","default");
-		$this->initPlugins($this->_profile);
-		$this->mode=$this->getParam($params,"mode","update");
+		$this->initPlugins(null);
 	}
 	
 	public function engineRun($params)
@@ -54,6 +57,15 @@ class Magmi_UtilityEngine extends Magmi_Engine
 		$this->log("Magento Mass Importer by dweeves - version:".Magmi_Version::$version,"title");
 		//initialize db connectivity
 		Magmi_StateManager::setState("running");
+		//force only one class to run
+		$this->_pluginclasses=array("utilities"=>array($params["plugin_class"]));
+		
+		$this->createPlugins("__utilities__",$params);
+		foreach($this->_activeplugins["utilities"] as $pinst)
+		{
+			$pinst->runUtility();
+		}
+		
 		Magmi_StateManager::setState("idle");		
 	}
 	

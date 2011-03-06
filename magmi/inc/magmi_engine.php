@@ -6,7 +6,7 @@ require_once("magmi_utils.php");
 require_once("magmi_statemanager.php");
 require_once("magmi_pluginhelper.php");
 
-class Magmi_Engine extends DbHelper
+abstract class Magmi_Engine extends DbHelper
 {
 	protected $_conf;
 	protected $_initialized=false;
@@ -29,6 +29,7 @@ class Magmi_Engine extends DbHelper
 	{
 		
 	}
+	
 	public final  function initialize($params=array())
 	{
 		try
@@ -62,17 +63,44 @@ class Magmi_Engine extends DbHelper
 		return array();
 	}
 	
-	public function initPlugins($profile)
+	
+	public function getEnabledPluginClasses($profile)
 	{
 		$enabledplugins=new EnabledPlugins_Config($profile);
-		$enabledplugins->load();
-		$this->_pluginclasses=$enabledplugins->getEnabledPluginFamilies($this->getPluginFamilies());
+		$enabledplugins->getEnabledPluginFamilies($this->getPluginFamilies());
+		return $enabledplugins;
+	}
+	
+	public function initPlugins($profile=null)
+	{
+		
+		$this->_pluginclasses=$this->getEnabledPluginClasses($profile);
 	}
 	
 	public function getBuiltinPluginClasses()
 	{
 		return array();
 	}
+	
+	public function getPluginClasses()
+	{
+		return $this->_pluginclasses;
+	}
+	
+	public function getPluginInstances($family=null)
+	{
+		$pil=null;
+		if($family==null)
+		{
+			$pil=$this->_activeplugins();
+		}
+		else
+		{
+			$pil=(isset($this->_activeplugins[$family])?$this->_activeplugins[$family]:array());
+		}
+		return $pil;
+	}
+	
 	public function createPlugins($profile,$params)
 	{
 		$plhelper=Magmi_PluginHelper::getInstance($profile);
@@ -147,11 +175,6 @@ class Magmi_Engine extends DbHelper
 		{
 			$this->logger->log($data,$type);
 		}
-		else
-		{
-			print "$type:($data)\n";
-			flush();
-		}
 	}
 	
 	public function trace($e)
@@ -183,7 +206,7 @@ class Magmi_Engine extends DbHelper
 			$this->log("Running ".$this->getEngineName(),"startup");
 			if(!$this->_initialized)
 			{
-				$this->initialize();
+				$this->initialize($params);
 			}
 			$this->connectToMagento();
 			$this->engineRun($params);
@@ -243,5 +266,9 @@ class Magmi_Engine extends DbHelper
 	{
 		return $this->tprefix!=""?$this->tprefix."_$magname":$magname;
 	}
+	
+	
+	public abstract function engineInit($params);
+	public abstract function engineRun($params);
 	
 }
