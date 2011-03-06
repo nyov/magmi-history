@@ -5,7 +5,17 @@ $stats=$this->getStatistics();
 <h3>Current EAV Status</h3>
 </div>
 <div>
-<ul>
+	<table width="100%">
+	<thead>
+		<tr>
+			<td></td>
+			<td>EAV table</td>
+			<td>NULL values</td>
+			<td>Total values</td>
+			<td>% NULL</td>
+		</tr>
+	</thead>
+	<tbody>
 <?php 
 foreach($stats as $type=>$data)
 {?>
@@ -24,12 +34,15 @@ foreach($stats as $type=>$data)
 			$style="background-color:#ff8888";
 		}
 	?>
-	<li style="<?php echo $style?>">
-		<span><?php echo $type?></span>
-		<span><?php echo "{$data["empty"]}/{$data["total"]}"?></span>
-		<span><?php echo $data["pc"]?></span>
-	</li>
+	<tr>
+		<td style="<?php echo $style?>">&nbsp;</td>
+		<td><?php echo $type?></td>
+		<td><?php echo $data["empty"]?></td>
+		<td><?php echo $data["total"]?></td>
+		<td><?php echo $data["pc"]?></td>
+	</tr>	
 <?php 
 }?>
-</ul>
+</tbody>
+</table>
 </div>
