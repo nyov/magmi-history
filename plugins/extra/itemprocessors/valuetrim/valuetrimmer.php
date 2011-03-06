@@ -19,7 +19,7 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 	
 	/**
 	 * you can add/remove columns for the item passed since it is passed by reference
-	 * @param MagentoMassImporter $mmi : reference to mass importer (convenient to perform database operations)
+	 * @param Magmi_Engine $mmi : reference to magmi engine instance (convenient to perform database operations)
 	 * @param unknown_type $item : modifiable reference to item before import
 	 * the $item is a key/value array with column names as keys and values as read from csv file.
 	 * @return bool : 
