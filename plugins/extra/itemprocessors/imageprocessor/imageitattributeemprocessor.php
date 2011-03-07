@@ -401,7 +401,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	
 	public function getImageFSPath($imgfile,$rp=false)
 	{
-		$tfile=($imgfile[0]==DIRECTORY_SEPARATOR?substr($imgfile,1):$imgfile);
+		$first=$imgfile[0];
+		$tfile=($first=="/"?substr($imgfile,1):$imgfile);
 		$fspath=$this->imgsourcedir.DIRECTORY_SEPARATOR.$tfile;
 		return $rp?realpath($fspath):$fspath;
 	}
