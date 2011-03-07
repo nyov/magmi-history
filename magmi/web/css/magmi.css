@@ -404,9 +404,14 @@ div.pluginconfpanel.selected
 }
 #runlog
 {
-	height:280px;
 	clear:both;
 	background-color:#ffffff;
+}
+
+#runlog .runtime_info
+{
+	height:100px;
+	overflow:auto;
 }
 
 .config_error

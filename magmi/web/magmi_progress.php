@@ -61,7 +61,7 @@ else
 		}
 	};
 </script>
-		<div class='log_info'>Import Started</div>
+		
 <div class="col"><h3>Plugins</h3>
 <?php foreach($parser->getData("plugins") as $pinfo):?>
 	<div class="log_standard"><?php echo $pinfo["name"]?> (<?php echo $pinfo["ver"]?>) by <?php echo $pinfo["auth"]?></div>
@@ -146,9 +146,11 @@ else
 <?php if(count($parser->getData("info")>0)):?>
 	<div class="col">
 	<h3>Runtime infos</h3>
+	<div class="runtime_info">
 	<?php  foreach($parser->getData("info") as $info):?>
 		<div class="log_standard"><?php echo $info?></div>
 	<?php endforeach?>
+	</div>
 	</div>
 <?php endif?>
 	
