@@ -36,7 +36,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.2"
+            "version" => "0.1.3"
             );
 	}
 	
@@ -61,7 +61,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{
 				$label=$infolist[1];
 			}
-			
+			unset($infolist);
 			//copy it from source dir to product media dir
 			$imagefile=$this->copyImageFile($imagefile,$item,array("store"=>$storeid,"attr_code"=>$attrcode));
 			if($imagefile!==false)
@@ -229,6 +229,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 
 	public function parsename($info,$item,$extra)
 	{
+		$matches=array();
 		while(preg_match("|\{item\.(.*?)\}|",$info,$matches))
 		{
 			foreach($matches as $match)
@@ -265,7 +266,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				}
 			}
 		}
-		
+		unset($matches);
 		return $info;
 	}
 	
@@ -278,7 +279,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{
 				$pp[$k]=$v;
 			}
-		}	
+		}
 		return $pp;
 	}
 	
@@ -294,11 +295,13 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		if(isset($this->forcename) && $this->forcename!="")
 		{
+			$matches=array();
 			$m=preg_match("/(.*?)\.(jpg|png|gif)$/i",$cname,$matches);	
 			$extra["imagename"]=$cname;
 			$extra["imagename.ext"]=$matches[2];
 			$extra["imagename.noext"]=$matches[1];
 			$cname=$this->parsename($this->forcename,$item,$extra);
+			unset($matches);
 		}
 		else
 		{
@@ -317,13 +320,16 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		}
 		return $handle;
 	}
+	
 	public function destroyUrlContext($context)
 	{
 		if($context!=false)
 		{
 			curl_close($context);
 		}
+		unset($context);
 	}
+	
 	//Url testing
 	public function Urlexists($url,$context)
 	{
@@ -448,7 +454,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				$this->log("$fname not found, skipping image","warning");
 				$this->fillErrorAttributes($item);
 				$this->_lastnotfound=$imgfile;
-				$this->destroyUrlContext($context);
+				$this->destroyUrlContext($curlh);
 				return false;
 			}
 			/* test if 1st level product media dir exists , create it if not */
@@ -459,7 +465,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				{
 					$errors= error_get_last();
 					$this->log("error creating $l1d: {$errors["type"]},{$errors["message"]}","warning");
-					$this->destroyUrlContext($context);
+					$this->destroyUrlContext($curlh);
 					return false;
 				}
 			}
@@ -471,7 +477,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				{
 					$errors= error_get_last();
 					$this->log("error creating $l2d: {$errors["type"]},{$errors["message"]}","warning");
-					$this->destroyUrlContext($context);
+					$this->destroyUrlContext($curlh);
 					return false;
 				}
 			}
@@ -484,10 +490,10 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 					$errors=error_get_last();
 					$this->fillErrorAttributes($item);
 					$this->log("error copying $l2d/$bimgfile : {$errors["type"]},{$errors["message"]}","warning");
-					$this->destroyUrlContext($context);
+					$this->destroyUrlContext($curlh);
 					return false;
 				}
-				$this->destroyUrlContext($context);
+				$this->destroyUrlContext($curlh);
 				@chmod("$l2d/$bimgfile",0664);
 			}
 		}
