@@ -10,6 +10,8 @@
 <?php 
  $mmi=new Magmi_UtilityEngine();
  $mmi->initialize();
+ $mmi->initPlugins();
+ 
  $mmi->createPlugins("__utilities__",null);
  $plist=$mmi->getPluginInstances("utilities");
  ?>
