@@ -16,6 +16,11 @@ multiple categories supported :)
 </div>
 </div>
 <div class="formline">
+<span>Assing product to last level only:</span><input type="checkbox"  name="CAT:lastonly" <?php if($this->getParam("CAT:lastonly",false)){?>checked="checked"<?php }?>></input>
+<div class="fieldinfo">When checked, this options will assign product only to the categories that are located at the last level of the defined trees</div>
+</div>
+
+<div class="formline">
 <span>base category tree:</span><input type="text"  name="CAT:baseroot" size="80" value="<?php echo $this->getParam("CAT:baseroot","")?>"></input>
 <div class="fieldinfo">this enable you to import the categories prepending a base root tree to the values found in csv (use same syntax as described above)</div>
 </div>
