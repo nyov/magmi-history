@@ -3,11 +3,25 @@ require_once("magmi_config.php");
 require_once("magmi_statemanager.php");
 $conf=Magmi_Config::getInstance();
 $conf->load();
-
 $conf_ok=1;
 ?>
-<?php $profile=(isset($_REQUEST["profile"]) && $_REQUEST["profile"]!=="default")?$_REQUEST["profile"]:null;?>
 <?php 
+if(isset($_REQUEST["profile"]))
+{
+	$profile=$_REQUEST["profile"];
+}
+else
+{
+	
+	if(isset($_SESSION["last_runned_profile"]))
+	{
+		$profile=$_SESSION["last_runned_profile"];
+	}
+}
+if($profile=="")
+{
+	$profile="default";
+}
 $eplconf=new EnabledPlugins_Config($profile);
 $eplconf->load();
 if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))

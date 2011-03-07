@@ -3,6 +3,14 @@ if(isset($_REQUEST["profile"]))
 {
 	$profile=$_REQUEST["profile"];
 }
+else
+{
+	
+	if(isset($_SESSION["last_runned_profile"]))
+	{
+		$profile=$_SESSION["last_runned_profile"];
+	}
+}
 if($profile=="")
 {
 	$profile="default";
