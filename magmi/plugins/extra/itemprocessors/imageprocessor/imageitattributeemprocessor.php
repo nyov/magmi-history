@@ -393,6 +393,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				$errors= error_get_last();
 				$this->fillErrorAttributes($item);
 				$this->log("error copying $target : {$errors["type"]},{$errors["message"]}","warning");
+				unset($errors);
 				return false;
 			}
 		}
@@ -466,6 +467,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				{
 					$errors= error_get_last();
 					$this->log("error creating $l1d: {$errors["type"]},{$errors["message"]}","warning");
+					unset($errors);
 					$this->destroyUrlContext($curlh);
 					return false;
 				}
@@ -478,6 +480,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				{
 					$errors= error_get_last();
 					$this->log("error creating $l2d: {$errors["type"]},{$errors["message"]}","warning");
+					unset($errors);
 					$this->destroyUrlContext($curlh);
 					return false;
 				}
@@ -491,6 +494,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 					$errors=error_get_last();
 					$this->fillErrorAttributes($item);
 					$this->log("error copying $l2d/$bimgfile : {$errors["type"]},{$errors["message"]}","warning");
+					unset($errors);
 					$this->destroyUrlContext($curlh);
 					return false;
 				}
@@ -529,6 +533,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				//force label update
 				$attrdesc=$this->getAttrInfo($attrcode);
 				$this->updateLabel($attrdesc,$pid,$this->getItemStoreIds($item,$attr_desc["is_global"]),$item[$attrcode."_label"]);		
+				unset($attrdesc);
 			}
 		}
 		return true;
@@ -544,7 +549,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	}
 	
 	//Cleanup gallery from removed images if no more image values are present in any store 
-	public function onImportEnd()
+	public function afterImport()
 	{
 		$attids=array();
 		foreach($this->_img_baseattrs as $attrcode)
@@ -558,6 +563,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			LEFT JOIN (SELECT emg.value_id,count(emgv.value_id) as cnt FROM  $tgv as emgv JOIN $tg as emg  ON emg.value_id=emgv.value_id GROUP BY emg.value_id ) as t1 ON t1.value_id=emg.value_id
 			WHERE attribute_id IN (".implode(",",$attids).") AND t1.cnt IS NULL";
 		$this->delete($sql);
+		unset($attids);
 	}
 	
 
