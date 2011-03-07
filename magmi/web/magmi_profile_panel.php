@@ -177,6 +177,7 @@ gatherclasses=function(tlist)
 		target.value=context.arr.join(",");
 	});
 };
+
 initConfigureLink=function(maincont)
 {
  var cfgdiv=maincont.select('.pluginconf');
