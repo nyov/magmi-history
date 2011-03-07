@@ -6,6 +6,7 @@ $conf->load();
 $conf_ok=1;
 ?>
 <?php 
+$profile="";
 if(isset($_REQUEST["profile"]))
 {
 	$profile=$_REQUEST["profile"];
