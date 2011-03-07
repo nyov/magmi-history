@@ -51,21 +51,33 @@
 </div>
 
 <script type="text/javascript">
+
+	updatePanel=function(pclass)
+	{
+		new Ajax.Updater("pluginoptions:"+pclass,"ajax_pluginconf.php",{parameters:{
+			engine:'magmi_utilityengine:Magmi_UtilityEngine',
+			pluginclass:pclass,
+			plugintype:'utilities',
+			profile:'__utilities__'}});
+	};
 	
 	runUtility=function(pclass)
 	{
-		var targetUrl="magmi_run.php";
-		new Ajax.Updater("plugin_run:"+pclass,"magmi_run.php",{parameters:{
-			engine:'magmi_utilityengine:Magmi_UtilityEngine',
-			logfile:'utility_run.txt',
-			plugin_class:pclass}});
-	}
+		new Ajax.Updater("plugin_run:"+pclass,
+						 "magmi_run.php",
+						 {parameters:{
+									engine:'magmi_utilityengine:Magmi_UtilityEngine',
+									logfile:'utility_run.txt',
+									pluginclass:pclass,
+									},
+						  onComplete:function(){updatePanel(pclass);}});
+	};
 	
 	togglePanel=function(pclass)
 	{
 		var target="pluginoptions:"+pclass;
 		$(target).toggle();
-	}
+	};
 
 	var warntargets=[];
 	<?php $warn=$pinst->getWarning();
