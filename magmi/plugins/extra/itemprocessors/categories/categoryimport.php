@@ -49,7 +49,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.0.4"
+            "version" => "0.0.5"
             );
 	}
 	
@@ -206,8 +206,11 @@ class CategoryImporter extends Magmi_ItemProcessor
 					$catdef="$root/$catdef";
 				}
 				$cdef=$this->getCategoryIdsFromDef($catdef);
-				
-				$catids=array_unique(array_merge($catids,array(array_pop($cdef))));
+				if($this->getParam("CAT:lastonly",false))
+				{
+					$cdef=array($cdef[-1]);
+				}
+				$catids=array_unique(array_merge($catids,$cdef));
 			}
 			$item["category_ids"]=implode(",",$catids);
 		}
@@ -216,10 +219,10 @@ class CategoryImporter extends Magmi_ItemProcessor
 	
 	public function getPluginParamNames()
 	{
-		return array('CAT:baseroot');
+		return array('CAT:baseroot','CAT:lastonly');
 	}
 	
-	public function onImportEnd($params)
+	public function afterImport()
 	{
 		//automatically update all children_count for catalog categories
 		$cce=$this->tablename("catalog_category_entity");
