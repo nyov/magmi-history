@@ -58,7 +58,7 @@ class Magmi_UtilityEngine extends Magmi_Engine
 		//initialize db connectivity
 		Magmi_StateManager::setState("running");
 		//force only one class to run
-		$this->_pluginclasses=array("utilities"=>array($params["plugin_class"]));
+		$this->_pluginclasses=array("utilities"=>array($params["pluginclass"]));
 		
 		$this->createPlugins("__utilities__",$params);
 		foreach($this->_activeplugins["utilities"] as $pinst)
