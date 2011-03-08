@@ -163,7 +163,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			//find store id for store list
 			foreach($stores as $scode)
 			{
-
+				$scode=trim($scode);
 				$sid=$this->store_ids[$scode];
 
 				//add store id to id list
@@ -973,10 +973,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		catch(Exception $e)
 		{
 
-			$this->callProcessors("exception",$item,array("exception"=>$e),"processItem");
-			$this->trace($e);
-			$this->log($this->_excid.":".$e->getMessage()." - {$this->_laststmt->queryString}","error");
-			
+			$this->callPlugins(array("itemprocessors"),"processItemException",$item,array("exception"=>$e));
+			$this->logException($e,$this->_laststmt->queryString);			
 			//if anything got wrong, rollback
 			$this->rollbackTransaction();
 		}
@@ -1131,8 +1129,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				}
 				catch(Exception $e)
 				{
-					$this->trace($e);
-					$this->log($this->_excid.":ERROR - RECORD #$this->_current_row - ".$e->getMessage(),"error");
+					$this->logException($e,"ERROR ON RECORD #$this->_current_row");
 				}
 				if($this->isLastItem($item))
 				{
