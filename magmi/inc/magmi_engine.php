@@ -152,6 +152,7 @@ abstract class Magmi_Engine extends DbHelper
 				}		
 			}
 		}
+		return $result;
 	}
 	
 	public function getParam($params,$pname,$default=null)
@@ -174,6 +175,13 @@ abstract class Magmi_Engine extends DbHelper
 		{
 			$this->logger->log($data,$type);
 		}
+	}
+	
+	public function logException($e,$data)
+	{
+		$this->_excid++;
+		$this->trace($e);
+		$this->log($this->_excid.":".$e->getMessage()." - ".$data,"error");
 	}
 	
 	public function trace($e)
