@@ -39,7 +39,6 @@ abstract class Magmi_Engine extends DbHelper
 			$this->magversion=$this->_conf->get("MAGENTO","version");
 			$this->magdir=$this->_conf->get("MAGENTO","basedir");
 			$this->tprefix=$this->_conf->get("DATABASE","table_prefix");
-			$this->engineInit($params);
 			$this->_excid=0;
 			$this->_initialized=true;
 		}
@@ -67,8 +66,8 @@ abstract class Magmi_Engine extends DbHelper
 	public function getEnabledPluginClasses($profile)
 	{
 		$enabledplugins=new EnabledPlugins_Config($profile);
-		$enabledplugins->getEnabledPluginFamilies($this->getPluginFamilies());
-		return $enabledplugins;
+		$enabledplugins->load();
+		return $enabledplugins->getEnabledPluginFamilies($this->getPluginFamilies());
 	}
 	
 	public function initPlugins($profile=null)
@@ -179,17 +178,37 @@ abstract class Magmi_Engine extends DbHelper
 	
 	public function trace($e)
 	{
-		$this->_excid++;
+		
 		$traces=$e->getTrace();
 		$f=fopen(Magmi_StateManager::getTraceFile(),"a");
 		fwrite($f,"---- TRACE : $this->_excid -----\n");
 		$trstr="";
+		
 		foreach($traces as $trace)
 		{
-			$fname=str_replace(dirname(dirname(__FILE__)),"",$trace["file"]);
-			$trstr.= $fname.":".$trace["line"]." - ".$trace["function"]."(".implode(",",$trace["args"]).")\n";	
+			$trstr="**********************************************\n";
+			if(isset($trace["file"]))
+			{
+				$fname=str_replace(dirname(dirname(__FILE__)),"",$trace["file"]);
+				$trstr.= $fname.":".(isset($trace["line"])?$trace["line"]:"?")." - ";
+				if(isset($trace["class"]))
+				{
+					$trstr.=$trace["class"]."->";
+					if(isset($trace["function"]))
+					{
+						$trstr.=$trace["function"];
+					}
+					$trstr.="\n----------------------------------------\n";
+					if(isset($trace["args"]))
+					{
+						$trstr.=print_r($trace["args"],true);
+					}
+					
+					$trstr.="\n";
+					fwrite($f,$trstr);
+				}
+			}
 		}
-		fwrite($f,$trstr);
 		fwrite($f,"---- ENDTRACE : $this->_excid -----\n");
 		fclose($f);
 	}
@@ -203,22 +222,33 @@ abstract class Magmi_Engine extends DbHelper
 	{
 		try
 		{
+			$f=fopen(Magmi_StateManager::getTraceFile(),"w");
+			fclose($f);
 			$this->log("Running ".$this->getEngineName(),"startup");
 			if(!$this->_initialized)
 			{
 				$this->initialize($params);
 			}
 			$this->connectToMagento();
+			$this->engineInit($params);
 			$this->engineRun($params);
 			$this->disconnectFromMagento();
 		}
 		catch(Exception $e)
 		{
 			$this->disconnectFromMagento();
-			$this->onEngineException($e);
-			$this->trace($e);
+			
+			$this->handleException($e);
 		}
 	
+	}
+	
+	public function handleException($e)
+	{
+		$this->_excid++;
+		$this->trace($e);
+		$this->log($this->_excid.":".$e->getMessage(),"error");		
+		$this->onEngineException($e);
 	}
 	
 	/**
