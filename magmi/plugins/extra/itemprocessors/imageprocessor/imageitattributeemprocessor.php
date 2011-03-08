@@ -549,7 +549,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	}
 	
 	//Cleanup gallery from removed images if no more image values are present in any store 
-	public function afterImport()
+	public function endImport()
 	{
 		$attids=array();
 		foreach($this->_img_baseattrs as $attrcode)
