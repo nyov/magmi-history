@@ -21,7 +21,7 @@
 </script>
  <ul>
  <?php foreach($data as $line){
- if($key=="error")
+ if($key=="error" && preg_match("|\d+:|",$line))
  {
  	$inf=explode(":",$line,2);
  	$errnum=$inf[0];
