@@ -1140,7 +1140,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				}
 				unset($item);
 			}
-			$this->datasource->endImport();
+			$this->callPlugins("datasource,general,itemprocessors","endImport");
 			$tend=microtime(true);
 			$this->log($this->_current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 			$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
@@ -1152,9 +1152,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	
 	public function onEngineException($e)
 	{
-		$this->datasource->onException($e);
-		$this->log($e->getMessage(),"error");
+		if(isset($this->datasource))
+		{
+			$this->datasource->onException($e);
+		}
 		$this->log("Import Ended","end");
+
 		Magmi_StateManager::setState("idle");
 	}
 
