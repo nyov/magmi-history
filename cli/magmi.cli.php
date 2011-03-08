@@ -9,7 +9,7 @@
  * 
  */
 
-require_once("../inc/magmi_importer.php");
+require_once("../engines/magmi_productimportengine.php");
 
 $script=array_shift($argv);
 $options=array();
@@ -33,6 +33,6 @@ foreach($argv as $option)
 	}
 }
 
-$importer=new MagentoMassImporter();
-$importer->import($options);
+$importer=new Magmi_ProductImportEngine();
+$importer->run($options);
 ?>
