@@ -57,13 +57,21 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	{
 		//open csv file
 		$f=fopen($this->_filename,"rb");
-		//get records count
 		$count=-1;
-		while(fgetcsv($f,$this->_buffersize,$this->_csep,$this->_cenc))
+	
+		if($f!=false)
 		{
-			$count++;
+			//get records count
+			while(fgetcsv($f,$this->_buffersize,$this->_csep,$this->_cenc))
+			{
+				$count++;
+			}
+			fclose($f);
 		}
-		fclose($f);
+		else
+		{
+			$this->log("Could not read $this->_filename , check permissions","error");
+		}	
 		return $count;
 	}
 	
