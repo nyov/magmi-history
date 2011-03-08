@@ -11,6 +11,7 @@ class DBHelper
 	protected $_nreq;
 	protected $_indbtime;
 	protected $_intrans=false;
+	protected $prepared=array();
 	/**
 	 * Intializes database connection
 	 * @param string $host : hostname
