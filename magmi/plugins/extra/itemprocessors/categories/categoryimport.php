@@ -20,7 +20,8 @@ class CategoryImporter extends Magmi_ItemProcessor
 	
 	public function getCatAttributeInfos($attcode)
 	{
-		$sql="SELECT * FROM eav_attribute WHERE entity_type_id=3 AND attribute_code=?";
+		$t=$this->tablename("eav_attribute");
+		$sql="SELECT * FROM $t WHERE entity_type_id=3 AND attribute_code=?";
 		$info=$this->selectAll($sql,$attcode);
 		return $info[0];
 	}
