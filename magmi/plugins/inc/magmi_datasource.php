@@ -22,4 +22,9 @@ abstract class Magmi_DataSource extends Magmi_GeneralImportPlugin
 	{
 		
 	}
+	
+	public function onException($e)
+	{
+		
+	}
 }
