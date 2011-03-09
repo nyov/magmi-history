@@ -14,7 +14,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		ini_set("allow_url_fopen",true);		
 		//declare current class as attribute handler
-		$this->registerAttributeHandler($this,array("frontend_input:(media_image|gallery)",""));
+		$this->registerAttributeHandler($this,array("frontend_input:(media_image|gallery)"));
 		$this->magdir=$this->getMagentoDir();
 		$this->imgsourcedir=realpath($this->magdir."/".$this->getParam("IMG:sourcedir"));
 		if(!file_exists($this->imgsourcedir))
