@@ -616,7 +616,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 							$ddata=array($this->prod_etype,$attid,$pid);
 							$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id IN ($sidlist) AND entity_id=?";
 							$this->delete($sql,$ddata);
+							unset($ddata);
 						}
+						unset($sids);
 						break;
 					}
 				}
@@ -992,11 +994,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	public function lookup()
 	{
 		$t0=microtime(true);
-
+		$this->log("Performing Datasouce Lookup...","startup");
+		
 		$count=$this->datasource->getRecordsCount();
 		$t1=microtime(true);
 		$time=$t1-$t0;
 		$this->log("$count:$time","lookup");
+		$this->log("Found $count records, took $time sec","startup");
+		
 		return $count;
 	}
 
@@ -1060,6 +1065,16 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	}
 	
 	
+	public function reportStats(&$tstart,&$tdiff,&$lastdbtime,&$lastrec)
+	{
+		$tend=microtime(true);
+		$this->log($this->_current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
+		$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
+		$lastrec=$this->_nreq;
+		$lastdbtime=$this->_indbtime;
+		$tdiff=microtime(true);
+	}
+	
 	public function engineRun($params)
 	{
 		$this->log("MAGMI by dweeves - version:".Magmi_Version::$version,"title");
@@ -1103,6 +1118,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			{
 				//counter
 				$this->_current_row++;	
+				if($this->_current_row%$rstep==0)
+				{
+					$this->reportStats($tstart,$tdiff,$lastdbtime,$lastrec);
+				}
 				try
 				{
 					if(is_array($item) && count($item)>0)
@@ -1112,18 +1131,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 					}
 					else
 					{
-						$this->log("ERROR - RECORD #$this->__current_row - INVALID RECORD","error");
+						$this->log("ERROR - RECORD #$this->_current_row - INVALID RECORD","error");
 					}
-					//intermediary measurement
-					if($this->_current_row%$rstep==0)
-					{
-						$tend=microtime(true);
-						$this->log($this->_current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
-						$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
-						$lastrec=$this->_nreq;
-						$lastdbtime=$this->_indbtime;
-						$tdiff=microtime(true);
-					}
+				//intermediary measurement
+					
 				}
 				catch(Exception $e)
 				{
@@ -1131,14 +1142,13 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				}
 				if($this->isLastItem($item))
 				{
+					unset($item);
 					break;
 				}
 				unset($item);
 			}
 			$this->callPlugins("datasource,general,itemprocessors","endImport");
-			$tend=microtime(true);
-			$this->log($this->_current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
-			$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
+			$this->reportStats($tstart,$tdiff,$lastdbtime,$lastrec);
 		}
 		else
 		{
