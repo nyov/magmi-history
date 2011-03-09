@@ -1069,9 +1069,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$this->callPlugins("datasources,general","beforeImport");			
 		$nitems=$this->lookup();
 		Magmi_StateManager::setState("running");
-		//store reset flag
-		$this->mode=$mode;
-		//if reset
+		//if some rows found
 		if($nitems>0)
 		{
 			//intialize store id cache
@@ -1141,6 +1139,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$tend=microtime(true);
 			$this->log($this->_current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 			$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
+		}
+		else
+		{
+			$this->log("No lines in CSV","warning");
 		}
 		$this->callPlugins("datasource,general,itemprocessors","afterImport");
 		$this->log("Import Ended","end");
