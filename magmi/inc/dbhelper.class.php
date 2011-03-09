@@ -217,7 +217,7 @@ class DBHelper
 		$arrout=array();
 		foreach($arr as $v)
 		{
-			$arrout[]=PDO::quote($v);
+			$arrout[]=$this->_db->quote($v);
 		}
 		return $arrout;
 	}
