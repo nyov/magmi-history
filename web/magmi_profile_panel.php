@@ -95,7 +95,7 @@ else{?>
 				}
 				$pinfo=$pinst->getPluginInfo();
 					
-				if($plconf->isPluginEnabled($k,$pclass))
+				if($eplconf->isPluginEnabled($k,$pclass))
 				{
 					$sinst=$pinst;
 				}
@@ -127,7 +127,7 @@ else{?>
 		?>
 		<li>
 		<div class="pluginselect">
-		<input type="checkbox" class="pl_<?php echo $k?>" name="<?php echo $pclass?>" <?php if($plconf->isPluginEnabled($k,$pclass)){?>checked="checked"<?php }?>>
+		<input type="checkbox" class="pl_<?php echo $k?>" name="<?php echo $pclass?>" <?php if($eplconf->isPluginEnabled($k,$pclass)){?>checked="checked"<?php }?>>
 		<span class="pluginname"><?php echo $pinfo["name"]." v".$pinfo["version"];?></span>
 		</div>
 
@@ -143,7 +143,7 @@ else{?>
 			
 		<?php }?>
 		</div>
-		<?php $enabled=$plconf->isPluginEnabled($k,$pclass)?>
+		<?php $enabled=$eplconf->isPluginEnabled($k,$pclass)?>
 		<div class="pluginconf"  <?php if(!$enabled){?>style="display:none"<?php }?>>
 			<span><a href="javascript:void(0)">configure</a></span>
 		</div>
@@ -153,7 +153,7 @@ else{?>
 
 		</li>
 		<?php }?>	
-		<input type="hidden" id="plc_<?php echo strtoupper($k)?>" value="<?php echo implode(",",$plconf->getEnabledPluginClasses($k))?>" name="PLUGINS_<?php echo strtoupper($k)?>:classes"></input>
+		<input type="hidden" id="plc_<?php echo strtoupper($k)?>" value="<?php echo implode(",",$eplconf->getEnabledPluginClasses($k))?>" name="PLUGINS_<?php echo strtoupper($k)?>:classes"></input>
 					
 		<?php 
 		}?>
