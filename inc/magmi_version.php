@@ -1,5 +1,5 @@
 <?php
 class Magmi_Version
 {
-	 public static $version="0.7.2a";
+	 public static $version="0.7.3";
 }
