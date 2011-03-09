@@ -70,6 +70,20 @@ class DBHelper
 	{
 		return $this->_nreq;
 	}
+	
+	public function cachesort($a,$b)
+	{
+		return $b[1]-$a[1];
+	}
+	
+	public function garbageStmtCache()
+	{	
+		if(count($this->prepared)>=500)
+		{
+			uasort($this->prepared,$cachesort);
+			array_splice($this->prepared,350,count($t));
+		}
+	}
 	/**
 	 * executes an sql statement
 	 * @param string $sql : sql statement (may include ? placeholders)
@@ -81,20 +95,23 @@ class DBHelper
 	{
 		$this->_nreq++;
 		$t0=microtime(true);
-		if($this->_use_stmt_cache)
+		
+		if($this->_use_stmt_cache && strpos($sql,"'")==false)
 		{
 			//if sql not in statement cache
 			if(!isset($this->prepared[$sql]))
 			{
+				$this->garbageStmtCache();
 				//create new prepared statement
 				$stmt=$this->_db->prepare($sql);
 				//cache prepare statement
-				$this->prepared[$sql]=$stmt;
+				$this->prepared[$sql]=array($stmt,1);
 			}
 			else
 			{
 				//get from statement cache
-				$stmt=$this->prepared[$sql];
+				$this->prepared[$sql][1]++;
+				$stmt=$this->prepared[$sql][0];
 			}
 		}
 		else
