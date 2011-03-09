@@ -1142,7 +1142,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		else
 		{
-			$this->log("No lines in CSV","warning");
+			$this->log("No Records returned by datasource","warning");
 		}
 		$this->callPlugins("datasource,general,itemprocessors","afterImport");
 		$this->log("Import Ended","end");
