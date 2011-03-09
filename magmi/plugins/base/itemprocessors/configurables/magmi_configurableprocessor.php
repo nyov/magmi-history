@@ -15,7 +15,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.0.4"
+            "version" => "1.0.4a"
             );
 	}
 	
@@ -70,11 +70,6 @@ public function initConfigurableOpts($cols)
 		
 	}
 	
-	public function quote(&$it)
-	{
-		$val="'".addslashes($it)."'";
-		return $val;
-	}
 	
 	public function autoLink($pid)
 	{
@@ -84,14 +79,8 @@ public function initConfigurableOpts($cols)
 	public function fixedLink($pid,$skulist)
 	{
 		$arrin=explode(",",$skulist);
-		$arrout=array();
-		foreach($arrin as $v)
-		{
-			$arrout[]=$this->quote($v);
-		}
-		$skulist=implode(",",$arrout);
+		$skulist=implode(",",$this->quotearr($arrin));
 		unset($arrin);
-		unset($arrout);
 		$this->dolink($pid,"IN ($skulist)");		
 	}
 	
