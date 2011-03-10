@@ -46,6 +46,12 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 		return $ovalue;
 	}
 
+	public function handleTextAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	{
+		$ovalue=(empty($ivalue)?'':$ivalue);
+		return $ovalue;	
+	}
+	
 	public function checkInt($value)
 	{
 		return is_int($value) || (is_string($value) && is_numeric($value) && (int)$value==$value);
