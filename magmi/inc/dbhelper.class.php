@@ -29,6 +29,9 @@ class DBHelper
 		$this->_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 		//use fetch assoc as default fetch mode
 		$this->_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
+		//use fetch assoc as default fetch mode
+		$this->_db->setAttribute(PDO::ATTR_ORACLE_NULLS ,PDO::NULL_NATURAL);
+		
 		//set database debug mode to trace if necessary
 		$this->_debug=$debug;
 		$this->prepared=array();
@@ -80,8 +83,8 @@ class DBHelper
 	{	
 		if(count($this->prepared)>=500)
 		{
-			uasort($this->prepared,$cachesort);
-			array_splice($this->prepared,350,count($t));
+			uasort($this->prepared,array($this,"cachesort"));
+			array_splice($this->prepared,350,count($this->prepared));
 		}
 	}
 	/**
