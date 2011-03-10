@@ -140,16 +140,19 @@ abstract class Magmi_Engine extends DbHelper
 		}
 		foreach($types as $ptype)
 		{
-			foreach($this->_activeplugins[$ptype] as $pinst)
+			if(isset($this->_activeplugins[$ptype]))
 			{
-				if(method_exists($pinst,$callback))
+				foreach($this->_activeplugins[$ptype] as $pinst)
 				{
-					$result=$result && ($data==null?($params==null?$pinst->$callback():$pinst->$callback($params)):$pinst->$callback($data,$params));
+					if(method_exists($pinst,$callback))
+					{
+						$result=$result && ($data==null?($params==null?$pinst->$callback():$pinst->$callback($params)):$pinst->$callback($data,$params));
+					}
+					if(!$result && $data!=null && $break)
+					{
+						return $result;
+					}		
 				}
-				if(!$result && $data!=null && $break)
-				{
-					return $result;
-				}		
 			}
 		}
 		return $result;

@@ -490,7 +490,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		sort($itemstores);
 		return $itemstores;
 	}
-	
+
 	/**
 	 * Create product attribute from values for a given product id
 	 * @param $pid : product id to create attribute values for
@@ -554,7 +554,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 						$mtype=$matchinfo[0];
 						$mtest=$matchinfo[1];
 						unset($matchinfo);
-						$hvalue=null;
+						unset($hvalue);
 						if(preg_match("/$mtest/",$attrdesc[$mtype]))
 						{
 							//if there is a specific handler for attribute, use it
@@ -592,15 +592,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 						$data[]=$attid;
 						$data[]=$store_id;
 						$data[]=$pid;
-						if($ovalue==null)
-						{
-							$insstr="(?,?,?,?,NULL)";
-						}
-						else
-						{
-							$insstr="(?,?,?,?,?)";
-							$data[]=$ovalue;
-						}
+						$data[]=$ovalue;
+						$insstr="(?,?,?,?,?)";
 						$inserts[]=$insstr;
 					}
 		
@@ -1077,6 +1070,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	
 	public function engineRun($params)
 	{
+		$this->log("Import Mode:$this->mode","startup");
 		$this->log("MAGMI by dweeves - version:".Magmi_Version::$version,"title");
 		$this->log("step:".$this->getProp("GLOBAL","step",0.5)."%","step");
 		//initialize db connectivity
