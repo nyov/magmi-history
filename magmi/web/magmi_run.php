@@ -21,6 +21,10 @@
 		{
 			$this->_fname=$fname;
 			$f=fopen($this->_fname,"w");
+			if($f==false)
+			{
+				throw new Exception("CANNOT WRITE PROGRESS FILE ");
+			}
 			fclose($f);
 		}
 
@@ -28,6 +32,10 @@
 		{
 			
 			$f=fopen($this->_fname,"a");
+			if($f==false)
+			{
+				throw new Exception("CANNOT WRITE PROGRESS FILE ");
+			}
 			fwrite($f,"$type:$data\n");
 			fclose($f);
 		}
@@ -50,7 +58,7 @@
 		$logfile=isset($params["logfile"])?$params["logfile"]:null;
 		if(isset($logfile) && $logfile!="")
 		{
-			$fname=Magmi_StateManager::getStateDir().DS.$logfile;
+			$fname=Magmi_StateManager::getStateDir().DS.$logfile;			
 			$mmi_imp->setLogger(new FileLogger($fname));
 		}	
 		else
@@ -60,5 +68,9 @@
 		}
 		$mmi_imp->run($params);
 		
+	}
+	else
+	{
+		die("RUNNING");
 	}
 ?>
