@@ -30,7 +30,7 @@
 	updateTime=function(tdiv,xprefix)
 	{
 		new Ajax.Updater(tdiv,'ajax_gettime.php',{parameters:{prefix:xprefix},
-			onComplete:function(){$(tdiv).show().delay(0.5);}});
+			onComplete:function(){$(tdiv).show();}});
 	}
 	
 	endImport=function(t)
@@ -58,7 +58,7 @@
 		if(window._sr==null)
 		{
 			updateTime('startimport_div','Import Started');
-			var rq=new Ajax.Request('magmi_run.php',{method:'get',
+			var rq=new Ajax.Request('magmi_run.php',{method:'post',
 								 parameters:{profile:'<?php echo $profile?>',
 						 		 mode:'<?php echo $mode?>',
 						 		 logfile:'<?php echo addslashes($logfile)?>',
