@@ -242,6 +242,46 @@ class DBHelper
 		return $arrout;
 	}
 	
+	public function arr2columns($arr)
+	{
+		$arrout=array();
+		foreach($arr as $cname)
+		{
+			$arrout[]="`".$cname."`";
+		}
+		$colstr=implode(",",$arrout);
+		unset($arrout);
+		return $colstr;
+	}
+	
+	public function arr2values($arr)
+	{
+		$str=substr(str_repeat("?,",count($arr)),0,-1);
+		return $str;
+	}
+	
+	public function arr2update($arr)
+	{
+		$arrout=array();
+		foreach($arr as $k=>$v)
+		{
+			$arrout[]="$k=?";	
+		}
+		$updstr=implode(",",$arrout);
+		unset($arrout);
+		return $updstr;
+	}
+	
+	public function filterkvarr($kvarr,$keys)
+	{
+		$out=array();
+		foreach($keys as $k)
+		{
+			$out[$k]=isset($kvarr[$k])?$kvarr[$k]:null;
+		}
+		return $out;
+	}
+	
 	/**
 	 * begins a transaction
 	 */

@@ -35,6 +35,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	private $_currentpid;
 	private $_extra_attrs;
 	private $_profile;
+	private $_defaultwsid;
+	private $_wsids=array();
 	
 	
 
@@ -122,6 +124,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function initStores()
 	{
+		$this->_defaultwsid=$this->selectone("SELECT website_id from core_website WHERE is_default=1",null,"websiteid");
 		$csname=$this->tablename("core_store");
 		$wsname=$this->tablename("core_website");
 		$sql="SELECT cs.code as stcode,store_id,cs.website_id,ws.code as wscode FROM $csname as cs
@@ -663,85 +666,78 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 * @param int $pid : product id
 	 * @param array $item : attribute values for product indexed by attribute_code
 	 */
-	public function updateStock($pid,$item)
+	public function updateStock($pid,$item,$isnew)
 	{
-		if(!$this->reset && $this->mode!=="update")
+		if(!isset($this->stockcolumns))
 		{
-			$tcsi=$this->tablename('cataloginventory_stock_item');
-			$tcss=$this->tablename('cataloginventory_stock_status');
-			$sqls=array("DELETE FROM `$tcsi` WHERE product_id=?",
-				 "DELETE FROM `$tcss` WHERE product_id=?");
-
-			foreach($sqls as $sql)
-			{
-				$this->delete($sql,$pid);
-			}
+			$this->stockcolumns=array('qty','min_qty','use_config_min_qty','is_qty_decimal',
+									  'backorders','use_config_backorders',
+									  'min_sale_qty','use_config_min_sale_qty',
+									  'max_sale_qty','use_config_max_sale_qty',
+									  'is_in_stock',
+									  'low_stock_date','notify_stock_qty','use_config_stock_qty',
+									  'manage_stock','use_config_manage_stock',
+									  'stock_status_changed_automatically',
+									  'use_config_qty_increments','qty_increments',
+									  'enable_qty_increments','use_config_enable_qty_increments'
+									
+							);
 		}
+		
 		$csit=$this->tablename("cataloginventory_stock_item");
 		$css=$this->tablename("cataloginventory_stock_status");
-		$stockid=isset($item["stock_id"])?$item["stock_id"]:1; //use stock_id if set in exotic multi repo cases
-		$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>0?1:0);
-		if(!$is_in_stock && $item["qty"]>0)
+		#calculate is_in_stock flag
+		$mqty=(isset($item["min_qty"])?$item["min_qty"]:0);
+		$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>$mqty?1:0);
+		if(!$is_in_stock && $item["qty"]>$mqty)
 		{
-			$is_in_stock=1;
+			$item["is_in_stock"]=1;
 		}
-		if($this->mode!=="update")
+		#take only stock columns that are in item
+		$common=array_intersect(array_keys($item),$this->stockcolumns);
+		$cols=$this->arr2columns($common);
+		$stockvals=$this->filterkvarr($item,$common);
+		
+		if($isnew)
 		{
-				
-			$lsdate=nullifempty(isset($item["low_stock_date"])?$item["low_stock_date"]:"");
-			$sql="INSERT INTO `$csit`
-			(`product_id`, 
- 			 `stock_id`,
-  			  `qty`, 
-  			  `is_in_stock`, 
-  			  `low_stock_date`,
-   			 `stock_status_changed_automatically`) 
-			VALUES (?,?,?,?,?,?) 
-			ON DUPLICATE KEY UPDATE 
-			`qty`=VALUES(`qty`),
-			`is_in_stock`=VALUES(`is_in_stock`),
-			`low_stock_date`=VALUES(`low_stock_date`),
-			`stock_status_changed_automatically`=VALUES(`stock_status_changed_automatically`)";
-			$data=array($pid,$stockid,$item["qty"],$is_in_stock,$lsdate,1);
-			$this->insert($sql,$data);
-			unset($data);
-			$sql="INSERT INTO `$css` (`website_id`,`product_id`,`stock_id`,`qty`,`stock_status`)";
-			$data=array();
-			$inserts=array();
-			
-			$wsids=$this->getStoresWebsiteIds($item["store"]);	
-			//for each website code
-			foreach($wsids as $wsid)
-			{
-				$inserts[]="(?,?,?,?,?)";
-				$data[]=$wsid;
-				$data[]=$pid;
-				$data[]=$stockid;
-				$data[]=$item["qty"];
-				$data[]=1;
-			}
-			$sql.=" VALUES ".implode(",",$inserts);
-			$this->insert($sql,$data);
-			unset($data);
-			unset($inserts);
+			$valuesstr=$this->arr2values($cols);
+			$sql="INSERT INTO `$csit` (product_id,$cols) VALUES (?,$valuestr)";
+			$this->insert($sql,array_merge(array($pid),array_values($stockvals)));
 		}
 		else
 		{
-			$data=array();
-			//Fast stock update
-			$data[]=$item["qty"];
-			$data[]=$is_in_stock;
-			$data[]=$pid;
-			$sql="UPDATE `$csit` SET qty=?,is_in_stock=? WHERE product_id=?";
-			$this->update($sql,$data);
-			$sql="UPDATE `$css` SET qty=? WHERE product_id=?";
-			unset($data);
-			$data=array($item["qty"],$pid);
-			$this->update($sql,$data);
-			unset($data);
+			$svstr=$this->arr2update($stockvals);
+			$sql="UPDATE `$csit` SET $svstr WHERE product_id=?";
+			$this->update($sql,array_merge(array_values($stockvals),array($pid)));
 		}
-		unset($data);
+		$data=array();		
+		$wsids=$this->getItemWebsites($item);
+		//for each website code
+		$csscols=array("website_id","product_id","stock_id","qty","stock_status");
+		$cssvals=$this->filterkvarr($item,$csscols);
+		$stock_id=(isset($cssvals["stock_id"])?$cssvals["stock_id"]:1);
+		$stock_status=(isset($cssvals["stock_status"])?$cssvals["stock_status"]:1);
+		#force unset/reinsert in $cssvals to ensure order even if value existed before
+		$cssvals["stock_id"]=$stock_id;
+		$cssvals["stock_status"]=$stock_status;
+		//clear item stock status
+		$this->delete("DELETE FROM `$css` where product_id=? AND stock_id=?",array($pid,$stock_id));
+		//rebuild item stock status
+		$data=array();
+		$colstr=$this->arr2values($csscols);
+		foreach($wsids as $wsid)
+		{
+			$cssvals["product_id"]=$pid;
+			$cssvals["website_id"]=$wsid;
+			$inserts[]="($colstr)";
+			$data=array_merge($data,array_values($cssvals));
+		}
+		$sql="INSERT INTO `$css` (".$this->arr2columns($csscols).") VALUES ".implode(",",$inserts);
+		$this->insert($sql,$data);	
 		unset($inserts);
+		unset($data);
+		unset($cssvals);
+		unset($csscols);
 	}
 	/**
 	 * assign categories for a given product id from values
@@ -789,6 +785,32 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	}
 
 
+	public function getItemWebsites($item)
+	{
+		//use default website
+		if(!isset($item["websites"]))
+		{
+			return array($this->_defaultwsid);
+		}
+		else
+		{
+			if(!isset($this->_wsids[$item["websites"]]))
+			{
+				$this->_wsids[$item["websites"]]=array();
+				
+				$cws=$this->tablename("core_website");
+				$wscodes=explode(",",$item["websites"]);
+				$qcolstr=$this->arr2values($wscodes);	
+				$rows=$this->selectAll("SELECT website_id FROM core_website WHERE code IN ($qcolstr)",$wscodes);
+				foreach($rows as $row)
+				{
+					$this->_wsids[$item["websites"]][]=$row['website_id'];
+				}
+			}
+			return $this->_wsids[$item["websites"]];
+		}
+		
+	}
 
 	/**
 	 * set website of product if not exists
@@ -797,24 +819,13 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function updateWebSites($pid,$item)
 	{
-		if(isset($item["websites"]))
-		{
+		$wsids=$this->getItemWebsites($item);
+		$qcolstr=$this->arr2values($wsids);
 		$cpst=$this->tablename("catalog_product_website");
 		$cws=$this->tablename("core_website");
-		//exploding websites if several values set at once
-		$wsarr=explode(",",$item["websites"]);
-		$qcolstr=substr(str_repeat("?,",count($wsarr)),0,-1);
-		//get all website codes for item from store values
 		//associate product with all websites in a single multi insert (use ignore to avoid duplicates)
-		$sql="INSERT IGNORE INTO `$cpst` (`product_id`, `website_id`) SELECT $pid,website_id FROM $cws WHERE code IN ($qcolstr)";
-		$this->insert($sql,$wsarr);
-		unset($data);
-		unset($inserts);
-		}
-		else
-		{
-			$this->log("no websites set, item not associated to any website","warning");
-		}
+		$sql="INSERT IGNORE INTO `$cpst` (`product_id`, `website_id`) SELECT $pid,website_id FROM $cws WHERE website_id IN ($qcolstr)";
+		$this->insert($sql,$wsids);
 	}
 
 
@@ -954,7 +965,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			if(!testempty($item,"qty") && !$this->_same)
 			{
 				//update stock
-				$this->updateStock($pid,$item);
+				$this->updateStock($pid,$item,$isnew);
 			}
 
 			$this->touchProduct($pid);
