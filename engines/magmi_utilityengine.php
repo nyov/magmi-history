@@ -32,9 +32,9 @@ class Magmi_UtilityEngine extends Magmi_Engine
 		return $clist;
 	}
 	
-	public function getEngineName()
+	public function getEngineInfo()
 	{
-		return "Magmi Utilities Engine";
+		return array("name"=>"Magmi Utilities Engine","version"=>"1.0","author"=>"dweeves");
 	}
 	
 	/**
