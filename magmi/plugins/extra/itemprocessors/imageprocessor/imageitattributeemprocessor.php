@@ -36,7 +36,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.3"
+            "version" => "0.1.4"
             );
 	}
 	
@@ -106,7 +106,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{
 				$label=$item[$attrcode."_label"];
 			}
-			$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$label,$attrcode);
+			$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$label,true,$attrdesc["attribute_id"]);
 		}
 		return $ovalue;
 	}
@@ -140,7 +140,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		$t=$this->tablename('catalog_product_entity_media_gallery');
 	
-		$sql="SELECT value_id FROM $t ";
+		$sql="SELECT $t.value_id FROM $t ";
 		if($refid!=null)
 		{
 			$vc=$this->tablename('catalog_product_entity_varchar');
@@ -194,12 +194,12 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @param array $attrdesc : product attribute description
 	 * @param string $imgname : image file name (relative to /products/media in magento dir)
 	 */
-	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$imglabel=null,$excluded=false,$force=false)
+	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$imglabel=null,$excluded=false,$refid=null)
 	{
 		$gal_attinfo=$this->getAttrInfo("media_gallery");
 			$tg=$this->tablename('catalog_product_entity_media_gallery');
 			$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
-		$vid=$this->getImageId($pid,$gal_attinfo["attribute_id"],$imgname,$force);
+		$vid=$this->getImageId($pid,$gal_attinfo["attribute_id"],$imgname,$refid);
 		if($vid!=null)
 		{
 		
