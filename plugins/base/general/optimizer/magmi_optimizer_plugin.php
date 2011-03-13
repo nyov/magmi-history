@@ -5,7 +5,7 @@ class Magmi_OptimizerPlugin extends Magmi_GeneralImportPlugin
 	{
 		return array("name"=>"Magmi Optimizer",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.0");
+					 "version"=>"1.0.1");
 	}
 	
 	public function beforeImport()
@@ -14,7 +14,7 @@ class Magmi_OptimizerPlugin extends Magmi_GeneralImportPlugin
 		{
 			$this->log("Optimizing magmi","info");
 			$eaov=$this->tablename("eav_attribute_option_value");
-			$sql="ALTER IGNORE TABLE $eaov ADD INDEX MAGMI_EAOV_OPTIMIZATION_IDX (`value`)";
+			$sql="ALTER  TABLE $eaov ADD INDEX MAGMI_EAOV_OPTIMIZATION_IDX (`value`)";
 			$this->exec_stmt($sql);
 		}
 		catch(Exception $e)
