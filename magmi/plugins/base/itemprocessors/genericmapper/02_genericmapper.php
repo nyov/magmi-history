@@ -14,7 +14,7 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Generic mapper",
             "author" => "Dweeves",
-            "version" => "0.0.4"
+            "version" => "0.0.5"
             );
 	}
 
@@ -33,34 +33,43 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 	{
 		foreach(array_keys($item) as $k)
 		{
+			$mapped=false;
 			if(isset($this->_mapping["$k.csv"]))
 			{
 				$mpd=$this->_mapping["$k.csv"]["DIRECT"];
 				if(isset($mpd[$item[$k]]))
 				{
 					$item[$k]=$mpd[$item[$k]];
+					$mapped=true;
 				}
 				else
 				{
 					$mpr=$this->_mapping["$k.csv"]["RE"];
 					foreach($mpr as $re=>$value)
 					{
-						if(preg_match("|$re|",$item[$k]))
+						if(preg_match("|$re|msi",$item[$k]))
 						{
 							$item[$k]=preg_replace("|$re|",$value,$item[$k]);
-								break;
+							$mapped=true;
+							break;
 						}			
 					}
+					
 				}
 			}
+			#if not found,try common mappings
+			if(!$mapped)
+			{
+				$mpd=$this->_mapping["__common__.csv"]["DIRECT"];
+				if(isset($mpd[$item[$k]]))
+				{
+					$item[$k]=$mpd[$item[$k]];
+				}
+			}	
 		}
 		return true;
 	}
 
-	public function processItemAfterId(&$item,$params=null)
-	{
-		return true;
-	}
 
 
 	public function initialize($params)
