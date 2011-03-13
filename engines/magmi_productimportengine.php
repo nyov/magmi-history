@@ -770,7 +770,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	public function getItemWebsites($item)
 	{
 		//use default website
-		if(!isset($item["websites"]))
+		if(!isset($item["websites"]) || empty($item["websites"]))
 		{
 			return array($this->_defaultwsid);
 		}
@@ -878,14 +878,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 		if(!$this->callPlugins("itemprocessors","processItemBeforeId",$item))
 		{
-			return;
+			return false;
 		}
 		
 		$itemids=$this->getItemIds($item);
 		$pid=$itemids["pid"];
 		$isnew=false;
-		//begin transaction
-			$this->beginTransaction();
 		if(!isset($pid))
 		{
 			//if not found & mode !=update
@@ -900,16 +898,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			{
 				//mode is update, do nothing
 				$this->log("skipping unknown sku:{$item["sku"]} - update mode set","skip");
-				$this->rollbackTransaction();
-				return;
+				return false;
 			}
 		}
 		try
 		{
 			if(!$this->callPlugins("itemprocessors","processItemAfterId",$item,array("product_id"=>$pid,"new"=>$isnew,"same"=>$this->_same)))
 			{
-				$this->rollbackTransaction();
-				return;
+				return false;
 			}
 				
 			
@@ -944,19 +940,17 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			//ok,we're done
 			if(!$this->callPlugins("itemprocessors","processItemAfterImport",$item,array("product_id"=>$pid,"new"=>$isnew,"same"=>$this->_same)))
 			{
-				$this->rollbackTransaction();
-				return;
+				return false;
 			}
-			$this->commitTransaction();
 		}
 		catch(Exception $e)
 		{
 
 			$this->callPlugins(array("itemprocessors"),"processItemException",$item,array("exception"=>$e));
 			$this->logException($e,$this->_laststmt->queryString);			
-			//if anything got wrong, rollback
-			$this->rollbackTransaction();
+			throw $e;
 		}
+		return true;
 	}
 
 	public function getProperties()
@@ -1105,7 +1099,17 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 					if(is_array($item) && count($item)>0)
 					{
 						//import item
-						$this->importItem($item);
+						$this->beginTransaction();
+						$importedok=$this->importItem($item);
+						if($importedok)
+						{
+							$this->commitTransaction();
+						}
+						else
+						{
+							$this->rollbackTransaction();
+							
+						}
 					}
 					else
 					{
@@ -1116,6 +1120,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				}
 				catch(Exception $e)
 				{
+					$this->rollbackTransaction();
 					$this->logException($e,"ERROR ON RECORD #$this->_current_row");
 				}
 				if($this->isLastItem($item))
