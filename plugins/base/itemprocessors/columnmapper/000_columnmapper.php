@@ -88,7 +88,8 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 		{
 			if(preg_match_all("/^CMAP:(.*)$/",$k,$m) && $k!="CMAP:columnlist")
 			{
-				$this->_dcols[$m[1][0]]=$params[$k];
+				$colname=rawurldecode($m[1][0]);
+				$this->_dcols[$colname]=$params[$k];
 			}
 		}
 	}
