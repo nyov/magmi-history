@@ -19,34 +19,41 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
             );
 	}
 	
-public function initConfigurableOpts($cols)
+public function getConfigurableOptsFromAsId($asid)
+{
+	if(!isset($this->_configurable_attrs[$asid]))
 	{
 		$ea=$this->tablename("eav_attribute");
-		$qcolstr=$this->arr2values($cols);
+		$eea=$this->tablename("eav_entity_attribute");
+		$eas=$this->tablename("eav_attribute_set");
+		$eet=$this->tablename("eav_entity_type");
+	
+		$sql="SELECT ea.attribute_code FROM `$ea` as ea
+		JOIN $eet as eet ON eet.entity_type_id=ea.entity_type_id AND eet.entity_type_id=?
+		JOIN $eas as eas ON eas.entity_type_id=eet.entity_type_id AND (eas.attribute_set_id=? OR eas.attribute_set_id=eet.default_attribute_set_id)
+		JOIN $eea as eea ON eea.attribute_id=ea.attribute_id";
+		$cond="ea.is_user_defined=1";
 		if($this->_mmi->magversion=="1.4.x")
 		{
 			$cea=$this->tablename("catalog_eav_attribute");
-			$sql="SELECT ea.attribute_code  FROM `$cea` as cea
-				JOIN $ea as ea ON ea.attribute_id=cea.attribute_id AND ea.is_user_defined=1 AND ea.attribute_code IN ($qcolstr)
- 				WHERE cea.is_global= 1 AND cea.is_configurable=1 ";
+			$sql.=" JOIN $cea as cea ON cea.attribute_id=ea.attribute_id AND cea.is_global=1 AND cea.is_configurable=1";
 		}
 		else
 		{
-			$sql="SELECT ea.attribute_code FROM $ea as ea WHERE ea.is_user_defined=1 AND ea.is_global=1 and ea.is_configurable=1 AND ea.attribute_code IN ($qcolstr) ";
+			$cond.=" AND ea.is_global=1 AND ea.is_configurable=1";
 		}
-		$result=$this->selectAll($sql,array_values($cols));
+		$sql.=" WHERE $cond
+			GROUP by ea.attribute_id";
+
+		$result=$this->selectAll($sql,array($this->_mmi->prod_etype,$asid));
 		foreach($result as $r)
 		{
-			$this->_configurable_attrs[]=$r["attribute_code"];
+			$this->_configurable_attrs[$asid][]=$r["attribute_code"];
 		}
-	}
-	
-	public function processColumnList($cols)
-	{
-		//gather configurable options attribute code
-		$this->initConfigurableOpts($cols);	
-		return true;
-	}
+	}	
+	return $this->_configurable_attrs[$asid];
+}
+
 	
 	public function doLink($pid,$cond)
 	{
@@ -91,8 +98,9 @@ public function initConfigurableOpts($cols)
 		{
 			return true;
 		}
+		$confopts=$this->getConfigurableOptsFromAsId($params["asid"]);
 		//if no configurable attributes, nothing to do
-		if(count($this->_configurable_attrs)==0)
+		if(count($confopts)==0)
 		{
 			return true;
 		}
@@ -118,7 +126,6 @@ public function initConfigurableOpts($cols)
 		$data_sa=array();
 		$ins_sal=array();
 		$data_sal=array();
-		$confopts=$this->_configurable_attrs;
 		foreach($confopts as $confopt)
 		{
 			$attrinfo=$this->getAttrInfo($confopt);
