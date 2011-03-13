@@ -21,3 +21,13 @@ function deleteifempty($val)
 {
 	return (isset($val)?(trim($val)==""?"__MAGMI_DELETE__":$val):"__MAGMI_DELETE__");
 }
+
+function csl2arr($cslarr,$sep=",")
+{
+	$arr=explode($sep,$cslarr);
+	for($i=0;$i<count($arr);$i++)
+	{
+		$arr[$i]=trim($arr[$i]);		
+	}
+	return $arr;
+}
