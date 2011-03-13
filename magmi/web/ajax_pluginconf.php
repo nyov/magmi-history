@@ -27,5 +27,5 @@ else
 {
 	$enginst=null;
 }
-$plinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pltype,$plclass,null,$enginst);
+$plinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pltype,$plclass,$_REQUEST,$enginst);
 echo $plinst->getOptionsPanel($file)->getHtml();
