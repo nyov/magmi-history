@@ -78,7 +78,7 @@ public function initConfigurableOpts($cols)
 	
 	public function fixedLink($pid,$skulist)
 	{
-		$arrin=explode(",",$skulist);
+		$arrin=csl2arr(",",$skulist);
 		$skulist=implode(",",$this->quotearr($arrin));
 		unset($arrin);
 		$this->dolink($pid,"IN ($skulist)");		
