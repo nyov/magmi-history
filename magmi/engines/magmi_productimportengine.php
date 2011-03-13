@@ -109,7 +109,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		if(!isset($this->_sid_wsscope[$scodes]))
 		{
 			$this->_sid_wsscope[$scodes]=array();
-			$wscarr=explode(",",$scodes);
+			$wscarr=csl2arr($scodes);
 			$qcolstr=$this->arr2values($wscarr);
 			$cs=$this->tablename("core_store");
 			$sql="SELECT cs_sec.store_id from $cs as csmain
@@ -128,7 +128,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		if(!isset($this->_sid_sscope[$scodes]))
 		{
 			$this->_sid_sscope[$scodes]=array();
-			$scarr=explode(",",$scodes);
+			$scarr=csl2arr($scodes);
 			$qcolstr=$this->arr2values($scarr);
 			$cs=$this->tablename("core_store");
 			$sql="SELECT csmain.store_id from $cs as csmain WHERE csmain.code IN ($qcolstr)";
@@ -149,7 +149,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			//default store flag
 			$bfound=false;
-			$stores=explode(",",$storestr);
+			$stores=csl2arr($storestr);
 			$sids=array();
 			//find store id for store list
 			foreach($stores as $scode)
@@ -731,7 +731,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	public function assignCategories($pid,$item)
 	{
 		$cce=$this->tablename("catalog_category_entity");
-		$catids=explode(",",$item["category_ids"]);
+		$catids=csl2arr($item["category_ids"]);
 		//build possible path list
 		$sql="SELECT entity_id FROM $cce
 			  WHERE entity_id IN (".$item['category_ids'].")";
@@ -781,7 +781,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				$this->_wsids[$item["websites"]]=array();
 				
 				$cws=$this->tablename("core_website");
-				$wscodes=explode(",",$item["websites"]);
+				$wscodes=csl2arr($item["websites"]);
 				$qcolstr=$this->arr2values($wscodes);	
 				$rows=$this->selectAll("SELECT website_id FROM core_website WHERE code IN ($qcolstr)",$wscodes);
 				foreach($rows as $row)
