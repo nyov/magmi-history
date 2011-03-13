@@ -20,9 +20,9 @@ abstract class Magmi_Engine extends DbHelper
 	private $_excid=0;
 	public $logger=null;
 	
-	public function getEngineName()
+	public function getEngineInfo()
 	{
-		return "Generic Magmi Engine";
+		return array("name"=>"Generic Magmi Engine","version"=>"1.0","author"=>"dweeves");
 	}
 	
 	public function __construct()
@@ -235,7 +235,8 @@ abstract class Magmi_Engine extends DbHelper
 		{
 			$f=fopen(Magmi_StateManager::getTraceFile(),"w");
 			fclose($f);
-			$this->log("Running ".$this->getEngineName(),"startup");
+			$enginf=$this->getEngineInfo();
+			$this->log("Running {$enginf["name"]} v${enginf["version"]} by ${enginf["author"]}","startup");
 			if(!$this->_initialized)
 			{
 				$this->initialize($params);
