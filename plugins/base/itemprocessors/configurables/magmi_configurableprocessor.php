@@ -15,14 +15,14 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.0.4a"
+            "version" => "1.0.5"
             );
 	}
 	
 public function initConfigurableOpts($cols)
 	{
 		$ea=$this->tablename("eav_attribute");
-		$qcolstr=substr(str_repeat("?,",count($cols)),0,-1);
+		$qcolstr=$this->arr2values($cols);
 		if($this->_mmi->magversion=="1.4.x")
 		{
 			$cea=$this->tablename("catalog_eav_attribute");
@@ -34,7 +34,7 @@ public function initConfigurableOpts($cols)
 		{
 			$sql="SELECT ea.attribute_code FROM $ea as ea WHERE ea.is_user_defined=1 AND ea.is_global=1 and ea.is_configurable=1 AND ea.attribute_code IN ($qcolstr) ";
 		}
-		$result=$this->selectAll($sql,$cols);
+		$result=$this->selectAll($sql,array_values($cols));
 		foreach($result as $r)
 		{
 			$this->_configurable_attrs[]=$r["attribute_code"];
