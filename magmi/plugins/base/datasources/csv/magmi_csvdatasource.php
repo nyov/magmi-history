@@ -18,6 +18,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function initialize($params)
 	{
+		$this->_basedir=$this->getParam("CSV:basedir","var/import");
 		$this->_filename=$this->getParam("CSV:filename");
 		$this->_csep=$this->getParam("CSV:separator",",");
 		$this->_dcsep=$this->_csep;
@@ -29,28 +30,39 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		
 		$this->_cenc=$this->getParam("CSV:enclosure",'"');
 		$this->_buffersize=$this->getParam("CSV:buffer",0);
-		$this->_curline=0;
-		ini_set("auto_detect_line_endings",true);
-		if(!isset($this->_filename))
-		{
-			throw new CSVException("No csv file set");
-		}
-		if(!file_exists($this->_filename))
-		{
-			throw new CSVException("{$this->_filename} not found");
-		}
 		
+		
+	}
+	
+	public function getMagentoBaseDir()
+	{
+		$magmi_conf=Magmi_Config::getInstance();
+		$magmi_conf->load();
+		$mbd=$magmi_conf->get("MAGENTO","basedir");
+		unset($magmi_conf);
+		return $mbd;
+	}
+	
+	public function getCSVList()
+	{
+		$scandir=$this->getParam("CSV:basedir","var/import");
+		if($scandir[0]!="/")
+		{
+			$scandir=$this->getMagentoBaseDir()."/".$scandir;
+		}
+		$files=glob("$scandir/*.csv");
+		return $files;
 	}
 	
 	public function getPluginParamNames()
 	{
-		return array('CSV:filename','CSV:enclosure','CSV:separator');
+		return array('CSV:filename','CSV:enclosure','CSV:separator','CSV:basedir');
 	}
 	public function getPluginInfo()
 	{
 		return array("name"=>"CSV Datasource",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.5");
+					 "version"=>"1.0.6");
 	}
 	
 	public function getRecordsCount()
@@ -82,6 +94,16 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function beforeImport()
 	{
+		$this->_curline=0;
+		ini_set("auto_detect_line_endings",true);
+		if(!isset($this->_filename))
+		{
+			throw new CSVException("No csv file set");
+		}
+		if(!file_exists($this->_filename))
+		{
+			throw new CSVException("{$this->_filename} not found");
+		}
 		$this->log("Importing CSV : $this->_filename using separator [ $this->_dcsep ] enclosing [ $this->_cenc ]","startup");
 	}
 	
@@ -92,6 +114,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function startImport()
 	{
+	
 		//open csv file
 		$this->_fh=fopen($this->_filename,"rb");
 	}
