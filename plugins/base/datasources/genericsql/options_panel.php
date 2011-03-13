@@ -11,7 +11,7 @@ You should put sql files in the <b><?php echo $this->getPluginDir()."/requests"?
 </select></li>
 </ul>
 <div id="options_container">
-<? include_once ("$dbtype"."_options.php")?>
+<? echo $this->getOptionsPanel("$dbtype"."_options.php")->getHtml();?>
 </div>
 <ul class="formline">
 <li class="label">SQL file</li>
@@ -36,8 +36,10 @@ dbt.observe('change',function(ev)
 		{
 			new Ajax.Updater('options_container','ajax_pluginconf.php',{
 				parameters:{file:$('SQL:dbtype').value+'_options.php',
+							plugintype:'datasources',
 						    pluginclass:'<?php echo get_class($this->_plugin)?>',
-						    profile:'<?php echo $this->getConfig()->getProfile()?>'}});
+						    profile:'<?php echo $this->getConfig()->getProfile()?>',
+						    }});
 		}
 );
 </script>
