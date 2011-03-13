@@ -5,7 +5,7 @@ function tdarray_to_js($container,$mainarr,$prefix)
 	$vlist=explode(",",$container->getParam($mainarr));
 	foreach($vlist as $k)
 	{
-		$v=$container->getParam("$prefix:$k");	
+		$v=$container->getParam("$prefix:".rawurlencode($k));
 		$varr[]="\"$k\":\"$v\"";
 	}
 	return "{".implode(",",$varr)."}";
