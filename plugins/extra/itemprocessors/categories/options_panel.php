@@ -16,7 +16,11 @@ multiple categories supported :)
 </div>
 </div>
 <div class="formline">
-<span>Assing product to last level only:</span><input type="checkbox"  name="CAT:lastonly" <?php if($this->getParam("CAT:lastonly",false)){?>checked="checked"<?php }?>></input>
+<?php $lastonly=$this->getParam("CAT:lastonly",0)?>
+<span>Assing product to :</span><select name="CAT:lastonly">
+	<option value="0" <?php if($lastonly==0){?>selected="selected"<?php }?>>all categories</option>
+	<option value="1" <?php if($lastonly==1){?>selected="selected"<?php }?>>last category of each branch</option>
+</select>
 <div class="fieldinfo">When checked, this options will assign product only to the categories that are located at the last level of the defined trees</div>
 </div>
 

@@ -207,9 +207,9 @@ class CategoryImporter extends Magmi_ItemProcessor
 					$catdef="$root/$catdef";
 				}
 				$cdef=$this->getCategoryIdsFromDef($catdef);
-				if($this->getParam("CAT:lastonly",false))
+				if($this->getParam("CAT:lastonly",0)==1)
 				{
-					$cdef=array($cdef[-1]);
+					$cdef=array($cdef[count($cdef)-1]);
 				}
 				$catids=array_unique(array_merge($catids,$cdef));
 			}
