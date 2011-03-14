@@ -903,7 +903,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		try
 		{
-			if(!$this->callPlugins("itemprocessors","processItemAfterId",$item,array("product_id"=>$pid,"new"=>$isnew,"same"=>$this->_same)))
+			if(!$this->callPlugins("itemprocessors","processItemAfterId",$item,array("product_id"=>$pid,"new"=>$isnew,"same"=>$this->_same,"asid"=>$asid)))
 			{
 				return false;
 			}
