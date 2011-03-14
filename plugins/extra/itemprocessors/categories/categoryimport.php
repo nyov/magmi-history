@@ -4,9 +4,13 @@ class CategoryImporter extends Magmi_ItemProcessor
 	protected $_idcache=array();
 	protected $_catattr=array();
 	protected $_cattrinfos=array();
-	
+	protected $_rootpath;
+	protected $_rootarr;
+	protected $_cat_eid;
 	public function initialize($params)
 	{
+
+		$this->initCats();
 		$this->_cattrinfos=array("varchar"=>array("name"=>array()),
 						 "int"=>array("is_active"=>array(),"is_anchor"=>array(),"include_in_menu"=>array()));
 		foreach($this->_cattrinfos as $catype=>$attrlist)
@@ -16,12 +20,27 @@ class CategoryImporter extends Magmi_ItemProcessor
 				$this->_cattrinfos[$catype][$catatt]=$this->getCatAttributeInfos($catatt);
 			}
 		}
+			
+	}
+	
+	public function initCats()
+	{
+		$t=$this->tablename("catalog_category_entity");
+		$result=$this->selectAll("SELECT entity_type_id,path FROM $t WHERE parent_id=1 LIMIT 1");
+		$this->_rootpath=$result[0]["path"];
+		$this->_cat_eid=$result[0]["entity_type_id"];
+		$this->_rootarr=explode("/",$this->_rootpath);
+	}
+	
+	public function getCatAttributeSet()
+	{
+		
 	}
 	
 	public function getCatAttributeInfos($attcode)
 	{
 		$t=$this->tablename("eav_attribute");
-		$sql="SELECT * FROM $t WHERE entity_type_id=3 AND attribute_code=?";
+		$sql="SELECT * FROM $t WHERE entity_type_id=$this->_cat_eid AND attribute_code=?";
 		$info=$this->selectAll($sql,$attcode);
 		return $info[0];
 	}
@@ -50,7 +69,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.0.5"
+            "version" => "0.0.6"
             );
 	}
 	
@@ -147,7 +166,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$catattributes=$this->extractCatAttrs($catdef);
 		$catparts=explode("/",$catdef);
 		$level=1;
-		$path="1/2";
+		$path=$this->_rootpath;
 		$pdef=array();
 		//if full def is in cache, use it
 		if($this->isInCache($catdef))
@@ -169,7 +188,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 					$lastcached=$pdef;
 				}
 			}
-			$curpath=array_merge(array(1,2),$catids);	
+			$curpath=array_merge($this->_rootarr,$catids);	
 			//iterate on missing levels.
 			for($i=count($catids);$i<count($catparts);$i++)
 			{
