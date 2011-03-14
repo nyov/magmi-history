@@ -86,7 +86,15 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	{
 		foreach($attdeflist as $attdef)
 		{
-			$this->_attributehandlers[$attdef]=$ahinst;
+			$ad=explode(":",$attdef);
+			if(count($ad)!=2)
+			{
+				$this->log("Invalid registration string ($attdef) :".get_class($ahinst),"warning");
+			}
+			else
+			{
+				$this->_attributehandlers[$attdef]=$ahinst;
+			}
 		}
 	}
 
