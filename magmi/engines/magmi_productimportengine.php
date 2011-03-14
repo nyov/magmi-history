@@ -58,7 +58,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.1","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.1","author"=>"dweeves");
 	}
 	
 	/**
@@ -736,17 +736,13 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$sql="SELECT entity_id FROM $cce
 			  WHERE entity_id IN (".$item['category_ids'].")";
 		$ccpt=$this->tablename("catalog_category_product");
-		#if we did not reset products
-		if(!$this->reset)
-		{
-			#remove category assignment of current product
-			#only for current store
-			$sql="DELETE $ccpt.*
-			FROM $ccpt
-			JOIN $cce ON $cce.entity_id=$ccpt.category_id
-			WHERE product_id=?";
-			$this->delete($sql,$pid);
-		}
+		#remove category assignment of current product
+		#only for current store
+		$sql="DELETE $ccpt.*
+		FROM $ccpt
+		JOIN $cce ON $cce.entity_id=$ccpt.category_id
+		WHERE product_id=?";
+		$this->delete($sql,$pid);
 
 		$inserts=array();
 		$data=array();
@@ -976,21 +972,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		return $count;
 	}
 
-	/**
-	 * main import function
-	 * @param string $csvfile : csv file name to import
-	 * @param bool $reset : destroy all products before import
-	 */
 
-
-	/*public function createGeneralPlugins($params)
-	{
-		foreach($this->_pluginclasses["general"] as $giclass)
-		{
-			$gi=Magmi_PluginHelper::getInstance($this->_profile)->createInstance("general",$giclass,$params,$this);
-			$this->_activeplugins["general"][]=$gi;
-		}
-	}*/
 	
 	public function getBuiltinPluginClasses()
 	{
@@ -1000,16 +982,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		return array("itemprocessors"=>"Magmi_DefaultAttributeItemProcessor");
 	}
 	
-	/*public function createItemProcessors($params)
-	{
-		//insert default attribute processor plugin
-		$this->_pluginclasses["processors"][]="Magmi_DefaultAttributeItemProcessor";
-		foreach($this->_pluginclasses["processors"] as $ipclass)
-		{
-			$ip=Magmi_PluginHelper::getInstance($this->_profile)->createInstance("itemprocessors",$ipclass,$params,$this);
-			$this->_activeplugins["processors"][]=$ip;
-		}
-	}*/
+
 	
 	public function getCurrentRow()
 	{
