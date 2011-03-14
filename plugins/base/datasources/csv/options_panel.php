@@ -6,7 +6,7 @@ This plugin enables magmi import from csv files
 <ul class="formline">
 <li class="label">CSVs base directory</li>
 <li class="value">
-<input type="text" name="CSV:basedir" id="CSV:basedir" value="<?php echo $this->getParam("CSV:basedir","media/import")?>"></input>
+<input type="text" name="CSV:basedir" id="CSV:basedir" value="<?php echo $this->getParam("CSV:basedir","var/import")?>"></input>
 <div class="fieldinfo">Relative paths are relative to magento base directory , absolute paths will be used as is</div></li>
 </ul>
 <ul class="formline">
