@@ -58,7 +58,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.1","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.2","author"=>"dweeves");
 	}
 	
 	/**
@@ -677,28 +677,32 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$csit=$this->tablename("cataloginventory_stock_item");
 		$css=$this->tablename("cataloginventory_stock_status");
 		#calculate is_in_stock flag
-		$mqty=(isset($item["min_qty"])?$item["min_qty"]:0);
-		$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>$mqty?1:0);
-		if(!$is_in_stock && $item["qty"]>$mqty)
+		if(isset($item["qty"]))
 		{
-			$item["is_in_stock"]=1;
+			$mqty=(isset($item["min_qty"])?$item["min_qty"]:0);
+			$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>$mqty?1:0);
+			if(!$is_in_stock && $item["qty"]>$mqty)
+			{
+				$item["is_in_stock"]=1;
+			}
 		}
+		#create stock item line
+		$stock_id=(isset($item["stock_id"])?$item["stock_id"]:1);
+		$sql="REPLACE INTO `$csit` (product_id,stock_id) VALUES (?,?)";
+		$this->insert($sql,array($pid,$stock_id));
+		
 		#take only stock columns that are in item
 		$common=array_intersect(array_keys($item),$this->stockcolumns);
-		$cols=$this->arr2columns($common);
-		$stockvals=$this->filterkvarr($item,$common);
-		$stock_id=(isset($item["stock_id"])?$item["stock_id"]:1);
-		if($isnew)
+		
+		if(count($common)>0)
 		{
+			$cols=$this->arr2columns($common);
+			$stockvals=$this->filterkvarr($item,$common);		
 			$valuesstr=$this->arr2values($stockvals);
-			$sql="INSERT INTO `$csit` (product_id,stock_id,$cols) VALUES (?,?,$valuesstr)";
-			$this->insert($sql,array_merge(array($pid,$stock_id),array_values($stockvals)));
-		}
-		else
-		{
+			#fill with values
 			$svstr=$this->arr2update($stockvals);
-			$sql="UPDATE `$csit` SET $svstr WHERE product_id=?";
-			$this->update($sql,array_merge(array_values($stockvals),array($pid)));
+			$sql="UPDATE `$csit` SET $svstr WHERE product_id=? AND stock_id=?";
+			$this->update($sql,array_merge(array_values($stockvals),array($pid,$stock_id)));
 		}
 		$data=array();		
 		$wsids=$this->getItemWebsites($item);
@@ -710,6 +714,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		#force unset/reinsert in $cssvals to ensure order even if value existed before
 		$cssvals["stock_id"]=$stock_id;
 		$cssvals["stock_status"]=$stock_status;
+		$cssvals["qty"]=(isset($item["qty"])?$item["qty"]:0);
 		//clear item stock status
 		$this->delete("DELETE FROM `$css` where product_id=? AND stock_id=?",array($pid,$stock_id));
 		//rebuild item stock status
@@ -934,7 +939,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				$this->updateWebSites($pid,$item);
 			}
 			
-			if(!testempty($item,"qty") && !$this->_same)
+			if(!$this->_same)
 			{
 				//update stock
 				$this->updateStock($pid,$item,$isnew);
