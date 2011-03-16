@@ -36,7 +36,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.5"
+            "version" => "0.1.6"
             );
 	}
 	
@@ -152,7 +152,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		else
 		{	
 			$sql.=" WHERE value=? AND entity_id=? AND attribute_id=?";
-			$imgid=$this->selectone($sql,array($refid,$pid,$attid),'value_id');
+			$imgid=$this->selectone($sql,array($imgname,$pid,$attid),'value_id');
 		}
 	
 		if($imgid==null)
