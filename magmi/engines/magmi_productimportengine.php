@@ -697,8 +697,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		if(count($common)>0)
 		{
 			$cols=$this->arr2columns($common);
-			$stockvals=$this->filterkvarr($item,$common);		
-			$valuesstr=$this->arr2values($stockvals);
+			$stockvals=$this->filterkvarr($item,$common);
 			#fill with values
 			$svstr=$this->arr2update($stockvals);
 			$sql="UPDATE `$csit` SET $svstr WHERE product_id=? AND stock_id=?";
