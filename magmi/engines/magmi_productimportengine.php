@@ -675,9 +675,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		
 		#take only stock columns that are in item
-		$common=array_intersect(array_keys($item),$this->stockcolumns);
+		$test=array_intersect(array_keys($item),$this->stockcolumns);
 		#no stock columns set, item exists, no stock update needed.
-		if(count($common)==0 && !$isnew)
+		if(count($test)==0 && !$isnew)
 		{
 			return;
 		}
@@ -696,10 +696,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			}
 			$item["is_in_stock"]=$is_in_stock;
 		}
+		#take only stock columns that are in  item after item update
+		$common=array_intersect(array_keys($item),$this->stockcolumns);
 		
-		#create stock item line
+		#create stock item line if needed
 		$stock_id=(isset($item["stock_id"])?$item["stock_id"]:1);
-		$sql="REPLACE INTO `$csit` (product_id,stock_id) VALUES (?,?)";
+		$sql="INSERT IGNORE INTO `$csit` (product_id,stock_id) VALUES (?,?)";
 		$this->insert($sql,array($pid,$stock_id));
 		
 		
