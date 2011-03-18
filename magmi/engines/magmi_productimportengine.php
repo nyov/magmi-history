@@ -903,6 +903,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$itemids=$this->getItemIds($item);
 		$pid=$itemids["pid"];
 		$isnew=false;
+		if(isset($pid) && $this->mode=="xcreate")
+		{
+			$this->log("skipping existing sku:{$item["sku"]} - xcreate mode set","skip");
+			return false;
+		}
 		if(!isset($pid))
 		{
 			//if not found & mode !=update
