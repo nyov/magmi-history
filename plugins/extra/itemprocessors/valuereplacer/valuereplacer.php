@@ -44,13 +44,13 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 		}
 		unset($matches);
 		//replacing expr values
-		while(preg_match("|\{\{(.*?)\}\}|",$pvalue,$matches))
+		while(preg_match("|\{\{\s*(.*?)\s*\}\}|",$pvalue,$matches))
 		{
 			foreach($matches as $match)
 			{
 				if($match!=$matches[0])
 				{
-					$code=$match;
+					$code=trim($match);
 					$rep=eval("return ($code);");
 					$pvalue=str_replace($matches[0],$rep,$pvalue);							
 				}				
