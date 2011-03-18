@@ -15,7 +15,7 @@ when leaving the field, new fields will be inserted for filling new column names
 <div class="formline ifield" >
 <div class="fieldhelp"></div>
 <div class="fieldinfo">
-	<div>You can use "dynamic variables" to fill above fields.</div>
+	<div style="height:24px">You can use "dynamic variables" to fill above fields.</div>
 	<div class="fieldsyntax" style="display:none">
 	<hr/>
 
