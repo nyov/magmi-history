@@ -15,7 +15,7 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Value Replacer",
             "author" => "Dweeves",
-            "version" => "0.0.1"
+            "version" => "0.0.2"
         );
     }
 	
@@ -65,10 +65,7 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 	{
 		foreach($this->_rvals as $attname=>$pvalue)
 		{
-			if(isset($item[$attname]))
-			{
-				$item[$attname]=$this->parseval($pvalue,$item);
-			}
+			$item[$attname]=$this->parseval($pvalue,$item);
 		}
 		return true;
 	}
