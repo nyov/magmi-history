@@ -32,8 +32,9 @@
 	{
 		?>
 	
-	<div class="container_12" style="margin-top:5px">
-		<div class="magmi_error">
+	<div class="container_12" >
+	<div class="grid_12">
+		<div class="magmi_error" style="margin-top:5px">
 		Directory permissions not compatible with Mass Importer operations
 		<ul>
 		<?php foreach($badrights as $dirname){
@@ -43,6 +44,7 @@
 		<?php }?>
 		</ul>
 		</div>
+	</div>
 	</div>
 		<?php 
 	}
