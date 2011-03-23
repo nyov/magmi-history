@@ -5,26 +5,28 @@ class Magmi_OptimizerPlugin extends Magmi_GeneralImportPlugin
 	{
 		return array("name"=>"Magmi Optimizer",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.2");
+					 "version"=>"1.0.3");
 	}
 	
 	public function beforeImport()
 	{
-		try
+		$tbls=array("eav_attribute_option_value"=>"MAGMI_EAOV_OPTIMIZATION_IDX",
+					"catalog_product_entity_media_gallery"=>"MAGMI_CPEM_OPTIMIZATION_IDX");
+		$this->log("Optimizing magmi","info");
+		foreach($tbls as $tblname=>$idxname)
 		{
-			$this->log("Optimizing magmi","info");
-			$eaov=$this->tablename("eav_attribute_option_value");
-			$sql="ALTER  TABLE $eaov ADD INDEX MAGMI_EAOV_OPTIMIZATION_IDX (`value`)";
-			$this->exec_stmt($sql);
-			$eaov=$this->tablename("catalog_product_entity_media_gallery_value");
-			$sql="ALTER  TABLE $eaov ADD INDEX MAGMI_CPEMGV_OPTIMIZATION_IDX (`value`)";
-			$this->exec_stmt($sql);
-			
-		}
-		catch(Exception $e)
-		{
-			//ignore exception
-			$this->log("Already optmized!","info");
+			try
+			{
+				$t=$this->tablename($tblname);
+				$this->log("Adding index $idxname on $t","info");
+				$sql="ALTER  TABLE $t ADD INDEX $idxname (`value`)";
+				$this->exec_stmt($sql);
+			}
+			catch(Exception $e)
+			{
+				//ignore exception
+				$this->log("Already optmized!","info");
+			}
 		}
 		return true;
 	}
