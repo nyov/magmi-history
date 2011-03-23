@@ -180,7 +180,7 @@ gatherclasses=function(tlist)
 {
 	tlist.each(function(t,o){
 		var context={arr:[]};
-		$$(".pl_"+t).each(addclass,context);
+		$$(".pl_"+t.toLowerCase()).each(addclass,context);
 		var target=$("plc_"+t);
 		target.value=context.arr.join(",");
 	});
