@@ -89,8 +89,10 @@ if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 				</select>
 			<span>using mode:</span>
 				<select name="mode" id="mode">
-					<option value="update">Update existing items,skip new ones</option>
+					<option value="update">Update existing items only,skip new ones</option>
 					<option value="create">create new items &amp; update existing ones</option>
+					<option value="xcreate">create new items only, skip existing ones</option>
+
 				</select>
 			<input type="submit" value="Run Import" <?php if(!$conf_ok){?>disabled="disabled"<?php }?>></input>
 			</div>
