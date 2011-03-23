@@ -224,6 +224,10 @@ abstract class Magmi_Engine extends DbHelper
 				}
 			}
 		}
+		fwrite($f,"+++++++++++++++++++++++++++++\nCONTEXT DUMP\n+++++++++++++++++++++++++++++\n");
+		fwrite($f,print_r($this,true));
+		fwrite($f,"\n+++++++++++++++++++++++++++++\nEND CONTEXT DUMP\n+++++++++++++++++++++++++++++\n");		
+		
 		fwrite($f,"---- ENDTRACE : $this->_excid -----\n");
 		fclose($f);
 	}
