@@ -58,7 +58,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.2","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.3","author"=>"dweeves");
 	}
 	
 	/**
@@ -531,7 +531,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				$store_ids=$this->getItemStoreIds($item,$attrdesc["is_global"]);
 				
 				//do not handle empty generic int values in create mode
-				if($ivalue=="" && $this->mode=="create" && $tp=="int")
+				if($ivalue=="" && $this->mode!="update" && $tp=="int")
 				{
 					continue;
 				}
@@ -802,7 +802,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				$cws=$this->tablename("core_website");
 				$wscodes=csl2arr($item["websites"]);
 				$qcolstr=$this->arr2values($wscodes);	
-				$rows=$this->selectAll("SELECT website_id FROM core_website WHERE code IN ($qcolstr)",$wscodes);
+				$rows=$this->selectAll("SELECT website_id FROM $cws WHERE code IN ($qcolstr)",$wscodes);
 				foreach($rows as $row)
 				{
 					$this->_wsids[$item["websites"]][]=$row['website_id'];
@@ -842,7 +842,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$this->clearOptCache();
 		//only assign values to store 0 by default in create mode for new sku
 		//for store related options
-		if($this->mode=="create")
+		if($this->mode!="update")
 		{
 			$this->_dstore=array(0);
 		}
@@ -949,7 +949,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			}
 			
 			//update websites
-			if($this->mode=="create" || isset($item["websites"]))
+			if($this->mode!="update" || isset($item["websites"]))
 			{
 				$this->updateWebSites($pid,$item);
 			}
@@ -968,8 +968,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			}
 		}
 		catch(Exception $e)
-		{
-
+		{			
 			$this->callPlugins(array("itemprocessors"),"processItemException",$item,array("exception"=>$e));
 			$this->logException($e,$this->_laststmt->queryString);			
 			throw $e;
@@ -1069,7 +1068,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$this->callPlugins("itemprocessors","processColumnList",$cols);
 			$this->initProdType();
 			//initialize attribute infos & indexes from column names
-			if($this->mode=="create")
+			if($this->mode!="update")
 			{
 				$this->checkRequired($cols);
 			}
