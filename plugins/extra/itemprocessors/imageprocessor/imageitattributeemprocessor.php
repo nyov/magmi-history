@@ -10,6 +10,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	protected $_lastimage="";
     protected $_handled_attributes=array();
 	protected $_img_baseattrs=array("image","small_image","thumbnail");
+	protected $_active=false;
+	
 	public function initialize($params)
 	{
 		ini_set("allow_url_fopen",true);		
@@ -17,7 +19,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		$this->registerAttributeHandler($this,array("frontend_input:(media_image|gallery)"));
 		$this->magdir=$this->getMagentoDir();
 		$this->imgsourcedir=realpath($this->magdir."/".$this->getParam("IMG:sourcedir"));
-		if(!file_exists($this->imgsourcedir))
+		if($this->imgsourcedir==false)
 		{
 			$this->imgsourcedir=$this->getParam("IMG:sourcedir");
 		}
@@ -36,7 +38,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.6"
+            "version" => "0.1.7"
             );
 	}
 	
@@ -73,6 +75,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		unset($images);
 		//we don't want to insert after that
 		$ovalue=false;
+		return $ovalue;
 	}
 
 	public function removeImageFromGallery($pid,$storeid,$attrdesc)
@@ -524,6 +527,10 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	public function processItemAfterId(&$item,$params)
 	{
 		
+		if(!$this->active)
+		{
+			return true;
+		}
 		$pid=$params["product_id"];
 		foreach($this->_img_baseattrs as $attrcode)
 		{
@@ -544,25 +551,49 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		//automatically add modified attributes if not found in datasource
 		//automatically add media_gallery for attributes to handle
 		$attrs=$this->_img_baseattrs;
-		$cols=array_unique(array_merge(array_keys($this->errattrs),array_merge($cols,$attrs,array("media_gallery"))));
+		$imgattrs=array_intersect($this->_img_baseattrs,$cols);
+		if(count($imgattrs)>0)
+		{
+			$this->_active=true;
+			$cols=array_unique(array_merge(array_keys($this->errattrs),array_merge($cols,$attrs,array("media_gallery"))));
+		}
+		else
+		{
+			$this->log("no image attributes found in datasource, disabling image processor","startup");
+		}
 		return true;
 	}
 	
 	//Cleanup gallery from removed images if no more image values are present in any store 
 	public function endImport()
 	{
+		
+		if(!$this->_active)
+		{
+			return;
+		}
 		$attids=array();
 		foreach($this->_img_baseattrs as $attrcode)
 		{
 			$inf=$this->getAttrInfo($attrcode);
-			$attids[]=$inf["attribute_id"];
+			if(count($inf)>0)
+			{
+				$attids[]=$inf["attribute_id"];
+			}
 		}
-		$tg=$this->tablename('catalog_product_entity_media_gallery');
-		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
-		$sql="DELETE emg.* FROM $tg as emg
+		if(count($attids)>0)
+		{
+			$tg=$this->tablename('catalog_product_entity_media_gallery');
+			$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
+			$sql="DELETE emg.* FROM $tg as emg
 			LEFT JOIN (SELECT emg.value_id,count(emgv.value_id) as cnt FROM  $tgv as emgv JOIN $tg as emg  ON emg.value_id=emgv.value_id GROUP BY emg.value_id ) as t1 ON t1.value_id=emg.value_id
 			WHERE attribute_id IN (".implode(",",$attids).") AND t1.cnt IS NULL";
-		$this->delete($sql);
+			$this->delete($sql);
+		}
+		else
+		{
+			$this->log("Unexpected problem in image attributes retrieval","warning");
+		}	
 		unset($attids);
 	}
 	
