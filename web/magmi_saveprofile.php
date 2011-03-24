@@ -1,4 +1,5 @@
 <?php
+ini_set("magic_quotes_gpc",0);
 $profile=$_REQUEST["profile"];
 $dslist=$_REQUEST["PLUGINS_DATASOURCES:class"];
 $genlist=$_REQUEST["PLUGINS_GENERAL:classes"];
