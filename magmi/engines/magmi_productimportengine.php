@@ -58,7 +58,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.3","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.4","author"=>"dweeves");
 	}
 	
 	/**
@@ -300,13 +300,20 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 * Retrieves product id for a given sku
 	 * @param string $sku : sku of product to get id for
 	 */
-	public function getProductId($sku)
+	public function getProductIds($sku)
 	{
 		$tname=$this->tablename("catalog_product_entity");
-		return $this->selectone(
-		"SELECT entity_id FROM $tname WHERE sku=?",
-		$sku,
-		'entity_id');
+		$result=$this->selectAll(
+		"SELECT sku,entity_id as pid,attribute_set_id as asid FROM $tname WHERE sku=?",
+		$sku);
+		if(count($result)>0)
+		{
+			return $result[0];
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -866,16 +873,20 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$sku=$item["sku"];
 		if($sku!=$this->_curitemids["sku"])
 		{
-			$this->_curitemids["sku"]=$sku;
-			//first get product id
-			$this->_curitemids["pid"]=$this->getProductId($sku);
-			if($this->mode!=="update")
+			//try to find item ids in db
+			$cids=$this->getProductIds($sku);
+			if($cids!==false)
 			{
-				$this->_curitemids["asid"]=$this->getAttributeSetId($item["attribute_set"]);
+				//if found use it
+				$this->_curitemids=$cids;
 			}
+			else
+			{
+				//only sku & attribute set id from datasource otherwise.
+				$this->_curitemids=array("pid"=>null,"sku"=>$sku,"asid"=>isset($item["attribute_set"])?$this->getAttributeSetId($item["attribute_set"]):null);
+			}
+			unset($cids);
 			$this->onNewSku($sku);
-			//retrieve attribute set from given name
-			//if not in cache, add to cache
 		}
 		else
 		{
@@ -910,10 +921,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		if(!isset($pid))
 		{
-			//if not found & mode !=update
+			$asid=$itemids["asid"];
+			if(!isset($asid))
+			{
+				$this->log("cannot create product sku:{$item["sku"]}, no attribute_set defined","error");
+				return false;
+			}
 			if($this->mode!=='update')
 			{
-				$asid=$itemids["asid"];
 				$pid=$this->createProduct($item,$asid);
 				$this->_curitemids["pid"]=$pid;
 				$isnew=true;
