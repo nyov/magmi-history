@@ -4,6 +4,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 
 	
 	private $_configurable_attrs=array();
+	private $_use_defaultopc=false;
 	
 	public function initialize($params)
 	{
@@ -15,7 +16,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.0.8"
+            "version" => "1.0.9"
             );
 	}
 	
@@ -92,13 +93,21 @@ public function getConfigurableOptsFromAsId($asid)
 		$this->dolink($pid,"IN ($skulist)");		
 	}
 	
+	public function processItemBeforeId(&$item,$params)
+	{
+		if($this->_use_defaultopc)
+		{
+			$item["options_container"]="container2";
+		}
+	}
+	
 	public function processItemAfterId(&$item,$params)
 	{
 		//if item is not configurable, nothing to do
 		if($item["type"]!=="configurable")
 		{
 			return true;
-		}
+		}		
 		$confopts=$this->getConfigurableOptsFromAsId($params["asid"]);
 		//limit configurable options to ones presents in item
 		$confopts=array_intersect(array_keys($item),$confopts);
@@ -168,5 +177,14 @@ public function getConfigurableOptsFromAsId($asid)
 		}
 		
 		return true;
+	}
+	
+	public function processColumnList(&$cols,$params=null)
+	{
+		if(!in_array("options_container",$cols))
+		{
+			$cols=array_unique(array_merge($cols,"options_container"));
+			$this->_use_defaultopc=true;
+		}
 	}
 }
