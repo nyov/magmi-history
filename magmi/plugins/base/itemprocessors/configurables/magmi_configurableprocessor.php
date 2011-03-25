@@ -15,7 +15,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.0.7"
+            "version" => "1.0.8"
             );
 	}
 	
@@ -59,19 +59,20 @@ public function getConfigurableOptsFromAsId($asid)
 	{
 			$cpsl=$this->tablename("catalog_product_super_link");
 			$cpr=$this->tablename("catalog_product_relation");
+			$cpe=$this->tablename("catalog_product_entity");
 			$sql="DELETE cpsl.*,cpsr.* FROM $cpsl as cpsl
 				JOIN $cpr as cpsr ON cpsr.parent_id=cpsl.parent_id
 				WHERE cpsl.parent_id=?";
 			$this->delete($sql,array($pid));
 			//recreate associations
 			$sql="INSERT INTO $cpsl (`parent_id`,`product_id`) SELECT cpec.entity_id as parent_id,cpes.entity_id  as product_id  
-				  FROM catalog_product_entity as cpec 
-				  JOIN catalog_product_entity as cpes ON cpes.type_id='simple' AND cpes.sku $cond
+				  FROM $cpe as cpec 
+				  JOIN $cpe as cpes ON cpes.type_id='simple' AND cpes.sku $cond
 			  	  WHERE cpec.entity_id=?";
 			$this->insert($sql,array($pid));
 			$sql="INSERT INTO $cpr (`parent_id`,`child_id`) SELECT cpec.entity_id as parent_id,cpes.entity_id  as child_id  
-				  FROM catalog_product_entity as cpec 
-				  JOIN catalog_product_entity as cpes ON cpes.type_id='simple' AND cpes.sku $cond
+				  FROM $cpe as cpec 
+				  JOIN $cpe as cpes ON cpes.type_id='simple' AND cpes.sku $cond
 			  	  WHERE cpec.entity_id=?";
 			$this->insert($sql,array($pid));
 		
@@ -99,12 +100,14 @@ public function getConfigurableOptsFromAsId($asid)
 			return true;
 		}
 		$confopts=$this->getConfigurableOptsFromAsId($params["asid"]);
+		//limit configurable options to ones presents in item
+		$confopts=array_intersect(array_keys($item),$confopts);
+		
 		//if no configurable attributes, nothing to do
 		if(count($confopts)==0)
 		{
 			return true;
 		}
-		
 		//set product to have options & required
 		$tname=$this->tablename('catalog_product_entity');
 		$sql="UPDATE $tname SET has_options=1,required_options=1 WHERE entity_id=?";
