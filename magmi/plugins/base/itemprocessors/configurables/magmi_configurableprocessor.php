@@ -16,7 +16,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.0.9"
+            "version" => "1.0.9a"
             );
 	}
 	
@@ -99,6 +99,7 @@ public function getConfigurableOptsFromAsId($asid)
 		{
 			$item["options_container"]="container2";
 		}
+		return true;
 	}
 	
 	public function processItemAfterId(&$item,$params)
@@ -183,8 +184,9 @@ public function getConfigurableOptsFromAsId($asid)
 	{
 		if(!in_array("options_container",$cols))
 		{
-			$cols=array_unique(array_merge($cols,"options_container"));
+			$cols=array_unique(array_merge($cols,array("options_container")));
 			$this->_use_defaultopc=true;
+			$this->log("no options_container set, defaulting to :Block after product info","startup");
 		}
 	}
 }
