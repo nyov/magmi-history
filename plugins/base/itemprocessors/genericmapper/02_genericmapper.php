@@ -14,7 +14,7 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Generic mapper",
             "author" => "Dweeves",
-            "version" => "0.0.5"
+            "version" => "0.0.6"
             );
 	}
 
