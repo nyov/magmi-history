@@ -5,11 +5,16 @@ current settings.
 </div>
 <select id="GETURL:mode">
 	<option value="wget">wget</option>
+	<option value="wget_auth">wget (authentified)</option>
 	<option value="curl">curl</option>
+	<option value="curl_auth">curl (authentified)</option>
 	<option value="rawurl">just url</option>
 </select>
+
 <div id="GETURL:urlcontainer">
 	<textarea id="GETURL:url" cols="100" rows="5"></textarea>
+</div>
+<div class="fieldinfo">
 </div>
 <script type="text/javascript">
 
@@ -18,14 +23,18 @@ magmi_getimporturl=function()
 		var mode=$('GETURL:mode').value;
 		var old_action=$('runmagmi').action;
 		$('runmagmi').action="./magmi_run.php";
-		var url=$('runmagmi').action+'?'+Form.serializeElements([$('mode'),$('runprofile')]);
+		var url=$('runmagmi').action+'?'+Form.serializeElements([$('mode'),$('runprofile')])+'&engine=magmi_productimportengine:Magmi_ProductImportEngine';
 		$('runmagmi').action=old_action;
 		var content="";
 		switch(mode)
 		{
+			case "wget_auth":
+				url=url.replace("://","://your_username:your_pass@");
 			case "wget":
 				content='wget "'+url+'" -O /dev/null';
 				break;
+			case "curl_auth":
+				url=url.replace("://","://your_username:your_pass@");
 			case "curl":
 				content='curl -o /dev/null "'+url+'"';
 				break;
