@@ -20,10 +20,19 @@ class DBHelper
 	 * @param string $pass : password
 	 * @param bool $debug : debug mode
 	 */
-	public function initDb($host,$dbname,$user,$pass,$debug=false)
+	public function initDb($host,$dbname,$user,$pass,$port=3306,$socket="/tmp/mysql.sock",$conntype="net",$debug=false)
 	{
 		//intialize connection with PDO
 		//fix by Mr Lei for UTF8 special chars
+		if($conntype=="net")
+		{
+			$pdostr="mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";
+		}
+		else
+		{
+			$pdostr="mysql:unix_socket=$socket;dbname=$dbname;charset=utf8";
+		}
+		
 		$this->_db=new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass,array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
 		//use exception error mode
 		$this->_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);

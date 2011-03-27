@@ -58,7 +58,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.4","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.5","author"=>"dweeves");
 	}
 	
 	/**
@@ -207,9 +207,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		//Find product entity type
 		$tname=$this->tablename("eav_entity_type");
 		$this->prod_etype=$this->selectone("SELECT entity_type_id FROM $tname WHERE entity_type_code=?","catalog_product","entity_type_id");
-		$gcols=array_unique(array_merge($cols,array("media_gallery")));
 		//create statement parameter string ?,?,?.....
-		$qcolstr=substr(str_repeat("?,",count($gcols)),0,-1);
+		$qcolstr=$this->arr2values($cols);
+		
 		$tname=$this->tablename("eav_attribute");
 		if($this->magversion=="1.4.x")
 		{
@@ -223,7 +223,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			$sql="SELECT `$tname`.* FROM `$tname` WHERE ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=$this->prod_etype)";
 		}
-		$result=$this->selectAll($sql,$gcols);
+		$result=$this->selectAll($sql,$cols);
 
 		//create an attribute code based array for the wanted columns
 		foreach($result as $r)
