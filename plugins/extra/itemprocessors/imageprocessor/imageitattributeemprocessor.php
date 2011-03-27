@@ -38,7 +38,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.7"
+            "version" => "0.1.8"
             );
 	}
 	
@@ -62,6 +62,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			if(count($infolist)>1)
 			{
 				$label=$infolist[1];
+				$imagefile=$infolist[0];
 			}
 			unset($infolist);
 			//copy it from source dir to product media dir
