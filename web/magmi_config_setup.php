@@ -113,14 +113,40 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 <div class="container_12" id="common_config">
 	<div class="grid_4 col">
 	<h3>Database</h3>
+	
+	<?php $curconn=$conf->get("DATABASE","connectivity","net");?>
 	<ul class="formline">
-		<li class="label">Name:</li>
-		<li class="value"><input type="text" name="DATABASE:dbname" value="<?php echo $conf->get("DATABASE","dbname")?>" ></input></li>
+		<li class="label">Connectivity</li>
+		<li class="value"><select name="DATABASE:connectivity" id="DATABASE:connectivity">
+			<option value="net" <?php if($curconn=="net"){?>selected="selected"<?php }?>>Using host/port</option>
+			<option value="socket" <?php if($curconn=="socket"){?>selected="selected"<?php }?>>Using local socket</option>
+		</select></li>
 	</ul>
-	<ul class="formline">
+		
+	<div id="connectivity:net" class="connectivity" <?php if($curconn!="net"){?>style="display:none"<?php }?>>
+	<ul class="formline">				
 		<li class="label">Host:</li>
 		<li class="value"><input type="text" name="DATABASE:host" value="<?php echo $conf->get("DATABASE","host")?>" ></input></li>
+	</ul><ul class="formline">
+		<li class="label">Port:</li>
+		<li class="value"><input type="text" name="DATABASE:port" value="<?php echo $conf->get("DATABASE","port","3306")?>" ></input></li>
 	</ul>
+	</div>
+	
+	<div id="connectivity:socket" class="connectivity" <?php if($curconn!="socket"){?>style="display:none"<?php  }?>>
+	<ul class="formline">
+		<li class="label">Unix Socket:</li>
+		<li class="value"><input type="text" name="DATABASE:unix_socket" value="<?php echo $conf->get("DATABASE","unix_socket","/tmp/mysql.sock")?>" ></input></li>
+	</ul>
+	</div>
+
+	<hr/>
+
+	<ul class="formline">
+		<li class="label">DB Name:</li>
+		<li class="value"><input type="text" name="DATABASE:dbname" value="<?php echo $conf->get("DATABASE","dbname")?>" ></input></li>
+	</ul>
+	
 	<ul class="formline">
 		<li class="label">Username:</li>
 		<li class="value"><input type="text" name="DATABASE:user" value="<?php echo $conf->get("DATABASE","user")?>" ></input></li>
@@ -187,4 +213,22 @@ $('runprofile').observe('change',function(ev)
 			document.location='magmi.php?profile='+Event.element(ev).value;
 		});
 <?php }?>	
+
+$('DATABASE:connectivity').observe('change',function(ev)
+		{
+			var clist=$$('.connectivity');
+					clist.each(function(it)
+					{
+						var el=it;
+						if(el.id=='connectivity:'+$F('DATABASE:connectivity'))
+						{
+							el.show();
+						}
+						else
+						{
+							el.hide();
+						}
+					});
+			
+		});
 </script>
