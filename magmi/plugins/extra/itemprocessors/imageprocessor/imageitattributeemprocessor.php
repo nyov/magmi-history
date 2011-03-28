@@ -38,7 +38,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.8"
+            "version" => "0.1.9"
             );
 	}
 	
@@ -435,7 +435,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		$te="$l2d/$bimgfile";
 		$result="/$i1/$i2/$bimgfile";
 		/* test for same image */
-		if($imgfile==$this->_lastimage)
+		if($result==$this->_lastimage)
 		{
 			return $result;
 		}
@@ -506,7 +506,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				@chmod("$l2d/$bimgfile",0664);
 			}
 		}
-		$this->_lastimage=$imgfile;
+		$this->_lastimage=$result;
 		/* return image file name relative to media dir (with leading / ) */
 		return $result;
 	}
