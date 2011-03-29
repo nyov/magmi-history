@@ -16,7 +16,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.0.9a"
+            "version" => "1.1"
             );
 	}
 	
@@ -142,11 +142,12 @@ public function getConfigurableOptsFromAsId($asid)
 		foreach($confopts as $confopt)
 		{
 			$attrinfo=$this->getAttrInfo($confopt);
+			$attrid=$attrinfo["attribute_id"];
 			$cpsa=$this->tablename("catalog_product_super_attribute");
 			$cpsal=$this->tablename("catalog_product_super_attribute_label");
 			$sql="INSERT INTO `$cpsa` (`product_id`,`attribute_id`,`position`) VALUES (?,?,?)";
 			//inserting new options
-			$psaid=$this->insert($sql,array($pid,$attrinfo["attribute_id"],0));		
+			$psaid=$this->insert($sql,array($pid,$attrid,0));		
 			//for all stores defined for the item
 			$sids=$this->getItemStoreIds($item,0);
 			$data=array();
@@ -159,6 +160,43 @@ public function getConfigurableOptsFromAsId($asid)
 			}
 			$sql="INSERT INTO `$cpsal` (`product_super_attribute_id`,`store_id`,`use_default`,`value`) VALUES ".implode(",",$ins);
 			$this->insert($sql,$data);
+			/*if(isset($item["super_attribute_pricing"]))
+			{
+				$cpsap=$this->tablename("catalog_product_super_attribute_pricing");
+				$optvals=explode("|",$item["super_attribute_pricing"]);
+				$wsids=$this->getItemWebsites($item);
+				//if admin set as store, website force to 0
+				if(in_array(0,$sids))
+				{
+					$wsids=array(0);
+				}
+				foreach($optvals as $optval)
+				{
+					$optinf=explode(":",$optval);
+					if(count($optinf)==2)
+					{
+						$optinf[]=0;
+					}
+					$data=array();
+					$ins=array();
+					
+					foreach($wsids as $wsid)
+					{
+						$data[]=$psaid;
+						$data[]=$this->getOptionId($attrid,0,$optinf[0]);
+						$data[]=$optinf[2];
+						$data[]=$optinf[1];
+						$data[]=$wsid;
+						$ins[]="(?,?,?,?,?)";
+						
+					}
+					$sql="INSERT INTO $cpsap (`product_super_attribute_id`,`value_index`,`is_percent`,`pricing_value`,`website_id`) VALUES ".explode(",",$ins).
+					"ON DUPLICATE KEY UPDATE pricing_value=VALUES(`pricing_value`),is_percent=VALUES(`is_percent`)";
+					$this->insert($sql,$data);
+					unset($data);
+				}
+				unset($optvals);
+			}*/
 		}
 		
 		switch($matchmode)
@@ -178,6 +216,11 @@ public function getConfigurableOptsFromAsId($asid)
 		}
 		
 		return true;
+	}
+	
+	public function getPluginParamNames()
+	{
+		return array("CONF:simple_optionpricecol","CONF:simplepriceforoption");
 	}
 	
 	public function processColumnList(&$cols,$params=null)
