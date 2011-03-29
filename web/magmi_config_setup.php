@@ -170,8 +170,8 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 			<?php }?>
 		</select></li>
 	</ul>
-	<ul class="formline">
-		<li class="label">Base dir:</li>
+	<ul class="formline" style="height:40px">
+		<li class="label">Filesystem Path to magento directory:</li>
 		<li class="value"><input type="text" name="MAGENTO:basedir" value="<?php echo $conf->get("MAGENTO","basedir")?>" ></input></li>
 	</ul>
 	
