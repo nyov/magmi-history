@@ -16,7 +16,7 @@
          ================================= -->
     <target name="default" depends="depends" description="Magmi project">
         <zip destfile="magmi_${target_version}.zip" update="no">
-        	<zipfileset dir=".." excludes="**/build/**,**/state/**,**/conf/**,.svn,**/plugins/**,**/tests/**"  prefix="magmi"/>
+        	<zipfileset dir=".." excludes="**/build/**,**/state/**,**/conf/**,.svn,**/plugins/**,**/tests/**,.project"  prefix="magmi"/>
            	<zipfileset dir=".." includes="**/state"  prefix="magmi" dirmode="777"/>
             <zipfileset dir=".." includes="**/conf/*.ini.default" prefix="magmi" dirmode="777"/>
         	<zipfileset dir=".." includes="**/plugins/inc/**" prefix="magmi" dirmode="777"/>
