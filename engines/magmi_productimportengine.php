@@ -58,7 +58,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.5","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.6","author"=>"dweeves");
 	}
 	
 	/**
@@ -693,8 +693,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		#calculate is_in_stock flag
 		if(isset($item["qty"]))
 		{
-			$item["manage_stock"]=1;
-			$item["use_config_manage_stock"]=0;
+			if(!isset($item["manage_stock"]))
+			{
+				$item["manage_stock"]=1;
+				$item["use_config_manage_stock"]=0;
+			}
+			
 			$mqty=(isset($item["min_qty"])?$item["min_qty"]:0);
 			$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>$mqty?1:0);
 			if(!$is_in_stock && $item["qty"]>$mqty)
