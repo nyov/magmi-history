@@ -206,7 +206,7 @@ public function getConfigurableOptsFromAsId($asid)
 				{
 					//if optpriceinfo has no is_percent, force to 0
 					$opinf=explode(":",$opdef);
-					$optids=$this->getOptionIds($attrid,0,explode("/",$opinf[0]));
+					$optids=$this->getOptionIds($attrid,0,explode("//",$opinf[0]));
 					foreach($optids as $optid)
 					{
 						//generate price info for each given website
