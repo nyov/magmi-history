@@ -31,11 +31,13 @@ if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 }
 ?>
 <!-- MAGMI UPLOADER -->
+<?php $zipok=class_exists("ZipArchive");?>
 <div class="container_12" >
 <div class="grid_12 subtitle"><span>Update Magmi</span>
 </div>
 </div>
 <div class="container_12">
+<?php if($zipok){?>
 <form method="post" enctype="multipart/form-data" action="magmi_upload.php">
 	<div class="grid_12 col"><h3>Update Magmi Release</h3>
 		<input type="file" name="magmi_package"></input>
@@ -62,6 +64,13 @@ if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 <?php }?>
 </div>
 </form>
+<?php } else {?>
+<div class="grid_12 col"><h3>Update Disabled</h3>	
+<div class="error">
+Zip library not available, Upgrade/Upload function are not enabled
+</div>
+</div>
+<?php }?>
 </div>
 <div class="container_12" >
 <div class="grid_12 subtitle"><span>Run Magmi</span>
