@@ -5,6 +5,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 	
 	private $_configurable_attrs=array();
 	private $_use_defaultopc=false;
+	private $_optpriceinfo=array();
 	
 	public function initialize($params)
 	{
@@ -16,7 +17,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.1"
+            "version" => "1.1.1"
             );
 	}
 	
@@ -93,11 +94,39 @@ public function getConfigurableOptsFromAsId($asid)
 		$this->dolink($pid,"IN ($skulist)");		
 	}
 	
+	public function buildSAPTable($sapdesc)
+	{
+		$saptable=array();
+		$sapentries=explode(",",$sapdesc);
+		foreach($sapentries as $sapentry)
+		{
+			$sapinf=explode("::",$sapentry);
+			$sapname=$sapinf[0];
+			$sapdata=$sapinf[1];
+			$sapdarr=explode(";",$sapdata);
+			$saptable[$sapname]=$sapdarr;
+			unset($sapdarr);
+		}
+		unset($sapentries);
+		return $saptable;
+	}
 	public function processItemBeforeId(&$item,$params)
 	{
+		//if item is not configurable, nothing to do
+		if($item["type"]!=="configurable")
+		{
+			return true;
+		}		
 		if($this->_use_defaultopc)
 		{
 			$item["options_container"]="container2";
+		}
+		//reset option price info
+		$this->_optpriceinfo=array();
+		if(isset($item["super_attribute_pricing"]))
+		{
+			$this->_optpriceinfo=$this->buildSAPTable($item["super_attribute_pricing"]);
+			unset($item["super_attribute_pricing"]);
 		}
 		return true;
 	}
@@ -160,43 +189,49 @@ public function getConfigurableOptsFromAsId($asid)
 			}
 			$sql="INSERT INTO `$cpsal` (`product_super_attribute_id`,`store_id`,`use_default`,`value`) VALUES ".implode(",",$ins);
 			$this->insert($sql,$data);
-			/*if(isset($item["super_attribute_pricing"]))
+			//if we have price info for this attribute
+			if(isset($this->_optpriceinfo[$confopt]))
 			{
 				$cpsap=$this->tablename("catalog_product_super_attribute_pricing");
-				$optvals=explode("|",$item["super_attribute_pricing"]);
 				$wsids=$this->getItemWebsites($item);
 				//if admin set as store, website force to 0
 				if(in_array(0,$sids))
 				{
 					$wsids=array(0);
 				}
-				foreach($optvals as $optval)
+				$data=array();
+				$ins=array();
+
+				foreach($this->_optpriceinfo[$confopt] as $opdef)
 				{
-					$optinf=explode(":",$optval);
-					if(count($optinf)==2)
+					//if optpriceinfo has no is_percent, force to 0
+					$opinf=explode(":",$opdef);
+					$optids=$this->getOptionIds($attrid,0,explode("/",$opinf[0]));
+					foreach($optids as $optid)
 					{
-						$optinf[]=0;
+						//generate price info for each given website
+						foreach($wsids as $wsid)
+						{
+							if(count($opinf)<3)
+							{
+								$opinf[]=0;
+							}
+				
+							$data[]=$psaid;
+							$data[]=$optid;
+							$data[]=$opinf[1];
+							$data[]=$opinf[2];
+							$data[]=$wsid;
+							$ins[]="(?,?,?,?,?)";	
+						}
 					}
-					$data=array();
-					$ins=array();
-					
-					foreach($wsids as $wsid)
-					{
-						$data[]=$psaid;
-						$data[]=$this->getOptionId($attrid,0,$optinf[0]);
-						$data[]=$optinf[2];
-						$data[]=$optinf[1];
-						$data[]=$wsid;
-						$ins[]="(?,?,?,?,?)";
-						
-					}
-					$sql="INSERT INTO $cpsap (`product_super_attribute_id`,`value_index`,`is_percent`,`pricing_value`,`website_id`) VALUES ".explode(",",$ins).
-					"ON DUPLICATE KEY UPDATE pricing_value=VALUES(`pricing_value`),is_percent=VALUES(`is_percent`)";
-					$this->insert($sql,$data);
-					unset($data);
 				}
-				unset($optvals);
-			}*/
+			
+				$sql="INSERT INTO $cpsap (`product_super_attribute_id`,`value_index`,`pricing_value`,`is_percent`,`website_id`) VALUES ".implode(",",$ins).
+				" ON DUPLICATE KEY UPDATE pricing_value=VALUES(pricing_value),is_percent=VALUES(is_percent)";
+				$this->insert($sql,$data);
+				unset($data);
+			}
 		}
 		
 		switch($matchmode)
