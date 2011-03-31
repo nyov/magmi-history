@@ -38,7 +38,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.9"
+            "version" => "0.1.9a"
             );
 	}
 	
@@ -297,19 +297,16 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	}
 	public function getTargetName($fname,$item,$extra)
 	{
+		$cname=$fname;
 		if(isset($this->forcename) && $this->forcename!="")
 		{
 			$matches=array();
-			$m=preg_match("/(.*?)\.(jpg|png|gif)$/i",$cname,$matches);	
+			$m=preg_match("/(.*)\.(jpg|png|gif)$/i",$cname,$matches);	
 			$extra["imagename"]=$cname;
 			$extra["imagename.ext"]=$matches[2];
 			$extra["imagename.noext"]=$matches[1];
 			$cname=$this->parsename($this->forcename,$item,$extra);
 			unset($matches);
-		}
-		else
-		{
-			$cname=$fname;	
 		}
 		$cname=strtolower(preg_replace("/%[0-9][0-9|A-F]/","_",rawurlencode($cname)));
 		
@@ -528,7 +525,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	public function processItemAfterId(&$item,$params)
 	{
 		
-		if(!$this->active)
+		if(!$this->_active)
 		{
 			return true;
 		}
@@ -552,11 +549,13 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		//automatically add modified attributes if not found in datasource
 		//automatically add media_gallery for attributes to handle
 		$attrs=$this->_img_baseattrs;
+		$this->log(print_r($cols,true),"startup");
 		$imgattrs=array_intersect($this->_img_baseattrs,$cols);
 		if(count($imgattrs)>0)
 		{
 			$this->_active=true;
-			$cols=array_unique(array_merge(array_keys($this->errattrs),array_merge($cols,$attrs,array("media_gallery"))));
+			$cols=array_unique(array_merge(array_keys($this->errattrs),$cols,$imgattrs,array("media_gallery")));
+			$this->log(print_r($cols,true),"startup");
 		}
 		else
 		{
