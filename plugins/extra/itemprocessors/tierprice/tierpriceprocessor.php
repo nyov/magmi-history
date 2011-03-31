@@ -14,7 +14,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Tier price importer",
             "author" => "Dweeves",
-            "version" => "0.0.1"
+            "version" => "0.0.2"
             );
 	}
 
@@ -33,12 +33,11 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 	public function processItemAfterId(&$item,$params=null)
 	{
 		$pid=$params["product_id"];
-		foreach(array_keys($item) as $k)
+		$tpcol=array_intersect(array_keys($this->_tpcol),array_keys($item));
+
+		foreach($tpcol as $k)
 		{
-			//if we have a tier price
-		 if(in_array($k,array_keys($this->_tpcol)))
-		 {
-		 	//get tier price column info
+		//get tier price column info
 		  $tpinf=$this->_tpcol[$k];
 		  //now we've got a customer group id
 		  $cgid=$tpinf["id"];
@@ -47,10 +46,10 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 			(entity_id,all_groups,customer_group_id,qty,value,website_id) VALUES ";
 		  $inserts=array();
 		  $data=array();
-		  $wsids=$this->getStoresWebsiteIds($item["store"]);
-		  foreach($wsids as $sid)
+		  $wsids=$this->getItemWebsites($item);
+		  foreach($wsids as $wsid)
 		  {
-		  	if($sid!=0)
+		  	if($wsid!=0)
 		  	{
 		  		$inserts[]="(?,?,?,?,?,?)";
 		  		$data[]=$pid;
@@ -59,7 +58,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  		$data[]=$cgid;
 		  		$data[]=1.0;
 		  		$data[]=$item[$k];
-		  		$data[]=$sid;
+		  		$data[]=$wsid;
 		  	}
 		  }
 		  if(count($inserts)>0)
@@ -69,9 +68,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  	$this->insert($sql,$data);
 		  }
 		 }
-		}
 		return true;
-
 	}
 
 	public function processColumnList(&$cols)
@@ -87,7 +84,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		 		 {
 		  			//get tier price customer group id
 		  			$sql="SELECT customer_group_id from ".$this->tablename("customer_group")." WHERE customer_group_code=?";
-	 					$cgid=$this->selectone($sql,$tpinf["name"],"customer_group_id");
+	 				$cgid=$this->selectone($sql,$tpinf["name"],"customer_group_id");
 	 				$tpinf["id"]=$cgid;
 		  		}
 		  		else
