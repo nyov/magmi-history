@@ -10,6 +10,7 @@ class FSHelper
 			}
 			else
 			{
+				fclose($test);
 				unlink("$dir/__testwr__");
 			}
 			return true;
