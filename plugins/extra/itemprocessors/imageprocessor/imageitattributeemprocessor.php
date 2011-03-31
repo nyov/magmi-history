@@ -549,13 +549,11 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		//automatically add modified attributes if not found in datasource
 		//automatically add media_gallery for attributes to handle
 		$attrs=$this->_img_baseattrs;
-		$this->log(print_r($cols,true),"startup");
 		$imgattrs=array_intersect($this->_img_baseattrs,$cols);
 		if(count($imgattrs)>0)
 		{
 			$this->_active=true;
 			$cols=array_unique(array_merge(array_keys($this->errattrs),$cols,$imgattrs,array("media_gallery")));
-			$this->log(print_r($cols,true),"startup");
 		}
 		else
 		{
