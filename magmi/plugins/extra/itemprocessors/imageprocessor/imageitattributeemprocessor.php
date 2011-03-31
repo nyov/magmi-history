@@ -419,6 +419,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		if($imgfile==$this->_lastnotfound)
 		{
+			$this->fillErrorAttributes($item);
 			return false;
 		}
 		
