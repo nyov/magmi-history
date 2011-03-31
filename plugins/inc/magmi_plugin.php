@@ -294,6 +294,11 @@ abstract class Magmi_Plugin
 		return $this->_class;
 	}
 	
+	public function isRunnable()
+	{
+		return array(true,"");
+	}
+	
 	public function __call($data,$arg)
 	{
 		if(method_exists($this->_mmi,$data))
