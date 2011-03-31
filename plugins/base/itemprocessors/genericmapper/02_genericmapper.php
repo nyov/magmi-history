@@ -14,7 +14,7 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Generic mapper",
             "author" => "Dweeves",
-            "version" => "0.0.6"
+            "version" => "0.0.6a"
             );
 	}
 
@@ -77,7 +77,17 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 		$this->_mapping=array();
 		
 		$dlist=glob(dirname(__file__)."/mappings/default/*.csv");
+		if($dlist==false)
+		{
+			$dlist=array();
+			$this->log("No default mapping found","warning");
+		}
 		$slist=glob(dirname(__file__)."/mappings/*.csv");
+		if($slist==false)
+		{
+			$slist=array();
+			$this->log("No custom mapping found","startup");
+		}
 		$flist=array_merge($dlist,$slist);
 		foreach($flist as $fname)
 		{
