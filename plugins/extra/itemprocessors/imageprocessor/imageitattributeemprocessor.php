@@ -11,6 +11,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
     protected $_handled_attributes=array();
 	protected $_img_baseattrs=array("image","small_image","thumbnail");
 	protected $_active=false;
+	protected $_newitem;
 	
 	public function initialize($params)
 	{
@@ -38,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.9a"
+            "version" => "0.1.10"
             );
 	}
 	
@@ -419,7 +420,9 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		if($imgfile==$this->_lastnotfound)
 		{
-			$this->fillErrorAttributes($item);
+			if($this->_newitem){
+				$this->fillErrorAttributes($item);
+			};
 			return false;
 		}
 		
@@ -530,6 +533,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			return true;
 		}
+		$this->_newitem=$params["new"];
 		$pid=$params["product_id"];
 		foreach($this->_img_baseattrs as $attrcode)
 		{
