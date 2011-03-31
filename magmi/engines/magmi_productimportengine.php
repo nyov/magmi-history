@@ -1085,13 +1085,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$cols=$this->datasource->getColumnNames();
 			$this->log(count($cols),"columns");
 			$this->callPlugins("itemprocessors","processColumnList",$cols);
+			$this->log("Ajusted processed columns:".count($cols),"startup");
 			$this->initProdType();
 			//initialize attribute infos & indexes from column names
 			if($this->mode!="update")
 			{
 				$this->checkRequired($cols);
 			}
-			$this->initAttrInfos($cols);
+			$this->initAttrInfos(array_values($cols));
 			//counter
 			$this->_current_row=0;
 			//start time
