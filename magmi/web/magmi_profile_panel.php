@@ -94,7 +94,6 @@ else{?>
 					$sinst=$pinst;
 				}
 				$pinfo=$pinst->getPluginInfo();
-					
 				if($eplconf->isPluginEnabled($k,$pclass))
 				{
 					$sinst=$pinst;
@@ -127,10 +126,16 @@ else{?>
 		?>
 		<li>
 		<div class="pluginselect">
+	<?php $plrunnable=$pinst->isRunnable()?>
+	<?php if($plrunnable[0]){?>
+	
 		<input type="checkbox" class="pl_<?php echo $k?>" name="<?php echo $pclass?>" <?php if($eplconf->isPluginEnabled($k,$pclass)){?>checked="checked"<?php }?>>
-		<span class="pluginname"><?php echo $pinfo["name"]." v".$pinfo["version"];?></span>
+	<?php } else {?>
+		<input type="checkbox" class="pl_<?php echo $k?>" name="<?php echo $pclass?>" disabled="disabled">
+	<?php }?>	
+	<span class="pluginname"><?php echo $pinfo["name"]." v".$pinfo["version"];?></span>
 		</div>
-
+	
 		<?php 
 			  $info=$pinst->getShortDescription();
 		?>
@@ -139,6 +144,12 @@ else{?>
 			<span>info</span>
 			<div class="plugininfohover">
 				<?php echo $info?>
+	<?php if(!$plrunnable[0]){?>
+		<div class="error">
+			<pre><?php echo $plrunnable[1]?></pre>
+		</div>
+	<?php }?>
+	
 			</div>
 			
 		<?php }?>
