@@ -73,7 +73,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.0.7a"
+            "version" => "0.0.7b"
             );
 	}
 	
