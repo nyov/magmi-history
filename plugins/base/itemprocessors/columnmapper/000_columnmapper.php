@@ -62,7 +62,7 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 		return true;
 	}
 	
-	public function processItemBeforeId(&$item,$params)
+	public function processItemBeforeId(&$item,$params=null)
 	{
 		foreach($this->_dcols as $oname=>$mnames)
 		{
