@@ -85,7 +85,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		{
 			
 			$this->_phpexecname=$php;
-			$out=shell_exec("$php $indexer 2>1");
+			$out=shell_exec("$php $indexer 2>&1");
 			if(substr($out,0,6)=="Usage:")
 			{
 				$runok=true;	
