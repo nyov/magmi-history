@@ -36,6 +36,7 @@
 			{
 				throw new Exception("CANNOT WRITE PROGRESS FILE ");
 			}
+			$data=preg_replace ("/(\r|\n|\r\n)/", "<br>", $data);
 			fwrite($f,"$type:$data\n");
 			fclose($f);
 		}
