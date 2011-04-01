@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.10"
+            "version" => "0.1.11"
             );
 	}
 	
@@ -526,7 +526,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		$this->update($sql,array($pid,$attrdesc["attribute_id"],$label));
 	}
 	
-	public function processItemAfterId(&$item,$params)
+	public function processItemAfterId(&$item,$params=null)
 	{
 		
 		if(!$this->_active)
