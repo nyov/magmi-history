@@ -5,7 +5,8 @@ class CategoryImporter extends Magmi_ItemProcessor
 	protected $_catattr=array();
 	protected $_cattrinfos=array();
 	protected $_catroots=array();
-
+	protected $_cat_eid=null;
+	
 	public function initialize($params)
 	{
 
@@ -30,8 +31,13 @@ class CategoryImporter extends Magmi_ItemProcessor
 		JOIN $csg ON entity_id=root_category_id WHERE parent_id=1");
 		foreach($result as $row)
 		{
-			$this->_catroots[$row["website_id"]]=array("path"=>$row["path"],"etid"=>$row["entity_type_id"],"rootarr"=>explode("/",$row["path"]));			
+			$this->_catroots[$row["website_id"]]=array("path"=>$row["path"],"etid"=>$row["entity_type_id"],"rootarr"=>explode("/",$row["path"]));
+			if($this->_cat_eid==null)
+			{
+				$this->_cat_eid=$row["entity_type_id"];
+			}
 		}
+		
 	}
 	
 	public function getCatAttributeSet()
@@ -71,7 +77,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.0.7"
+            "version" => "0.0.7a"
             );
 	}
 	
