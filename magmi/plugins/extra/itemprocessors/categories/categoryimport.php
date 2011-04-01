@@ -53,10 +53,6 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return $info[0];
 	}
 
-	public function categoryExists($parentpath,$cattr)
-	{
-			
-	}
 	
 	public function getCache($cdef)
 	{
