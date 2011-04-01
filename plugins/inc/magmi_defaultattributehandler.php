@@ -42,7 +42,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	 */
 	public function handleDatetimeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
-		$ovalue=deleteifempty($ivalue);
+		$ovalue=deleteifempty(trim($ivalue));
 		return $ovalue;
 	}
 
