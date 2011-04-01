@@ -240,7 +240,10 @@ abstract class Magmi_Plugin
 			}
 			else
 			{
-				$arr[$pk]=$this->_params[$pk];
+				if(isset($this->_params[$pk]))
+				{
+					$arr[$pk]=$this->_params[$pk];
+				}
 			}	
 		}
 		return $arr;
