@@ -17,7 +17,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.1.1"
+            "version" => "1.1.2"
             );
 	}
 	
@@ -110,7 +110,7 @@ public function getConfigurableOptsFromAsId($asid)
 		unset($sapentries);
 		return $saptable;
 	}
-	public function processItemBeforeId(&$item,$params)
+	public function processItemBeforeId(&$item,$params=null)
 	{
 		//if item is not configurable, nothing to do
 		if($item["type"]!=="configurable")
@@ -131,7 +131,7 @@ public function getConfigurableOptsFromAsId($asid)
 		return true;
 	}
 	
-	public function processItemAfterId(&$item,$params)
+	public function processItemAfterId(&$item,$params=null)
 	{
 		//if item is not configurable, nothing to do
 		if($item["type"]!=="configurable")
@@ -251,11 +251,6 @@ public function getConfigurableOptsFromAsId($asid)
 		}
 		
 		return true;
-	}
-	
-	public function getPluginParamNames()
-	{
-		return array("CONF:simple_optionpricecol","CONF:simplepriceforoption");
 	}
 	
 	public function processColumnList(&$cols,$params=null)
