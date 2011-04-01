@@ -134,7 +134,7 @@ class Magmi_Config extends DirbasedConfig
 		return !file_exists($this->_confname);	
 	}
 	
-	public function load()
+	public function load($name=null)
 	{
 		$conf=(!$this->isDefault())?$this->_confname:$this->_confname.".default";
 		parent::load($conf);
