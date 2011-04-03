@@ -32,7 +32,7 @@ public function getConfigurableOptsFromAsId($asid)
 	
 		$sql="SELECT ea.attribute_code FROM `$ea` as ea
 		JOIN $eet as eet ON eet.entity_type_id=ea.entity_type_id AND eet.entity_type_id=?
-		JOIN $eas as eas ON eas.entity_type_id=eet.entity_type_id AND (eas.attribute_set_id=? OR eas.attribute_set_id=eet.default_attribute_set_id)
+		JOIN $eas as eas ON eas.entity_type_id=eet.entity_type_id AND eas.attribute_set_id=?
 		JOIN $eea as eea ON eea.attribute_id=ea.attribute_id";
 		$cond="ea.is_user_defined=1";
 		if($this->_mmi->magversion=="1.4.x")
