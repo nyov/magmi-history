@@ -119,11 +119,39 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		$this->_fh=fopen($this->_filename,"rb");
 	}
 	
-	public function getColumnNames()
+	public function getColumnNames($prescan=false)
 	{
+	
+		if($prescan==true)
+		{
+			$this->_fh=fopen($this->getParam("CSV:filename"),"rb");
+			$this->_csep=$this->getParam("CSV:separator",",");
+			$this->_dcsep=$this->_csep;
+		
+		if($this->_csep=="\\t")
+		{
+			$this->_csep="\t";
+		}
+		
+		$this->_cenc=$this->getParam("CSV:enclosure",'"');
+		$this->_buffersize=$this->getParam("CSV:buffer",0);
+		}
 		$this->_cols=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
 		$this->_nhcols=count($this->_cols);
-		$this->log("$this->_nhcols CSV headers columns found","startup");
+		//trim column names
+		for($i=0;$i<$this->_nhcols;$i++)
+		{
+			$this->_cols[$i]=trim($this->_cols[$i]);
+		}
+
+		if($prescan==true)
+		{
+			fclose($this->_fh);
+		}
+		else
+		{
+			$this->log("$this->_nhcols CSV headers columns found","startup");
+		}
 		return $this->_cols;
 	}
 	
