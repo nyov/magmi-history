@@ -917,6 +917,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		
 		$itemids=$this->getItemIds($item);
 		$pid=$itemids["pid"];
+		$asid=$itemids["asid"];
 		$isnew=false;
 		if(isset($pid) && $this->mode=="xcreate")
 		{
@@ -925,7 +926,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		if(!isset($pid))
 		{
-			$asid=$itemids["asid"];
+			
 			if(!isset($asid))
 			{
 				$this->log("cannot create product sku:{$item["sku"]}, no attribute_set defined","error");
