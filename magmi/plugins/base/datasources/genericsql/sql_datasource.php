@@ -89,13 +89,22 @@ class SQL_Datasource extends Magmi_Datasource
 	
 	public function getRecordsCount()
 	{
-		$sql="SELECT COUNT(*) as cnt FROM (".str_replace("\n"," ",$this->extractsql).") as t1";
+		$sql=null;
+		//optimized count query
+		if(file_exists($this->sqlfile.".count"))
+		{
+			$sql=file_get_contents($this->sqlfile.".count");
+		}
+		if(!isset($sql))
+		{
+			$sql="SELECT COUNT(*) as cnt FROM (".str_replace("\n"," ",$this->extractsql).") as t1";
+		}
 		$cnt=$this->dbh->selectone($sql,null,"cnt");
 			
 		return $cnt;
 	}
 
-	public function getColumnNames()
+	public function getColumnNames($prescan=false)
 	{
 		$s=$this->dbh->select($this->extractsql);
 		$test=$s->fetch();

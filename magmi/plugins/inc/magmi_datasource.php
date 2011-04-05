@@ -9,7 +9,7 @@
 abstract class Magmi_DataSource extends Magmi_GeneralImportPlugin
 {
 	
-	public function getColumnNames()
+	public function getColumnNames($prescan=false)
 	{
 		
 	}
