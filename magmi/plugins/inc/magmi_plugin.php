@@ -120,6 +120,11 @@ abstract class Magmi_Plugin
 		
 	}
 	
+	public function setParam($pname,$value)
+	{
+		$this->_params[$pname]=$value;
+	}
+	
 	public function fixListParam($pvalue)
 	{
 		$iarr=explode(",",$pvalue);
