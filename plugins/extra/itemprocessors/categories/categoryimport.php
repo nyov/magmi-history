@@ -5,6 +5,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	protected $_catattr=array();
 	protected $_cattrinfos=array();
 	protected $_catroots=array();
+	protected $_catrootw=array();
 	protected $_cat_eid=null;
 	
 	public function initialize($params)
@@ -27,18 +28,18 @@ class CategoryImporter extends Magmi_ItemProcessor
 	{
 		$t=$this->tablename("catalog_category_entity");
 		$csg=$this->tablename("core_store_group");
-		$result=$this->selectAll("SELECT website_id,entity_type_id,path FROM $t 
-		JOIN $csg ON entity_id=root_category_id WHERE parent_id=1");
+		$result=$this->selectAll("SELECT cs.store_id,csg.website_id,cce.entity_type_id,cce.path 
+								  FROM `core_store` as cs 
+								  JOIN core_store_group as csg on csg.group_id=cs.group_id
+ 								  JOIN catalog_category_entity as cce ON cce.entity_id=csg.root_category_id ");
 		foreach($result as $row)
 		{
-			$this->_catroots[$row["website_id"]]=array("path"=>$row["path"],"etid"=>$row["entity_type_id"],"rootarr"=>explode("/",$row["path"]));
+			$rootinfo=array("path"=>$row["path"],"etid"=>$row["entity_type_id"],"rootarr"=>explode("/",$row["path"]));
+			$this->_catroots[$row["store_id"]]=$rootinfo;
+			$this->_catrootw[$row["website_id"]][]=$row["store_id"];
 			if($this->_cat_eid==null)
 			{
 				$this->_cat_eid=$row["entity_type_id"];
-			}
-			if(!isset($this->_idcache[$row["website_id"]]))
-			{
-				$this->_idcache[$row["website_id"]]=array();
 			}
 		}
 		
@@ -58,18 +59,21 @@ class CategoryImporter extends Magmi_ItemProcessor
 	}
 
 	
-	public function getCache($cdef,$wsid)
+	public function getCache($cdef,$bp)
 	{
-		return $this->_idcache[$wsid][$cdef];
+		$ck="$bp::$cdef";
+		return $this->_idcache[$ck];
 	}
-	public function isInCache($cdef,$wsid)
+	public function isInCache($cdef,$bp)
 	{
-		return isset($this->_idcache[$wsid][$cdef]);
+		$ck="$bp::$cdef";
+		return isset($this->_idcache[$ck]);
 	}
 	
-	public function putInCache($cdef,$wsid,$idarr)
+	public function putInCache($cdef,$bp,$idarr)
 	{
-		$this->_idcache[$wsid][$cdef]=$idarr;
+		$ck="$bp::$cdef";
+		$this->_idcache[$ck]=$idarr;
 	}
 	
 	public function getPluginInfo()
@@ -169,17 +173,16 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return $clist;
 	}
 	
-	public function getCategoryIdsFromDef($catdef,$wsid)
+	public function getCategoryIdsFromDef($catdef,$basepath)
 	{
 		$catattributes=$this->extractCatAttrs($catdef);
+		$basearr=explode("/",$basepath);
 		$catparts=explode("/",$catdef);
-		$level=1;
-		$path=$this->_catroots[$wsid]["path"];
 		$pdef=array();
 		//if full def is in cache, use it
-		if($this->isInCache($catdef,$wsid))
+		if($this->isInCache($catdef,$basepath))
 		{
-			$catids=$this->getCache($catdef,$wsid);
+			$catids=$this->getCache($catdef,$basepath);
 		}
 		else
 		{
@@ -190,13 +193,13 @@ class CategoryImporter extends Magmi_ItemProcessor
 			{
 				$pdef[]=$catpart;
 				$ptest=implode("/",$pdef);
-				if($this->isInCache($ptest,$wsid))
+				if($this->isInCache($ptest,$basepath))
 				{
-					$catids=$this->getCache($ptest,$wsid);
+					$catids=$this->getCache($ptest,$basepath);
 					$lastcached=$pdef;
 				}
 			}
-			$curpath=array_merge($this->_catroots[$wsid]["rootarr"],$catids);	
+			$curpath=array_merge($basearr,$catids);	
 			//iterate on missing levels.
 			for($i=count($catids);$i<count($catparts);$i++)
 			{
@@ -206,7 +209,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 				//cache newly created levels
 				$lastcached[]=$catparts[$i];
 			
-				$this->putInCache(implode("/",$lastcached),$wsid,$catids);
+				$this->putInCache(implode("/",$lastcached),$basepath,$catids);
 			
 			}
 		}
@@ -220,12 +223,38 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return true;
 	}
 	
+	public function getStoreRootPaths($item)
+	{
+		$sids=$this->getItemStoreIds($item,2);
+		//remove admin from store ids (no category root on it)
+		if($sids[0]==0)
+		{
+			array_pop($sids);
+		}
+		//only admin store set,use websites store roots
+		if(count($sids)==0)
+		{
+			$wsids=$this->getItemWebsites($item);
+			foreach($wsids as $wsid)
+			{
+				$sids=array_merge($sids,$this->_catrootw[$wsid]);
+			}
+		}
+		foreach($sids as $sid)
+		{
+			$srp=$this->_catroots[$sid];
+			$rootpaths[$srp["path"]]=$srp["rootarr"];
+		}
+		return $rootpaths;
+	}
+	
 	public function processItemAfterId(&$item,$params=null)
 	{
 		if(isset($item["categories"]))
 		{
 			$catlist=explode(",",$item["categories"]);
 			$catids=array();
+			$rootpaths=$this->getStoreRootPaths($item);
 			foreach($catlist as $catdef)
 			{
 				$root=$this->getParam("CAT:baseroot","");
@@ -233,10 +262,9 @@ class CategoryImporter extends Magmi_ItemProcessor
 				{
 					$catdef="$root/$catdef";
 				}
-				$wsids=$this->getItemWebsites($item);
-				foreach($wsids as $wsid)
+				foreach(array_keys($rootpaths) as $rp)
 				{
-					$cdef=$this->getCategoryIdsFromDef($catdef,$wsid);
+					$cdef=$this->getCategoryIdsFromDef($catdef,$rp);
 					if($this->getParam("CAT:lastonly",0)==1)
 					{
 						$cdef=array($cdef[count($cdef)-1]);
