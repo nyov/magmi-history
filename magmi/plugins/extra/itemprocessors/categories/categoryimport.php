@@ -36,6 +36,10 @@ class CategoryImporter extends Magmi_ItemProcessor
 			{
 				$this->_cat_eid=$row["entity_type_id"];
 			}
+			if(!isset($this->_idcache[$row["website_id"]]))
+			{
+				$this->_idcache[$row["website_id"]]=array();
+			}
 		}
 		
 	}
@@ -54,18 +58,18 @@ class CategoryImporter extends Magmi_ItemProcessor
 	}
 
 	
-	public function getCache($cdef)
+	public function getCache($cdef,$wsid)
 	{
-		return $this->_idcache[$cdef];
+		return $this->_idcache[$wsid][$cdef];
 	}
-	public function isInCache($cdef)
+	public function isInCache($cdef,$wsid)
 	{
-		return isset($this->_idcache[$cdef]);
+		return isset($this->_idcache[$wsid][$cdef]);
 	}
 	
-	public function putInCache($cdef,$idarr)
+	public function putInCache($cdef,$wsid,$idarr)
 	{
-		$this->_idcache[$cdef]=$idarr;
+		$this->_idcache[$wsid][$cdef]=$idarr;
 	}
 	
 	public function getPluginInfo()
@@ -73,7 +77,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.0.7b"
+            "version" => "0.0.8"
             );
 	}
 	
@@ -165,49 +169,45 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return $clist;
 	}
 	
-	public function getCategoryIdsFromDef($catdef,$item)
+	public function getCategoryIdsFromDef($catdef,$wsid)
 	{
 		$catattributes=$this->extractCatAttrs($catdef);
 		$catparts=explode("/",$catdef);
 		$level=1;
-		$wsids=$this->getItemWebsites($item);
-		foreach($wsids as $wsid)
+		$path=$this->_catroots[$wsid]["path"];
+		$pdef=array();
+		//if full def is in cache, use it
+		if($this->isInCache($catdef,$wsid))
 		{
-			$path=$this->_catroots[$wsid]["path"];
-			$pdef=array();
-			//if full def is in cache, use it
-			if($this->isInCache($catdef))
+			$catids=$this->getCache($catdef,$wsid);
+		}
+		else
+		{
+			//else
+			$catids=array();
+			$lastcached=array();
+			foreach($catparts as $catpart)
 			{
-				return $this->getCache($catdef);
+				$pdef[]=$catpart;
+				$ptest=implode("/",$pdef);
+				if($this->isInCache($ptest,$wsid))
+				{
+					$catids=$this->getCache($ptest,$wsid);
+					$lastcached=$pdef;
+				}
 			}
-			else
+			$curpath=array_merge($this->_catroots[$wsid]["rootarr"],$catids);	
+			//iterate on missing levels.
+			for($i=count($catids);$i<count($catparts);$i++)
 			{
-				//else
-				$catids=array();
-				$lastcached=array();
-				foreach($catparts as $catpart)
-				{
-					$pdef[]=$catpart;
-					$ptest=implode("/",$pdef);
-					if($this->isInCache($ptest))
-					{
-						$catids=$this->getCache($ptest);
-						$lastcached=$pdef;
-					}
-				}
-				$curpath=array_merge($this->_catroots[$wsid]["rootarr"],$catids);	
-				//iterate on missing levels.
-				for($i=count($catids);$i<count($catparts);$i++)
-				{
-					$catid=$this->getCategoryId($curpath,$catattributes[$i]);
-					$catids[]=$catid;
-					$curpath[]=$catid;
-					//cache newly created levels
-					$lastcached[]=$catparts[$i];
-				
-					$this->putInCache(implode("/",$lastcached),$catids);
-				
-				}
+				$catid=$this->getCategoryId($curpath,$catattributes[$i]);
+				$catids[]=$catid;
+				$curpath[]=$catid;
+				//cache newly created levels
+				$lastcached[]=$catparts[$i];
+			
+				$this->putInCache(implode("/",$lastcached),$wsid,$catids);
+			
 			}
 		}
 		return $catids;
@@ -233,12 +233,16 @@ class CategoryImporter extends Magmi_ItemProcessor
 				{
 					$catdef="$root/$catdef";
 				}
-				$cdef=$this->getCategoryIdsFromDef($catdef,$item);
-				if($this->getParam("CAT:lastonly",0)==1)
+				$wsids=$this->getItemWebsites($item);
+				foreach($wsids as $wsid)
 				{
-					$cdef=array($cdef[count($cdef)-1]);
+					$cdef=$this->getCategoryIdsFromDef($catdef,$wsid);
+					if($this->getParam("CAT:lastonly",0)==1)
+					{
+						$cdef=array($cdef[count($cdef)-1]);
+					}
+					$catids=array_unique(array_merge($catids,$cdef));
 				}
-				$catids=array_unique(array_merge($catids,$cdef));
 			}
 			$item["category_ids"]=implode(",",$catids);
 		}
