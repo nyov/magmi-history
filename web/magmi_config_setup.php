@@ -1,6 +1,7 @@
 <?php 
 require_once("magmi_config.php");
 require_once("magmi_statemanager.php");
+require_once("dbhelper.class.php");
 $conf=Magmi_Config::getInstance();
 $conf->load();
 $conf_ok=1;
@@ -79,7 +80,6 @@ Zip library not available, Upgrade/Upload function are not enabled
 <?php }?>
 </div>
 </div>
-
 <?php if($conf_ok){?>
 <form method="POST" id="runmagmi" action="magmi.php">
 	<input type="hidden" name="run" value="import"></input>
@@ -145,7 +145,16 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 	<div id="connectivity:socket" class="connectivity" <?php if($curconn!="socket"){?>style="display:none"<?php  }?>>
 	<ul class="formline">
 		<li class="label">Unix Socket:</li>
-		<li class="value"><input type="text" name="DATABASE:unix_socket" value="<?php echo $conf->get("DATABASE","unix_socket","/tmp/mysql.sock")?>" ></input></li>
+		
+		<?php
+           $dmysqlsock=DBHelper::getMysqlSocket();
+		   $mysqlsock= $conf->get("DATABASE","unix_socket",$dmysqlsock);
+		   if(!file_exists($mysqlsock))
+   		   {
+				$mysqlsock=$dmysqlsock;
+		   }
+		?>
+		<li class="value"><input type="text" name="DATABASE:unix_socket" value="<?php echo $mysqlsock?>" ></input></li>
 	</ul>
 	</div>
 
