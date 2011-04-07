@@ -81,7 +81,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.0.8"
+            "version" => "0.0.9"
             );
 	}
 	
@@ -252,7 +252,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	{
 		if(isset($item["categories"]))
 		{
-			$catlist=explode(",",$item["categories"]);
+			$catlist=explode(";;",$item["categories"]);
 			$catids=array();
 			$rootpaths=$this->getStoreRootPaths($item);
 			foreach($catlist as $catdef)
