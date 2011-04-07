@@ -148,7 +148,7 @@ public function getConfigurableOptsFromAsId($asid)
 				$confopts[]=$confopt;
 			}
 		}
-				
+		unset($asconfotps);
 		//if no configurable attributes, nothing to do
 		if(count($confopts)==0)
 		{
