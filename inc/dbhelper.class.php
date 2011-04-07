@@ -33,12 +33,9 @@ class DBHelper
 			$pdostr="mysql:unix_socket=$socket;dbname=$dbname;charset=utf8";
 		}
 		
-		$this->_db=new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass,array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+		$this->_db=new PDO($pdostr, $user, $pass,array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
 		//use exception error mode
 		$this->_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-		//use fetch assoc as default fetch mode
-		$this->_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
-		//use fetch assoc as default fetch mode
 		$this->_db->setAttribute(PDO::ATTR_ORACLE_NULLS ,PDO::NULL_NATURAL);
 		
 		//set database debug mode to trace if necessary
@@ -72,6 +69,28 @@ class DBHelper
 			
 	}
 
+	public static function getMysqlSocket()
+	{
+		$mysqlsock=ini_get("mysql.default_socket");
+		if(!file_exists($mysqlsock))
+		{
+			ob_start();
+			phpinfo();
+			$data=ob_get_contents();
+			ob_end_clean();
+			$cap=preg_match("/MYSQL_SOCKET.*?<td .*?>(.*?)<\/td>/msi",$data,$matches);
+			if($cap)
+			{
+				$mysqlsock=$matches[1];
+			}
+		}
+		if(!file_exists($mysqlsock))
+		{
+			$mysqlsock="";
+		}
+		return $mysqlsock;
+	}
+	 
 	public function initDbqStats()
 	{
 		$this->_nreq=0;
@@ -203,7 +222,7 @@ class DBHelper
 		$stmt=$this->select($sql,$params);
 		$t0=microtime(true);
 
-		$r=$stmt->fetch();
+		$r=$stmt->fetch(PDO::FETCH_ASSOC);
 		$stmt->closeCursor();
 		$t1=microtime(true);
 		$this->_indbtime+=$t1-$t0;
@@ -222,7 +241,7 @@ class DBHelper
 		$stmt=$this->select($sql,$params);
 		$t0=microtime(true);
 
-		$r=$stmt->fetchAll();
+		$r=$stmt->fetchAll(PDO::FETCH_ASSOC);
 		$stmt->closeCursor();
 		$t1=microtime(true);
 		$this->_indbtime+=$t1-$t0;
