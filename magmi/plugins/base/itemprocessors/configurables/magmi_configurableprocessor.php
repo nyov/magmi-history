@@ -143,7 +143,7 @@ public function getConfigurableOptsFromAsId($asid)
 		$confopts=array();
 		foreach($asconfopts as $confopt)
 		{
-			if(isset($item[$confopt]) && !empty(trim($item[$confopt])))
+			if(isset($item[$confopt]) && trim($item[$confopt])!="")
 			{
 				$confopts[]=$confopt;
 			}
