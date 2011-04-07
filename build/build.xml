@@ -11,6 +11,7 @@
     <description>
             Magmi project
     </description>
+	
     <!-- ================================= 
           target: default              
          ================================= -->
@@ -23,10 +24,13 @@
         	<zipfileset dir=".." includes="**/plugins/base/**" prefix="magmi" dirmode="777"/>
         </zip>
     </target>
-	
+	 <tstamp>
+	    <format property="RLSDATE" pattern="yyyyMMdd" />
+	  </tstamp>
+
 	<target name="buildplugin_package">
 		<input message="Plugin package base dir" addproperty="package_base_dir"/>
-	 	<zip destfile="magmi_${package_base_dir}_plugins.zip" update="no">
+	 	<zip destfile="magmi_${package_base_dir}_plugins_${RLSDATE}.zip" update="no">
 	    		<zipfileset dir="../plugins" includes="${package_base_dir}/**"/>
 	  	</zip>
 	 </target>
@@ -35,7 +39,7 @@
 		<input message="Plugin  base dir" addproperty="plugin_base_dir"/>
 		<input message="Plugin name" addproperty="plugin_name"/>
 		<input message="Plugin version" addproperty="plugin_version"/>
-	 	<zip destfile="magmi_plugin_${plugin_name}_${plugin_version}.zip" update="no">
+	 	<zip destfile="magmi_plugin_${plugin_name}_${plugin_version}_${RLSDATE}.zip" update="no">
 	    	<zipfileset dir="../plugins" includes="${plugin_base_dir}/**"/>
 	  	</zip>
 	</target>
