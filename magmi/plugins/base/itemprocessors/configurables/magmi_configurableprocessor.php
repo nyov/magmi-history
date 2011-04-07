@@ -17,7 +17,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.1.2"
+            "version" => "1.1.3"
             );
 	}
 	
@@ -138,10 +138,17 @@ public function getConfigurableOptsFromAsId($asid)
 		{
 			return true;
 		}		
-		$confopts=$this->getConfigurableOptsFromAsId($params["asid"]);
-		//limit configurable options to ones presents in item
-		$confopts=array_intersect(array_keys($item),$confopts);
-		
+		$asconfopts=$this->getConfigurableOptsFromAsId($params["asid"]);
+		//limit configurable options to ones presents & defined in item
+		$confopts=array();
+		foreach($asconfopts as $confopt)
+		{
+			if(isset($item[$confopt]) && !empty(trim($item[$confopt])))
+			{
+				$confopts[]=$confopt;
+			}
+		}
+				
 		//if no configurable attributes, nothing to do
 		if(count($confopts)==0)
 		{
@@ -233,7 +240,7 @@ public function getConfigurableOptsFromAsId($asid)
 				unset($data);
 			}
 		}
-		
+		unset($confopts);
 		switch($matchmode)
 		{
 			case "none":
