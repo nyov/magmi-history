@@ -147,15 +147,15 @@ abstract class Magmi_Engine extends DbHelper
 					if(method_exists($pinst,$callback))
 					{
 						$callres=($data==null?($params==null?$pinst->$callback():$pinst->$callback($params)):$pinst->$callback($data,$params));
-						if(isset($callres))
+						if($callres===false && $data!=null)
 						{
-							$result=$result && $callres;
-						}
+						  $result=false;
+						  if($break)
+						  {
+						  	return $result;
+						  }							
+						}						
 					}
-					if(!$result && $data!=null && $break)
-					{
-						return $result;
-					}		
 				}
 			}
 		}
