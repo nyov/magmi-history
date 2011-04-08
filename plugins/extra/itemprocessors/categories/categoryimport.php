@@ -45,16 +45,12 @@ class CategoryImporter extends Magmi_ItemProcessor
 		
 	}
 	
-	public function getCatAttributeSet()
-	{
-		
-	}
 	
 	public function getCatAttributeInfos($attcode)
 	{
 		$t=$this->tablename("eav_attribute");
-		$sql="SELECT * FROM $t WHERE entity_type_id=$this->_cat_eid AND attribute_code=?";
-		$info=$this->selectAll($sql,$attcode);
+		$sql="SELECT * FROM $t WHERE entity_type_id=? AND attribute_code=?";
+		$info=$this->selectAll($sql,array($this->_cat_eid,$attcode));
 		return $info[0];
 	}
 
@@ -74,6 +70,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	{
 		$ck="$bp::$cdef";
 		$this->_idcache[$ck]=$idarr;
+		
 	}
 	
 	public function getPluginInfo()
@@ -81,7 +78,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.0.9"
+            "version" => "0.1.0"
             );
 	}
 	
@@ -100,11 +97,14 @@ class CategoryImporter extends Magmi_ItemProcessor
 	
 	public function getCategoryId($parentpath,$cattrs)
 	{
+		//get exisiting cat id
 		$catid=$this->getExistingCategory($parentpath,$cattrs);
+		//if found , return it
 		if($catid!=null)
 		{
 			return $catid;
 		}
+		//otherwise, get new category values from parent & siblings
 		$cet=$this->tablename("catalog_category_entity");
 		$path=implode("/",$parentpath);
 		$parentid=array_pop($parentpath);
@@ -118,8 +118,9 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$info=$info[0];
 		//insert new category
 		$sql="INSERT INTO $cet 	(entity_type_id,attribute_set_id,parent_id,position,level) VALUES (?,?,?,?,?)";
-		
+	
 		$data=array($info["entity_type_id"],$info["attribute_set_id"],$parentid,$info["position"],$info["level"]);		
+		//insert in db,get cat id
 		$catid=$this->insert($sql,$data);
 		unset($data);
 		//set category path
@@ -175,10 +176,8 @@ class CategoryImporter extends Magmi_ItemProcessor
 	
 	public function getCategoryIdsFromDef($catdef,$basepath)
 	{
-		$catattributes=$this->extractCatAttrs($catdef);
-		$basearr=explode("/",$basepath);
-		$catparts=explode("/",$catdef);
-		$pdef=array();
+		
+		
 		//if full def is in cache, use it
 		if($this->isInCache($catdef,$basepath))
 		{
@@ -186,29 +185,51 @@ class CategoryImporter extends Magmi_ItemProcessor
 		}
 		else
 		{
-			//else
+			//category ids 
 			$catids=array();
 			$lastcached=array();
+			//get cat tree branches names
+			$catparts=explode("/",$catdef);
+			//path as array
+			$basearr=explode("/",$basepath);
+			//for each cat tree branch		
+			$pdef=array();	
 			foreach($catparts as $catpart)
 			{
+				//add it to the current tree level
 				$pdef[]=$catpart;
 				$ptest=implode("/",$pdef);
+				//test for tree level in cache
 				if($this->isInCache($ptest,$basepath))
 				{
+					//if yes , set current known cat ids to corresponding cached branch 
 					$catids=$this->getCache($ptest,$basepath);
+					//store last cached branch
 					$lastcached=$pdef;
+				}				
+				else
+				//no more tree info in cache,stop further retrieval, we need to create missing levels
+				{
+				  break;
 				}
+
 			}
-			$curpath=array_merge($basearr,$catids);	
+			//add store tree root to category path 
+			$curpath=array_merge($basearr,$catids);
+			//get categories attributes
+			$catattributes=$this->extractCatAttrs($catdef);
+			
 			//iterate on missing levels.
 			for($i=count($catids);$i<count($catparts);$i++)
 			{
+				//retrieve category id (by creating it if needed from categories attributes)
 				$catid=$this->getCategoryId($curpath,$catattributes[$i]);
+				//add newly created level to item category ids
 				$catids[]=$catid;
+				//add newly created level to current paths
 				$curpath[]=$catid;
 				//cache newly created levels
-				$lastcached[]=$catparts[$i];
-			
+				$lastcached[]=$catparts[$i];				
 				$this->putInCache(implode("/",$lastcached),$basepath,$catids);
 			
 			}
@@ -225,6 +246,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	
 	public function getStoreRootPaths($item)
 	{
+		$rootpaths=array();
 		$sids=$this->getItemStoreIds($item,2);
 		//remove admin from store ids (no category root on it)
 		if($sids[0]==0)
