@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.11"
+            "version" => "0.1.12"
             );
 	}
 	
@@ -491,21 +491,17 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				}
 			}
 
-			/* test if image already exists ,if not copy from source to media dir*/
-			if(!file_exists("$l2d/$bimgfile"))
+			if(!$this->saveImage($imgfile,"$l2d/$bimgfile",$curlh))
 			{
-				if(!$this->saveImage($imgfile,"$l2d/$bimgfile",$curlh))
-				{
-					$errors=error_get_last();
-					$this->fillErrorAttributes($item);
-					$this->log("error copying $l2d/$bimgfile : {$errors["type"]},{$errors["message"]}","warning");
-					unset($errors);
-					$this->destroyUrlContext($curlh);
-					return false;
-				}
+				$errors=error_get_last();
+				$this->fillErrorAttributes($item);
+				$this->log("error copying $l2d/$bimgfile : {$errors["type"]},{$errors["message"]}","warning");
+				unset($errors);
 				$this->destroyUrlContext($curlh);
-				@chmod("$l2d/$bimgfile",0664);
+				return false;
 			}
+			$this->destroyUrlContext($curlh);
+			@chmod("$l2d/$bimgfile",0664);			
 		}
 		$this->_lastimage=$result;
 		/* return image file name relative to media dir (with leading / ) */
