@@ -2,14 +2,14 @@
 class ImportLimiter extends Magmi_ItemProcessor
 {
 	protected $_recranges;
-	protected $_max;
+	protected $_rmax=-1;
 	protected $_filters;
 	
 	public function getPluginInfo()
 	{
 		return array("name"=>"Magmi Import Limiter",
 					 "author"=>"Dweeves",
-					 "version"=>"0.0.2");
+					 "version"=>"0.0.3");
 	}
 	
 	
@@ -17,13 +17,14 @@ class ImportLimiter extends Magmi_ItemProcessor
 	{
 		$negate=0;
 		$field=$fltdef[0];
+		$match=false;
 		if($field[0]=="!")
 		{
 			$field=substr($field,1);
 			$negate=1;
 		}
 		$re=$fltdef[1];
-		if(isset($item[$field]))
+		if(in_array($field,array_keys($item)))
 		{
 			$v=$item[$field];
 			$match=preg_match("|$re|",$v);
@@ -31,28 +32,35 @@ class ImportLimiter extends Magmi_ItemProcessor
 			{
 				$match=!$match;
 			}
+			if($match)
+			{
+			  $this->log("skipping sku {$item['sku']} => Filter '$field::$re'","info");
+			}
 		}
 		return $match;
 	}
 	public function processItemBeforeId(&$item,$params=null)
 	{
 		$crow=$this->getCurrentRow();
-		$ok=false;
-		if($this->_rmax>-1 && $crow==$this->_rmax)
+		$ok=count($this->_recranges)==0;
+		if(!$ok)
 		{
-			$this->setLastItem($item);		
-		}
-		foreach($this->_recranges as $rr)
-		{
-			$ok=($crow>=$rr[0] && ($crow<=$rr[1] || $rr[1]==-1));
-			if($ok)
+			if($this->_rmax>-1 && $crow==$this->_rmax)
 			{
-				break;
+				$this->setLastItem($item);		
+			}
+			foreach($this->_recranges as $rr)
+			{
+				$ok=($crow>=$rr[0] && ($crow<=$rr[1] || $rr[1]==-1));
+				if($ok)
+				{
+					break;
+				}
 			}
 		}
+
 		if($ok)
 		{
-			$ok=true;
 			foreach($this->_filters as $fltdef)
 			{
 				//negative filters
@@ -80,6 +88,10 @@ class ImportLimiter extends Magmi_ItemProcessor
 	public function parseRanges($rangestr)
 	{
 		$this->_recranges=array();
+		if($rangelist=="")
+		{
+		  return;
+		}
 		$rangelist=explode(",",$rangestr);
 		foreach($rangelist as $rdef)
 		{
@@ -101,9 +113,9 @@ class ImportLimiter extends Magmi_ItemProcessor
 				else
 				{
 					$rmax=$rlist[1];
-					if($rmax>$this->_max && $this->_max!=-1)
+					if($rmax>$this->_rmax && $this->_rmax!=-1)
 					{
-						$this->_max=$rmax;
+						$this->_rmax=$rmax;
 					}
 				}
 			}
