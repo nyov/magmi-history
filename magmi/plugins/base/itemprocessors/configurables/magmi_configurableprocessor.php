@@ -189,15 +189,17 @@ public function getConfigurableOptsFromAsId($asid)
 		$data_sa=array();
 		$ins_sal=array();
 		$data_sal=array();
+		$idx=0;
 		foreach($confopts as $confopt)
 		{
+			
 			$attrinfo=$this->getAttrInfo($confopt);
 			$attrid=$attrinfo["attribute_id"];
 			$cpsa=$this->tablename("catalog_product_super_attribute");
 			$cpsal=$this->tablename("catalog_product_super_attribute_label");
 			$sql="INSERT INTO `$cpsa` (`product_id`,`attribute_id`,`position`) VALUES (?,?,?)";
 			//inserting new options
-			$psaid=$this->insert($sql,array($pid,$attrid,0));		
+			$psaid=$this->insert($sql,array($pid,$attrid,$idx));		
 			//for all stores defined for the item
 			$sids=$this->getItemStoreIds($item,0);
 			$data=array();
@@ -253,6 +255,7 @@ public function getConfigurableOptsFromAsId($asid)
 				$this->insert($sql,$data);
 				unset($data);
 			}
+			$idx++;
 		}
 		unset($confopts);
 		switch($matchmode)
