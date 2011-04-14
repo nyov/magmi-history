@@ -78,7 +78,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.1.0"
+            "version" => "0.1.1"
             );
 	}
 	
@@ -251,7 +251,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		//remove admin from store ids (no category root on it)
 		if($sids[0]==0)
 		{
-			array_pop($sids);
+			array_shift($sids);
 		}
 		//only admin store set,use websites store roots
 		if(count($sids)==0)
