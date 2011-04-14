@@ -11,7 +11,8 @@ class Magmi_OptimizerPlugin extends Magmi_GeneralImportPlugin
 	public function beforeImport()
 	{
 		$tbls=array("eav_attribute_option_value"=>"MAGMI_EAOV_OPTIMIZATION_IDX",
-					"catalog_product_entity_media_gallery"=>"MAGMI_CPEM_OPTIMIZATION_IDX");
+					"catalog_product_entity_media_gallery"=>"MAGMI_CPEM_OPTIMIZATION_IDX",
+					"catalog_category_entity_varchar"=>"MAGMI_CCEV_OPTIMIZATION_IDX");
 		$this->log("Optimizing magmi","info");
 		foreach($tbls as $tblname=>$idxname)
 		{
