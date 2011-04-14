@@ -5,7 +5,7 @@ class Magmi_OptimizerPlugin extends Magmi_GeneralImportPlugin
 	{
 		return array("name"=>"Magmi Optimizer",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.3");
+					 "version"=>"1.0.4");
 	}
 	
 	public function beforeImport()
