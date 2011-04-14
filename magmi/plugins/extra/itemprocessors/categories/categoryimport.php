@@ -270,7 +270,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return $rootpaths;
 	}
 	
-	public function processItemAfterId(&$item,$params=null)
+	public function processBeforeId(&$item,$params=null)
 	{
 		if(isset($item["categories"]))
 		{
