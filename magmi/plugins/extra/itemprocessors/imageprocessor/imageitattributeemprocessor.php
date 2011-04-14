@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.12"
+            "version" => "0.1.13"
             );
 	}
 	
@@ -303,9 +303,17 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			$matches=array();
 			$m=preg_match("/(.*)\.(jpg|png|gif)$/i",$cname,$matches);	
-			$extra["imagename"]=$cname;
-			$extra["imagename.ext"]=$matches[2];
-			$extra["imagename.noext"]=$matches[1];
+			if($m)
+ 			{			
+				$extra["imagename"]=$cname;
+				$extra["imagename.ext"]=$matches[2];
+				$extra["imagename.noext"]=$matches[1];
+			}
+			else
+			{
+			 $uid=uniqid("img",true);
+			 $extra=array("imagename"=>"$uid.jpg","imagename.ext"=>"jpg","imagename.noext"=>$uid);
+			}			
 			$cname=$this->parsename($this->forcename,$item,$extra);
 			unset($matches);
 		}
