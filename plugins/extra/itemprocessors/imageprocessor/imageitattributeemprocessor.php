@@ -58,6 +58,10 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		//for each image
 		foreach($images as $imagefile)
 		{
+			//handle exclude flag explicitely
+			$exclude=$this->getExclude($image,false); 
+	
+			
 			$infolist=explode("::",$imagefile);
 			$label=null;
 			if(count($infolist)>1)
@@ -71,7 +75,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			if($imagefile!==false)
 			{
 				//add to gallery
-				$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$label);
+				$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$label,$exclude);
 			}
 		}
 		unset($images);
@@ -92,6 +96,17 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		
 	}
 	
+	public function getExclude(&$val,$default=true)
+	{
+		$exclude=$default;
+		if($val[0]=="+" || $val[0]=="-")
+		{
+			$exclude=$val[0]=="-";
+			$val=substr($val,1);
+		}
+		return $exclude;
+	}
+	
 	public function handleImageTypeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
 		//remove attribute value if empty
@@ -100,6 +115,11 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			$this->removeImageFromGallery($pid,$storeid,$attrdesc);
 			return "__MAGMI_DELETE__";
 		}
+		
+		//add support for explicit exclude
+		$exclude=$this->getExclude($ivalue,true); 
+		
+		
 		//else copy image file
 		$imagefile=$this->copyImageFile($ivalue,$item,array("store"=>$storeid,"attr_code"=>$attrcode));
 		$ovalue=$imagefile;
@@ -111,7 +131,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{
 				$label=$item[$attrcode."_label"];
 			}
-			$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$label,true,$attrdesc["attribute_id"]);
+			$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$label,$exclude,$attrdesc["attribute_id"]);
 		}
 		return $ovalue;
 	}
