@@ -287,8 +287,7 @@ public function getConfigurableOptsFromAsId($asid)
 				break;
 			case "cursimples":
 				$this->fixedLink($pid,implode(",",$this->_currentsimples));
-				unset($this->_currentsimples);
-				$this->_currentsimples=array();
+	
 				break;
 			case "fixed":
 				$this->fixedLink($pid,$item["simples_skus"]);
@@ -297,7 +296,12 @@ public function getConfigurableOptsFromAsId($asid)
 			default:
 				break;
 		}
-		
+		//always clear current simples
+		if(count($this->_currentsimples)>0)
+		{
+			unset($this->_currentsimples);
+			$this->_currentsimples=array();
+		}
 		return true;
 	}
 	
