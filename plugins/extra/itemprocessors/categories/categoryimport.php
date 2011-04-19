@@ -279,19 +279,22 @@ class CategoryImporter extends Magmi_ItemProcessor
 			$rootpaths=$this->getStoreRootPaths($item);
 			foreach($catlist as $catdef)
 			{
-				$root=$this->getParam("CAT:baseroot","");
-				if($root!="")
+				if($catdef!="")
 				{
-					$catdef="$root/$catdef";
-				}
-				foreach(array_keys($rootpaths) as $rp)
-				{
-					$cdef=$this->getCategoryIdsFromDef($catdef,$rp);
-					if($this->getParam("CAT:lastonly",0)==1)
+					$root=$this->getParam("CAT:baseroot","");
+					if($root!="")
 					{
-						$cdef=array($cdef[count($cdef)-1]);
+						$catdef="$root/$catdef";
 					}
-					$catids=array_unique(array_merge($catids,$cdef));
+					foreach(array_keys($rootpaths) as $rp)
+					{
+						$cdef=$this->getCategoryIdsFromDef($catdef,$rp);
+						if($this->getParam("CAT:lastonly",0)==1)
+						{
+							$cdef=array($cdef[count($cdef)-1]);
+						}
+						$catids=array_unique(array_merge($catids,$cdef));
+					}
 				}
 			}
 			$item["category_ids"]=implode(",",$catids);
