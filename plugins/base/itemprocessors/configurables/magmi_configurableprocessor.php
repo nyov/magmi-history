@@ -6,6 +6,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 	private $_configurable_attrs=array();
 	private $_use_defaultopc=false;
 	private $_optpriceinfo=array();
+	private $_currentsimples=array();
 	
 	public function initialize($params)
 	{
@@ -17,7 +18,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.2.0"
+            "version" => "1.2.1"
             );
 	}
 	
@@ -57,7 +58,7 @@ public function getConfigurableOptsFromAsId($asid)
 }
 
 	
-	public function doLink($pid,$cond)
+	public function dolink($pid,$cond)
 	{
 			$cpsl=$this->tablename("catalog_product_super_link");
 			$cpr=$this->tablename("catalog_product_relation");
@@ -131,11 +132,29 @@ public function getConfigurableOptsFromAsId($asid)
 		return true;
 	}
 	
+	public function getMatchMode($item)
+	{
+		$matchmode="auto";
+		if($this->getParam("CFGR:simplesbeforeconf")==1)
+		{
+			$matchmode="cursimples";
+		}
+		if(isset($item["simples_skus"]) && trim($item["simples_skus"])!="")
+		{
+			$matchmode="fixed";
+		}
+		return $matchmode;
+	}
+	
 	public function processItemAfterId(&$item,$params=null)
 	{
 		//if item is not configurable, nothing to do
 		if($item["type"]!=="configurable")
 		{
+			if($this->getParam("CFGR:simplesbeforeconf")==1)
+			{
+				$this->_currentsimples[]=$item["sku"];
+			}
 			return true;
 		}		
 		
@@ -174,8 +193,8 @@ public function getConfigurableOptsFromAsId($asid)
 		$this->update($sql,$params["product_id"]);
 		//matching mode
 		//if associated skus 
-		$matchmode=(isset($item["simples_skus"])?(trim($item["simples_skus"])!=""?"fixed":"none"):"auto");
 		
+		$matchmode=$this->getMatchMode($item);
 		
 		//check if item has exising options
 		$pid=$params["product_id"];
@@ -266,6 +285,11 @@ public function getConfigurableOptsFromAsId($asid)
 				//destroy old associations
 				$this->autoLink($pid);
 				break;
+			case "cursimples":
+				$this->fixedLink($pid,implode(",",$this->_currentsimples));
+				unset($this->_currentsimples);
+				$this->_currentsimples=array();
+				break;
 			case "fixed":
 				$this->fixedLink($pid,$item["simples_skus"]);
 				unset($item["simples_skus"]);
@@ -285,5 +309,10 @@ public function getConfigurableOptsFromAsId($asid)
 			$this->_use_defaultopc=true;
 			$this->log("no options_container set, defaulting to :Block after product info","startup");
 		}
+	}
+	
+	public function getPluginParamNames()
+	{
+		return array("CFGR:simplesbeforeconf");
 	}
 }
