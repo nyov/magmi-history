@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.13"
+            "version" => "0.1.14"
             );
 	}
 	
@@ -50,8 +50,6 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			return false;
 		}
-		$attid=$attrdesc["attribute_id"];
-		$this->resetGallery($pid,$storeid,$attid);
 		//use ";" as image separator
 		$images=explode(";",$ivalue);
 		
@@ -60,8 +58,6 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			//handle exclude flag explicitely
 			$exclude=$this->getExclude($image,false); 
-	
-			
 			$infolist=explode("::",$imagefile);
 			$label=null;
 			if(count($infolist)>1)
@@ -169,10 +165,10 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		if($refid!=null)
 		{
 			$vc=$this->tablename('catalog_product_entity_varchar');
-			$sql.=" JOIN $vc ON $t.entity_id=$vc.entity_id AND $t.value=$vc.value AND $t.attribute_id=?
+			$sql.=" JOIN $vc ON $t.entity_id=$vc.entity_id AND $t.value=$vc.value AND $vc.attribute_id=?
 					WHERE $t.entity_id=?";
 		
-			$imgid=$this->selectone($sql,array($refid,$attid),'value_id');
+			$imgid=$this->selectone($sql,array($refid,$pid),'value_id');
 		}
 		else
 		{	
@@ -208,8 +204,9 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
 		$tg=$this->tablename('catalog_product_entity_media_gallery');
-		$sql="DELETE emgv,emg FROM `$tgv` as emgv JOIN `$tg` AS emg ON emgv.value_id = emg.value_id AND emgv.store_id=?
-		WHERE emg.entity_id=? AND emg.attribute_id=?";
+		$sql="DELETE emgv,emg FROM `$tgv` as emgv 
+			JOIN `$tg` AS emg ON emgv.value_id = emg.value_id AND emgv.store_id=?
+			WHERE emg.entity_id=? AND emg.attribute_id=?";
 		$this->delete($sql,array($storeid,$pid,$attid));
 
 	}
@@ -570,6 +567,16 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				unset($attrdesc);
 			}
 		}
+		//Reset media_gallery
+		if(isset($item["media_gallery"]))
+		{
+			$gattrdesc=$this->getAttrInfo("media_gallery");
+			$sids=$this->getItemStoreIds($item,$gattdesc["is_global"]);
+			foreach($sids as $sid)
+			{
+				$this->resetGallery($pid,$sid,$gattrdesc["attribute_id"]);
+			}
+		}
 		return true;
 			
 	}
@@ -577,12 +584,11 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		//automatically add modified attributes if not found in datasource
 		//automatically add media_gallery for attributes to handle
-		$attrs=$this->_img_baseattrs;
 		$imgattrs=array_intersect($this->_img_baseattrs,$cols);
 		if(count($imgattrs)>0)
 		{
 			$this->_active=true;
-			$cols=array_unique(array_merge(array_keys($this->errattrs),$cols,$imgattrs,array("media_gallery")));
+			$cols=array_unique(array_merge(array_keys($this->errattrs),$cols,$imgattrs));
 		}
 		else
 		{
