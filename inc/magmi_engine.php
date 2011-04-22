@@ -27,7 +27,8 @@ abstract class Magmi_Engine extends DbHelper
 	
 	public function __construct()
 	{
-		
+		//force PHP internal encoding as UTF 8
+		mb_internal_encoding("UTF-8");
 	}
 	
 	public final  function initialize($params=array())
