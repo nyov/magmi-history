@@ -78,7 +78,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.1.1"
+            "version" => "0.1.2"
             );
 	}
 	
@@ -270,7 +270,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return $rootpaths;
 	}
 	
-	public function processBeforeId(&$item,$params=null)
+	public function processItemBeforeId(&$item,$params=null)
 	{
 		if(isset($item["categories"]))
 		{
