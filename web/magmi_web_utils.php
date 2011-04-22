@@ -6,6 +6,7 @@ function tdarray_to_js($container,$mainarr,$prefix)
 	foreach($vlist as $k)
 	{
 		$v=$container->getParam("$prefix:".rawurlencode($k));
+		$v=addslashes($v);
 		$varr[]="\"$k\":\"$v\"";
 	}
 	return "{".implode(",",$varr)."}";
