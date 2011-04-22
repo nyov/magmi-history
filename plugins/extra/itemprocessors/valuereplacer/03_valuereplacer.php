@@ -23,16 +23,17 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
     public function parseval($pvalue,$item)
 	{
 		$matches=array();
-		//replacing item values
+		$ik=array_keys($item);
+		$rep="";
 		while(preg_match("|\{item\.(.*?)\}|",$pvalue,$matches))
 		{
 			foreach($matches as $match)
 			{
 				if($match!=$matches[0])
 				{
-					if(isset($item[$match]))
+					if(in_array($match,$ik))
 					{
-						$rep=$item[$match];
+						$rep='$item["'.$match.'"]';
 					}
 					else
 					{
@@ -43,6 +44,7 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 			}
 		}
 		unset($matches);
+		
 		//replacing expr values
 		while(preg_match("|\{\{\s*(.*?)\s*\}\}|",$pvalue,$matches))
 		{
@@ -54,6 +56,26 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 					$rep=eval("return ($code);");
 					$pvalue=str_replace($matches[0],$rep,$pvalue);							
 				}				
+			}
+		}
+		
+		//replacing single values not in complex values
+		while(preg_match('|\$item\["(.*?)"\]|',$pvalue,$matches))
+		{
+			foreach($matches as $match)
+			{
+				if($match!=$matches[0])
+				{
+					if(in_array($match,$ik))
+					{
+						$rep=$item[$match];
+					}
+					else
+					{
+						$rep="";
+					}
+					$pvalue=str_replace($matches[0],$rep,$pvalue);
+				}
 			}
 		}
 		
