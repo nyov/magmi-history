@@ -29,7 +29,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	private $_nsku;
 	private $_optidcache=null;
 	private $_curitemids=array("sku"=>null);
-	private $_dstore;
+	private $_dstore=array();
 	private $_same;
 	private $_currentpid;
 	private $_extra_attrs;
