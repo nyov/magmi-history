@@ -33,6 +33,14 @@ foreach($argv as $option)
 	}
 }
 
+class CLILogger
+{
+	public function log($data,$type)
+	{
+		echo("$type:$data\n");
+	}	
+}
 $importer=new Magmi_ProductImportEngine();
+$importer->setLogger(new CLILogger());
 $importer->run($options);
 ?>
