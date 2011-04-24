@@ -15,7 +15,7 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Value Replacer",
             "author" => "Dweeves",
-            "version" => "0.0.3a"
+            "version" => "0.0.4"
         );
     }
 	
