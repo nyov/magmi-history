@@ -9,6 +9,7 @@ current settings.
 	<option value="curl">curl</option>
 	<option value="curl_auth">curl (authentified)</option>
 	<option value="rawurl">just url</option>
+	<option value="cli">magmi cli</option>
 </select>
 
 <div id="GETURL:urlcontainer">
@@ -40,6 +41,9 @@ magmi_getimporturl=function()
 				break;
 			case "rawurl":
 				content=url;
+				break;
+			case "cli":
+				content='magmi.cli.php -mode='+$F('mode')+' -profile='+$F('runprofile');
 				break;
 			default:
 				content=url;

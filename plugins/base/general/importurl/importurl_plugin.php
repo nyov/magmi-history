@@ -5,7 +5,7 @@ class Magmi_ImportUrlPlugin extends Magmi_GeneralImportPlugin
 	{
 		return array("name"=>"Magmi Import Url UI",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.2");
+					 "version"=>"1.0.3");
 	}
 	public function initialize($params)
 	{
