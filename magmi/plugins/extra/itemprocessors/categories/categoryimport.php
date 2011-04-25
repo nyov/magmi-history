@@ -78,7 +78,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.1.2"
+            "version" => "0.1.2a"
             );
 	}
 	
@@ -137,13 +137,15 @@ class CategoryImporter extends Magmi_ItemProcessor
 			
 			foreach($attinfo as $attrcode=>$attdata)
 			{
-			
-				$inserts[]="(?,?,?,?,?)";
-				$data[]=$info["entity_type_id"];
-				$data[]=$attdata["attribute_id"];
-				$data[]=0;//store id 0 for categories
-				$data[]=$catid;
-				$data[]=$cattrs[$attrcode];
+				if(isset($attdata["attribute_id"]))
+				{
+					$inserts[]="(?,?,?,?,?)";
+					$data[]=$info["entity_type_id"];
+					$data[]=$attdata["attribute_id"];
+					$data[]=0;//store id 0 for categories
+					$data[]=$catid;
+					$data[]=$cattrs[$attrcode];
+				}
 			}
 			
 			$sql="INSERT INTO $tb (entity_type_id,attribute_id,store_id,entity_id,value) VALUES ".implode(",",$inserts).
