@@ -166,8 +166,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			$vc=$this->tablename('catalog_product_entity_varchar');
 			$sql.=" JOIN $vc ON $t.entity_id=$vc.entity_id AND $t.value=$vc.value AND $vc.attribute_id=?
-					WHERE $t.entity_id=?";
-		
+					WHERE $t.entity_id=?";		
 			$imgid=$this->selectone($sql,array($refid,$pid),'value_id');
 		}
 		else
