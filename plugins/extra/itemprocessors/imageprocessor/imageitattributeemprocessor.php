@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.15"
+            "version" => "1.0.15"
             );
 	}
 	
