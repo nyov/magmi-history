@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "0.1.14"
+            "version" => "0.1.15"
             );
 	}
 	
@@ -219,6 +219,11 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$imglabel=null,$excluded=false,$refid=null)
 	{
 		$gal_attinfo=$this->getAttrInfo("media_gallery");
+		if($gal_attinfo==null)
+		{
+			$this->initAttrInfos(array("media_gallery"));
+			$gal_attinfo=$this->getAttrInfo("media_gallery");
+		}
 			$tg=$this->tablename('catalog_product_entity_media_gallery');
 			$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
 		$vid=$this->getImageId($pid,$gal_attinfo["attribute_id"],$imgname,$refid);
@@ -583,7 +588,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	public function processColumnList(&$cols,$params=null)
 	{
 		//automatically add modified attributes if not found in datasource
-		//automatically add media_gallery for attributes to handle
+		
+		//automatically add media_gallery for attributes to handle		
 		$imgattrs=array_intersect($this->_img_baseattrs,$cols);
 		if(count($imgattrs)>0)
 		{
