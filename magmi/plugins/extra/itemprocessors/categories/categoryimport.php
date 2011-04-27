@@ -26,12 +26,14 @@ class CategoryImporter extends Magmi_ItemProcessor
 	
 	public function initCats()
 	{
+		// zioigor - 20110426 missing call to tablename method for table_prfix
 		$t=$this->tablename("catalog_category_entity");
 		$csg=$this->tablename("core_store_group");
+		$cs=$this->tablename("core_store");
 		$result=$this->selectAll("SELECT cs.store_id,csg.website_id,cce.entity_type_id,cce.path 
-								  FROM `core_store` as cs 
-								  JOIN core_store_group as csg on csg.group_id=cs.group_id
- 								  JOIN catalog_category_entity as cce ON cce.entity_id=csg.root_category_id ");
+								  FROM $cs as cs 
+								  JOIN $csg as csg on csg.group_id=cs.group_id
+ 								  JOIN $t as cce ON cce.entity_id=csg.root_category_id ");
 		foreach($result as $row)
 		{
 			$rootinfo=array("path"=>$row["path"],"etid"=>$row["entity_type_id"],"rootarr"=>explode("/",$row["path"]));
