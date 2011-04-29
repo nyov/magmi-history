@@ -80,7 +80,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 				 SELECT cce2.entity_id as category_id,ccp.product_id,ccp.position,IF(cce2.entity_id=ccp.category_id,1,0) as is_parent,cs.store_id,cpev.value as visibility 
 				 FROM {$this->tns["ccp"]} as ccp
 				 JOIN {$this->tns["cpe"]} as cpe ON ccp.product_id=cpe.entity_id AND cpe.entity_id=?
-				 JOIN {$this->tns["cpei"]} as cpev ON cpev.attribute_id=? AND cpev.entity_id=cpe.entity_id
+				 JOIN {$this->tns["cpev"]} as cpev ON cpev.attribute_id=? AND cpev.entity_id=cpe.entity_id
 				 JOIN {$this->tns["cce"]} as cce2 ON cce2.entity_id AND (cce2.entity_id=ccp.category_id OR cce2.entity_id IN ($catidin))
 				 JOIN {$this->tns["cpw"]} as cps ON cps.product_id=cpe.entity_id 
 				 JOIN {$this->tns["cs"]} AS cs ON cs.website_id=cps.website_id
