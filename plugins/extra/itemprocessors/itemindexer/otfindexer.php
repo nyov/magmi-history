@@ -11,7 +11,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly indexer",
             "author" => "Dweeves",
-            "version" => "0.1.1"
+            "version" => "0.1.1a"
             );
 	}
 
@@ -55,7 +55,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 			$catidlist=array_merge($catidlist,explode("/",$row["path"]));	
 		}
 		$catidlist=array_unique($catidlist);
-		if($baselevel!=NULL)
+		if($baselevel!=NULL && count($catidlist)>0)
 		{
 			$catin=$this->arr2values($catidlist);
 			$sql="SELECT cce.entity_id FROM {$this->tns["cce"]} as cce WHERE level>? AND cce.entity_id IN ($catin)";
@@ -77,6 +77,12 @@ class ItemIndexer extends Magmi_ItemProcessor
 	 */
 	public function buildCatalogCategoryProductIndex($pid)
 	{
+		$catidlist=$this->getItemCategoryIds($pid);
+		if(count($catidlist)==0)
+		{
+			return;
+		}
+		array_shift($catidlist);
 		//get all category ids on which the product is affected
 		$inf=$this->getAttrInfo("visibility");
 		if($inf==null)
@@ -84,8 +90,6 @@ class ItemIndexer extends Magmi_ItemProcessor
 			initAttrInfos(array("visibility"));
 			$inf=$this->getAttrInfo("visibility");
 		}
-		$catidlist=$this->getItemCategoryIds($pid);
-		array_shift($catidlist);
 		//let's make a IN placeholder string with that
 		$catidin=$this->arr2values($catidlist);
 		//first delete lines where last inserted product was
@@ -170,6 +174,10 @@ class ItemIndexer extends Magmi_ItemProcessor
 		{
 			//extract product category names with tree level > 1
 			$catids=$this->getItemCategoryIds($pid,1);
+			if(count($catids)==0)
+			{
+				return;
+			}
 			//make IN placeholder from returned values
 			$catin=$this->arr2values($catids);
 			//use tricky double join on eav_attribute to find category related 'name' attribute using 'children' category only attr to distinguish on category entity_id
