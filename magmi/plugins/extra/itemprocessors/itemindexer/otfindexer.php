@@ -14,6 +14,11 @@ class ItemIndexer extends Magmi_ItemProcessor
             "version" => "0.1.1"
             );
 	}
+
+	public function getPluginParamNames()
+	{
+		return array("OTFI:urlending","OTFI:usecatinurl");
+	}
 	
 	public function initialize($params)
 	{
@@ -37,19 +42,31 @@ class ItemIndexer extends Magmi_ItemProcessor
 	 * @param $baselevel :  begin tree from specified category level (defaults 0)
 	 * @return array of category ids (all mixed branches) for the item
 	 * **/
-	public function getItemCategoryIds($pid,$baselevel=0)
+	public function getItemCategoryIds($pid,$baselevel=null)
 	{
+		
 		$sql="SELECT cce.path FROM {$this->tns["ccp"]} as ccp 
-		JOIN {$this->tns["cce"]} as cce ON ccp.category_id=cce.entity_id AND cce.level>?
+		JOIN {$this->tns["cce"]} as cce ON ccp.category_id=cce.entity_id
 		WHERE ccp.product_id=?";
-		$result=$this->selectAll($sql,array($baselevel,$pid));
+		$result=$this->selectAll($sql,$pid);
 		$catidlist=array();
 		foreach($result as $row)
 		{
 			$catidlist=array_merge($catidlist,explode("/",$row["path"]));	
 		}
 		$catidlist=array_unique($catidlist);
-		sort($catidlist);
+		if($baselevel!=NULL)
+		{
+			$catin=$this->arr2values($catidlist);
+			$sql="SELECT cce.entity_id FROM {$this->tns["cce"]} as cce WHERE level>? AND cce.entity_id IN ($catin)";
+			$result=$this->selectAll($sql,array_merge(array($baselevel),$catidlist));
+			$catidlist=array();
+			foreach($result as $row)
+			{
+				$catidlist[]=$row["entity_id"];
+			}
+		}
+		sort($catidlist);	
 		return $catidlist;
 	}
 	
@@ -68,7 +85,6 @@ class ItemIndexer extends Magmi_ItemProcessor
 			$inf=$this->getAttrInfo("visibility");
 		}
 		$catidlist=$this->getItemCategoryIds($pid);
-		//remove the "absolute root" (id 1)
 		array_shift($catidlist);
 		//let's make a IN placeholder string with that
 		$catidin=$this->arr2values($catidlist);
@@ -77,17 +93,18 @@ class ItemIndexer extends Magmi_ItemProcessor
 		$this->delete($sql,$pid);
 		//then add lines for index
 		$sqlsel="INSERT INTO {$this->tns["ccpi"]} 
-				 SELECT cce2.entity_id as category_id,ccp.product_id,ccp.position,IF(cce2.entity_id=ccp.category_id,1,0) as is_parent,cs.store_id,cpev.value as visibility 
+				 SELECT cce.entity_id as category_id,ccp.product_id,ccp.position,IF(cce.entity_id=ccp.category_id,1,0) as is_parent,cs.store_id,cpei.value as visibility 
 				 FROM {$this->tns["ccp"]} as ccp
-				 JOIN {$this->tns["cpe"]} as cpe ON ccp.product_id=cpe.entity_id AND cpe.entity_id=?
-				 JOIN {$this->tns["cpev"]} as cpev ON cpev.attribute_id=? AND cpev.entity_id=cpe.entity_id
-				 JOIN {$this->tns["cce"]} as cce2 ON cce2.entity_id AND (cce2.entity_id=ccp.category_id OR cce2.entity_id IN ($catidin))
-				 JOIN {$this->tns["cpw"]} as cps ON cps.product_id=cpe.entity_id 
-				 JOIN {$this->tns["cs"]} AS cs ON cs.website_id=cps.website_id
-				 GROUP by cce2.entity_id,store_id
-	    		 ORDER by store_id,cce2.entity_id";
+				 JOIN {$this->tns["cpe"]} as cpe ON ccp.product_id=cpe.entity_id
+				 JOIN {$this->tns["cpei"]} as cpei ON cpei.attribute_id=? AND cpei.entity_id=cpe.entity_id
+				 JOIN {$this->tns["cce"]} as cce ON cce.entity_id IN ($catidin)
+				 JOIN {$this->tns["cpw"]} as cpw ON cpw.product_id=cpe.entity_id 
+				 JOIN {$this->tns["cs"]} AS cs ON cs.website_id=cpw.website_id
+				 WHERE ccp.product_id=?
+				 GROUP by cce.entity_id,store_id
+	    		 ORDER by store_id,cce.entity_id";
 		//build data array for request
-		$data=array_merge(array($pid,$inf["attribute_id"]),$catidlist);
+		$data=array_merge(array($inf["attribute_id"]),$catidlist,array($pid));
 		//create index line(s)
 		$this->insert($sqlsel,$data);
 	}
@@ -109,7 +126,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 		//build in string
 		$instr=$this->arr2values($arr);
 			
-		$sql="SELECT attribute_id,cpev.value FROM {$this->tsn["cpev"]} as cpev WHERE entity_id=? AND attribute_id IN ($instr)";
+		$sql="SELECT attribute_id,cpev.value FROM {$this->tns["cpev"]} as cpev WHERE entity_id=? AND attribute_id IN ($instr)";
 		$result=$this->selectAll($sql,array_merge(array($pid),$arr));
 		//see what we get as available product attributes
 		foreach($result as $row)
@@ -124,7 +141,8 @@ class ItemIndexer extends Magmi_ItemProcessor
 			}
 		}
 		//if we've got an url key use it, otherwise , make a slug from the product name as url key
-		$purlk=isset($pburlk)?$pburlk:Slugger::slug($pname);
+		$urlend=$this->getParam("OTFI:urlending",".html");
+		$purlk=isset($pburlk)?$pburlk:Slugger::slug($pname).$urlend;
 		
 		//delete old "system" url rewrite entries for product
 		$sql="DELETE FROM {$this->tns["curw"]} WHERE product_id=? AND is_system=1";
@@ -267,7 +285,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 		{
 			//$this->buildPrinceIndex();
 			$pid=$this->_toindex["pid"];
-			$this->buildCategoryIndex($pid);
+			$this->buildCatalogCategoryProductIndex($pid);
 			$this->buildUrlRewrite($pid);
 			$this->_toindex=null;
 		}		
