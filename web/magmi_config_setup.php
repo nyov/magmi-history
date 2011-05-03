@@ -135,7 +135,7 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 	<div id="connectivity:net" class="connectivity" <?php if($curconn!="net"){?>style="display:none"<?php }?>>
 	<ul class="formline">				
 		<li class="label">Host:</li>
-		<li class="value"><input type="text" name="DATABASE:host" value="<?php echo $conf->get("DATABASE","host")?>" ></input></li>
+		<li class="value"><input type="text" name="DATABASE:host" value="<?php echo $conf->get("DATABASE","host","localhost")?>" ></input></li>
 	</ul><ul class="formline">
 		<li class="label">Port:</li>
 		<li class="value"><input type="text" name="DATABASE:port" value="<?php echo $conf->get("DATABASE","port","3306")?>" ></input></li>
