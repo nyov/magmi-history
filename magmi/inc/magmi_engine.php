@@ -10,7 +10,7 @@ abstract class Magmi_Engine extends DbHelper
 {
 	protected $_conf;
 	protected $_initialized=false;
-	
+	protected $_exceptions=array();
 	public $magversion;
 	public $magdir;
 	public $tprefix;
@@ -42,6 +42,7 @@ abstract class Magmi_Engine extends DbHelper
 			$this->tprefix=$this->_conf->get("DATABASE","table_prefix");
 			$this->_excid=0;
 			$this->_initialized=true;
+			$this->_exceptions=array();
 		}
 		catch(Exception $e)
 		{
@@ -187,22 +188,15 @@ abstract class Magmi_Engine extends DbHelper
 	
 	public function logException($e,$data)
 	{
-		$this->_excid++;
-		$this->trace($e);
+		$this->trace($e,$data);
 		$this->log($this->_excid.":".$e->getMessage()." - ".$data,"error");
 	}
 	
-	public function trace($e)
+	public function getExceptionTrace($tk,&$traces)
 	{
-		
-		$traces=$e->getTrace();
-		$f=fopen(Magmi_StateManager::getTraceFile(),"a");
-		fwrite($f,"---- TRACE : $this->_excid -----\n");
 		$trstr="";
-		
 		foreach($traces as $trace)
 		{
-			$trstr="**********************************************\n";
 			if(isset($trace["file"]))
 			{
 				$fname=str_replace(dirname(dirname(__FILE__)),"",$trace["file"]);
@@ -219,18 +213,36 @@ abstract class Magmi_Engine extends DbHelper
 					{
 						$trstr.=print_r($trace["args"],true);
 					}
-					
 					$trstr.="\n";
-					fwrite($f,$trstr);
 				}
 			}
 		}
-		fwrite($f,"+++++++++++++++++++++++++++++\nCONTEXT DUMP\n+++++++++++++++++++++++++++++\n");
-		fwrite($f,print_r($this,true));
-		fwrite($f,"\n+++++++++++++++++++++++++++++\nEND CONTEXT DUMP\n+++++++++++++++++++++++++++++\n");		
-		
-		fwrite($f,"---- ENDTRACE : $this->_excid -----\n");
-		fclose($f);
+		if(!isset($this->_exceptions[$tk]))
+		{
+			$this->_exceptions[$tk]=0;
+			$this->_excid++;
+		}
+		$this->_exceptions[$tk]++;
+		$trstr="************************************\n$trstr";
+		return array($trstr,$this->_exceptions[$tk]==1);
+	}
+	
+	public function trace($e,$data="")
+	{		
+		$traces=$e->getTrace();
+		$tk=$e->getMessage();
+		$traceinfo=$this->getExceptionTrace($tk,$traces);
+		if($traceinfo[1]==true)
+		{
+			$f=fopen(Magmi_StateManager::getTraceFile(),"a");	
+			fwrite($f,"---- TRACE : $this->_excid -----\n");
+			fwrite($f,$traceinfo[0]);	
+			fwrite($f,"+++++++++++++++++++++++++++++\nCONTEXT DUMP\n+++++++++++++++++++++++++++++\n");
+			fwrite($f,print_r($this,true));
+			fwrite($f,"\n+++++++++++++++++++++++++++++\nEND CONTEXT DUMP\n+++++++++++++++++++++++++++++\n");			
+			fwrite($f,"---- ENDTRACE : $this->_excid -----\n");
+			fclose($f);
+		}
 	}
 	
 	
@@ -266,9 +278,7 @@ abstract class Magmi_Engine extends DbHelper
 	
 	public function handleException($e)
 	{
-		$this->_excid++;
-		$this->trace($e);
-		$this->log($this->_excid.":".$e->getMessage(),"error");		
+		$this->logException($e);
 		$this->onEngineException($e);
 	}
 	
