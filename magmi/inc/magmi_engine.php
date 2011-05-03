@@ -315,8 +315,8 @@ abstract class Magmi_Engine extends DbHelper
 			$user=$this->getProp("DATABASE","user");
 			$pass=$this->getProp("DATABASE","password");
 			$debug=$this->getProp("DATABASE","debug");
-			$conn=$this->getProp("DATABASE","connectivity");
-			$port=$this->getProp("DATABASE","port");
+			$conn=$this->getProp("DATABASE","connectivity","net");
+			$port=$this->getProp("DATABASE","port","3306");
 			$socket=$this->getProp("DATABASE","unix_socket");
 			$this->initDb($host,$dbname,$user,$pass,$port,$socket,$conn,$debug);
 			//suggested by pastanislas
