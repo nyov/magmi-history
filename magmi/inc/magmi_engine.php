@@ -194,6 +194,7 @@ abstract class Magmi_Engine extends DbHelper
 	
 	public function getExceptionTrace($tk,&$traces)
 	{
+		$this->_excid++;
 		$trstr="";
 		foreach($traces as $trace)
 		{
@@ -219,12 +220,11 @@ abstract class Magmi_Engine extends DbHelper
 		}
 		if(!isset($this->_exceptions[$tk]))
 		{
-			$this->_exceptions[$tk]=0;
+			$this->_exceptions[$tk]=array(0,$this->_excid);
 		}
-		$this->_excid++;
-		$this->_exceptions[$tk]++;
+		$this->_exceptions[$tk][0]++;
 		$trstr="************************************\n$trstr";
-		return array($trstr,$this->_exceptions[$tk]==1);
+		return array($trstr,$this->_exceptions[$tk][0]==1,$this->_exceptions[$tk][1]);
 	}
 	
 	public function trace($e,$data="")
@@ -245,7 +245,8 @@ abstract class Magmi_Engine extends DbHelper
 			}
 			else
 			{
-				fwrite($f,"Duplicated exception - skip trace\n");
+				$tnum=$traceinfo[2];
+				fwrite($f,"Duplicated exception - same trace as TRACE : $tnum\n");
 			}
 		}
 		catch(Exception $te)
