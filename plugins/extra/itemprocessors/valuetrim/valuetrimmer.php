@@ -13,7 +13,7 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Value Trimmer for select/multiselect",
             "author" => "Dweeves",
-            "version" => "0.0.1"
+            "version" => "0.0.2"
         );
     }
 	
@@ -31,6 +31,17 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 	public function processItemBeforeId(&$item,$params=null)
 	{
 		//return true , enable item processing
+		foreach(array_keys($item) as $col)
+		{
+			$ainfo=$this->getAttrInfo($col);
+			if(count($ainfo)>0)
+			{
+				if($ainfo["frontend_input"]=="select" || $ainfo["frontend_input"]=="multiselect")
+				{
+					$item[$col]=trim($item[$col]);
+				}
+			}
+		}
 		return true;
 	}
 	
@@ -50,19 +61,4 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 		return true;
 	}
 	
-	public function processColumnList(&$cols,$params=null)
-	{
-		foreach($cols as $col)
-		{
-			$ainfo=$this->getAttrInfo($col);
-			if(isset($ainfo))
-			{
-				if($ainfo["frontend_input"]=="select" || $ainfo["frontend_input"]=="multiselect")
-				{
-					$item[$col]=trim($item[$col]);
-				}
-			}
-		}
-        return true;
-	}
 }
