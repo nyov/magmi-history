@@ -220,8 +220,8 @@ abstract class Magmi_Engine extends DbHelper
 		if(!isset($this->_exceptions[$tk]))
 		{
 			$this->_exceptions[$tk]=0;
-			$this->_excid++;
 		}
+		$this->_excid++;
 		$this->_exceptions[$tk]++;
 		$trstr="************************************\n$trstr";
 		return array($trstr,$this->_exceptions[$tk]==1);
@@ -232,17 +232,28 @@ abstract class Magmi_Engine extends DbHelper
 		$traces=$e->getTrace();
 		$tk=$e->getMessage();
 		$traceinfo=$this->getExceptionTrace($tk,$traces);
-		if($traceinfo[1]==true)
+		$f=fopen(Magmi_StateManager::getTraceFile(),"a");	
+		fwrite($f,"---- TRACE : $this->_excid -----\n");
+		try
 		{
-			$f=fopen(Magmi_StateManager::getTraceFile(),"a");	
-			fwrite($f,"---- TRACE : $this->_excid -----\n");
-			fwrite($f,$traceinfo[0]);	
-			fwrite($f,"+++++++++++++++++++++++++++++\nCONTEXT DUMP\n+++++++++++++++++++++++++++++\n");
-			fwrite($f,print_r($this,true));
-			fwrite($f,"\n+++++++++++++++++++++++++++++\nEND CONTEXT DUMP\n+++++++++++++++++++++++++++++\n");			
-			fwrite($f,"---- ENDTRACE : $this->_excid -----\n");
-			fclose($f);
+			if($traceinfo[1]==true)
+			{
+				fwrite($f,$traceinfo[0]);	
+				fwrite($f,"+++++++++++++++++++++++++++++\nCONTEXT DUMP\n+++++++++++++++++++++++++++++\n");
+				fwrite($f,print_r($this,true));
+				fwrite($f,"\n+++++++++++++++++++++++++++++\nEND CONTEXT DUMP\n+++++++++++++++++++++++++++++\n");			
+			}
+			else
+			{
+				fwrite($f,"Duplicated exception - skip trace\n");
+			}
 		}
+		catch(Exception $te)
+		{
+			fwrite($f,"Exception occured during trace:".$te->getMessage());
+		}
+		fwrite($f,"---- ENDTRACE : $this->_excid -----\n");
+		fclose($f);
 	}
 	
 	
