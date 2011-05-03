@@ -14,7 +14,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Tier price importer",
             "author" => "Dweeves",
-            "version" => "0.0.2"
+            "version" => "0.0.3"
             );
 	}
 
@@ -47,18 +47,34 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  $inserts=array();
 		  $data=array();
 		  $wsids=$this->getItemWebsites($item);
+		  $tpvals=explode(";",$item[$k]);
 		  foreach($wsids as $wsid)
 		  {
+		  	//for each non admin website
 		  	if($wsid!=0)
 		  	{
-		  		$inserts[]="(?,?,?,?,?,?)";
-		  		$data[]=$pid;
-		  		//if all , set all_groups flag
-		  		$data[]=(isset($cgid)?0:1);
-		  		$data[]=$cgid;
-		  		$data[]=1.0;
-		  		$data[]=$item[$k];
-		  		$data[]=$wsid;
+		  		//for each tier price value definition
+		  		foreach($tpvals as $tpval)
+		  		{
+		  			//split on ":"
+		  			$tpvinf=explode(":",$tpval);
+		  			//if we have only one item
+		  			if(count($tpvinf)==1)
+		  			{
+		  				//set qty to one 
+		  				array_unshift($tpvinf,1.0);
+		  			}
+		  			//if more thant 1, qty first,price second
+		  			
+		  			$inserts[]="(?,?,?,?,?,?)";
+		  			$data[]=$pid;
+		  			//if all , set all_groups flag
+		  			$data[]=(isset($cgid)?0:1);
+		  			$data[]=$cgid;
+		  			$data[]=$tpvinf[0];
+		  			$data[]=$tpvinf[1];
+		  			$data[]=$wsid;
+		  		}
 		  	}
 		  }
 		  if(count($inserts)>0)
