@@ -8,6 +8,9 @@
 class ValueTrimItemProcessor extends Magmi_ItemProcessor
 {
 
+	protected $_totrim=array();
+	protected $_scanned=false;
+	
     public function getPluginInfo()
     {
         return array(
@@ -28,37 +31,59 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 	 */
 	
 	
+    public function getTrimmableCols()
+    {
+    	if(!$this->_scanned)
+    	{
+    		foreach(array_keys($item) as $col)
+			{
+				$ainfo=$this->getAttrInfo($col);
+				if(count($ainfo)>0)
+				{
+					if($ainfo["frontend_input"]=="select" || $ainfo["frontend_input"]=="multiselect")
+					{
+						$this->_totrim[$col]=$ainfo["frontend_input"];
+					}
+				}
+    		}
+    		$this->_scanned=true;
+		}
+		return $this->_totrim;
+	}
+	
 	public function processItemBeforeId(&$item,$params=null)
 	{
-		//return true , enable item processing
-		foreach(array_keys($item) as $col)
+		//get list of trimmable columns
+		$tc=$this->getTrimmableCols();
+		foreach($tc as $col=>$mode)
 		{
-			$ainfo=$this->getAttrInfo($col);
-			if(count($ainfo)>0)
+			//for select, just trim value
+			if($mode=="select")
 			{
-				if($ainfo["frontend_input"]=="select" || $ainfo["frontend_input"]=="multiselect")
+				$item[$col]=trim($item[$col]);
+			}
+			else
+			//for multiselect, recompose trimmed value list
+			{
+				$vt=explode(",",$item[$col]);
+				foreach($vt as &$v)
 				{
-					$item[$col]=trim($item[$col]);
+					$v=trim($v);
 				}
+				$item[$col]=implode(",",$vt);
+				unset($vt);
 			}
 		}
 		return true;
 	}
 	
-	public function processItemAfterId(&$item,$params=null)
-	{
-		return true;
-	}
-	
-	/*
-	public function processItemException(&$item,$params=null)
-	{
-		
-	}*/
 	
 	public function initialize($params)
 	{
+		$this->_scanned=false;
+		$this->_totrim=array();
 		return true;
+		
 	}
 	
 }
