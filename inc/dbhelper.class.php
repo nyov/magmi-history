@@ -72,22 +72,30 @@ class DBHelper
 
 	public static function getMysqlSocket()
 	{
-		$mysqlsock=ini_get("mysql.default_socket");
-		if(!file_exists($mysqlsock))
+		$mysqlsock="";
+		try
 		{
-			ob_start();
-			phpinfo();
-			$data=ob_get_contents();
-			ob_end_clean();
-			$cap=preg_match("/MYSQL_SOCKET.*?<td .*?>(.*?)<\/td>/msi",$data,$matches);
-			if($cap)
+			$mysqlsock=ini_get("mysql.default_socket");
+			
+			if(isset($mysqlsock) && !file_exists($mysqlsock))
 			{
-				$mysqlsock=$matches[1];
+				ob_start();
+				phpinfo();
+				$data=ob_get_contents();
+				ob_end_clean();
+				$cap=preg_match("/MYSQL_SOCKET.*?<td .*?>(.*?)<\/td>/msi",$data,$matches);
+				if($cap)
+				{
+					$mysqlsock=$matches[1];
+				}
+			}
+			if(isset($mysqlsock) && !file_exists($mysqlsock))
+			{
+				$mysqlsock="";
 			}
 		}
-		if(!file_exists($mysqlsock))
-		{
-			$mysqlsock="";
+		catch(Exception $e)
+		{	
 		}
 		return $mysqlsock;
 	}
