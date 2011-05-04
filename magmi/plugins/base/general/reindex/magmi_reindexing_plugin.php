@@ -10,7 +10,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 	{
 		return array("name"=>"Magmi Magento Reindexer",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.3c");
+					 "version"=>"1.0.4");
 	}
 	
 	public function afterImport()
@@ -70,6 +70,11 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 	
 	public function getIndexingCommandLine()
 	{
+		$insession=(session_id()!="");
+		if($insession)
+		{
+			session_write_close();
+		}
 		$magdir=Magmi_Config::getInstance()->get("MAGENTO","basedir");
 		
 		$indexer=realpath("$magdir/shell/indexer.php");
@@ -85,6 +90,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		{
 			
 			$this->_phpexecname=$php;
+			
 			$out=shell_exec("$php $indexer 2>&1");
 			if(preg_match("/Usage:/msi",$out))
 			{
