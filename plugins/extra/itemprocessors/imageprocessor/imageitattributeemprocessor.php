@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.15"
+            "version" => "1.0.15a"
             );
 	}
 	
@@ -56,8 +56,10 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		//for each image
 		foreach($images as $imagefile)
 		{
+			//trim image file in case of spaced split
+			$imagefile=trim($imagefile);
 			//handle exclude flag explicitely
-			$exclude=$this->getExclude($image,false); 
+			$exclude=$this->getExclude($imagefile,false); 
 			$infolist=explode("::",$imagefile);
 			$label=null;
 			if(count($infolist)>1)
