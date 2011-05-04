@@ -16,7 +16,7 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Value Trimmer for select/multiselect",
             "author" => "Dweeves",
-            "version" => "0.0.2"
+            "version" => "0.0.2a"
         );
     }
 	
@@ -31,7 +31,7 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 	 */
 	
 	
-    public function getTrimmableCols()
+    public function getTrimmableCols($item)
     {
     	if(!$this->_scanned)
     	{
@@ -54,7 +54,7 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 	public function processItemBeforeId(&$item,$params=null)
 	{
 		//get list of trimmable columns
-		$tc=$this->getTrimmableCols();
+		$tc=$this->getTrimmableCols($item);
 		foreach($tc as $col=>$mode)
 		{
 			//for select, just trim value
