@@ -83,7 +83,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 			return array(false,"cannot find magento shell indexer script");
 		}
 		
-		$phpexectest=array("php5","php");
+		$phpexectest=array("php5","php","/usr/local/bin/php");
 		$runok=false;
 		$errors=array();
 		foreach($phpexectest as $php)
