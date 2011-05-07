@@ -120,7 +120,23 @@ abstract class Magmi_Engine extends DbHelper
 		
 	}
 	
-
+	public function getPluginInstanceByClassName($pfamily,$pclassname)
+	{
+		$inst=null;
+		if(isset($this->_activeplugins[$pfamily]))
+		{
+			foreach($this->_activeplugins[$pfamily] as $pinstance)
+			{
+				if(get_class($pinstance)==$pclassanme)
+				{
+					$inst=$pinstance;
+					break;
+				}
+			}
+		}
+		return $inst;
+	}
+	
 	public function getPluginInstance($family,$order=0)
 	{
 		return $this->_activeplugins[$family][$order];	
@@ -186,7 +202,7 @@ abstract class Magmi_Engine extends DbHelper
 		}
 	}
 	
-	public function logException($e,$data)
+	public function logException($e,$data="")
 	{
 		$this->trace($e,$data);
 		$this->log($this->_excid.":".$e->getMessage()." - ".$data,"error");
