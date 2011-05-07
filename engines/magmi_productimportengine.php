@@ -533,6 +533,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				//get attribute value in the item to insert based on code
 				$atthandler="handle".ucfirst($attrdesc["attribute_code"])."Attribute";
 				$attrcode=$attrdesc["attribute_code"];
+				if(!in_array($attrcode,array_keys($item)))
+				{
+					continue;
+				}
 				$ivalue=$item[$attrcode];
 				
 				$store_ids=$this->getItemStoreIds($item,$attrdesc["is_global"]);
