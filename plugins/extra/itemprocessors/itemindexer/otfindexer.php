@@ -5,13 +5,14 @@ class ItemIndexer extends Magmi_ItemProcessor
 	
 	protected $_toindex;
 	protected $tns;
+	protected $visinf;
 	
 	public function getPluginInfo()
 	{
 		return array(
             "name" => "On the fly indexer",
             "author" => "Dweeves",
-            "version" => "0.1.1a"
+            "version" => "0.1.2"
             );
 	}
 
@@ -29,12 +30,20 @@ class ItemIndexer extends Magmi_ItemProcessor
 						 "ccp"=>$this->tablename("catalog_category_product"),
 						 "cpw"=>$this->tablename("catalog_product_website"),
 						 "cs"=>$this->tablename("core_store"),
+						 "csg"=>$this->tablename("core_store_group"),
 						 "cpev"=>$this->tablename("catalog_product_entity_varchar"),
 						 "cpei"=>$this->tablename("catalog_product_entity_int"),
 						 "ccev"=>$this->tablename("catalog_category_entity_varchar"),
 						 "ea"=>$this->tablename("eav_attribute"),
 						 "ccpi"=>$this->tablename("catalog_category_product_index"),
-						 "curw"=>$this->tablename("core_url_rewrite"));	
+						 "curw"=>$this->tablename("core_url_rewrite"));
+		$inf=$this->getAttrInfo("visibility");
+		if($inf==null)
+		{
+			$this->initAttrInfos(array("visibility"));
+			$inf=$this->getAttrInfo("visibility");
+		}
+		$this->visinf=$inf;
 	}
 	
 	/** 
@@ -42,7 +51,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 	 * @param $baselevel :  begin tree from specified category level (defaults 0)
 	 * @return array of category ids (all mixed branches) for the item
 	 * **/
-	public function getItemCategoryIds($pid,$baselevel=null)
+	public function getItemCategoryIds($pid)
 	{
 		
 		$sql="SELECT cce.path FROM {$this->tns["ccp"]} as ccp 
@@ -55,23 +64,37 @@ class ItemIndexer extends Magmi_ItemProcessor
 			$catidlist=array_merge($catidlist,explode("/",$row["path"]));	
 		}
 		$catidlist=array_unique($catidlist);
-		if($baselevel!=NULL && count($catidlist)>0)
-		{
-			$catin=$this->arr2values($catidlist);
-			$sql="SELECT cce.entity_id FROM {$this->tns["cce"]} as cce WHERE level>? AND cce.entity_id IN ($catin)";
-			$result=$this->selectAll($sql,array_merge(array($baselevel),$catidlist));
-			$catidlist=array();
-			foreach($result as $row)
-			{
-				$catidlist[]=$row["entity_id"];
-			}
-		}
 		sort($catidlist);	
 		return $catidlist;
 	}
+	/** 
+	 * Return item category paths per store from PID
+	 * **/
+	public function getItemCategoryPaths($pid)
+	{
+		
+		$sql="SELECT cce.path as cpath,SUBSTR(cce.path,LOCATE('/',cce.path,3)+1) as cshortpath,csg.default_store_id as store_id,cce.entity_id as catid
+			  FROM {$this->tns["ccp"]} as ccp 
+			  JOIN {$this->tns["cce"]} as cce ON cce.entity_id=ccp.category_id 
+			  JOIN {$this->tns["csg"]} as csg ON csg.root_category_id=SUBSTR(cce.path,3,LOCATE('/',cce.path)-1) 
+			  WHERE ccp.product_id=?";
+		$result=$this->selectAll($sql,$pid);
+		$cpaths=array();
+		foreach($result as $row)
+		{
+			$sid=$row["store_id"];
+			if(!isset($cpaths[$sid]))
+			{
+				$cpaths[$sid]=array();
+			}
+			$cpaths[$sid][]=$row;
+		}
+		unset($result);
+		return $cpaths;
+	}
 	
 	
-	/**
+/**
 	 * Build catalog_category_product_index entry for given pid
 	 * @param int $pid , product id to create index entry for
 	 */
@@ -84,31 +107,24 @@ class ItemIndexer extends Magmi_ItemProcessor
 		}
 		array_shift($catidlist);
 		//get all category ids on which the product is affected
-		$inf=$this->getAttrInfo("visibility");
-		if($inf==null)
-		{
-			initAttrInfos(array("visibility"));
-			$inf=$this->getAttrInfo("visibility");
-		}
+		
 		//let's make a IN placeholder string with that
 		$catidin=$this->arr2values($catidlist);
 		//first delete lines where last inserted product was
 		$sql="DELETE FROM {$this->tns["ccpi"]} WHERE product_id=?";
 		$this->delete($sql,$pid);
 		//then add lines for index
-		$sqlsel="INSERT INTO {$this->tns["ccpi"]} 
-				 SELECT cce.entity_id as category_id,ccp.product_id,ccp.position,IF(cce.entity_id=ccp.category_id,1,0) as is_parent,cs.store_id,cpei.value as visibility 
+		$sqlsel="INSERT IGNORE INTO {$this->tns["ccpi"]} 
+				 SELECT cce.entity_id as category_id,ccp.product_id,ccp.position,IF(cce.entity_id=ccp.category_id,1,0) as is_parent,csg.default_store_id,cpei.value as visibility 
 				 FROM {$this->tns["ccp"]} as ccp
 				 JOIN {$this->tns["cpe"]} as cpe ON ccp.product_id=cpe.entity_id
 				 JOIN {$this->tns["cpei"]} as cpei ON cpei.attribute_id=? AND cpei.entity_id=cpe.entity_id
 				 JOIN {$this->tns["cce"]} as cce ON cce.entity_id IN ($catidin)
-				 JOIN {$this->tns["cpw"]} as cpw ON cpw.product_id=cpe.entity_id 
-				 JOIN {$this->tns["cs"]} AS cs ON cs.website_id=cpw.website_id
+				 JOIN {$this->tns["csg"]} as csg ON csg.root_category_id=SUBSTR(cce.path,3,LOCATE('/',cce.path)-1) 
 				 WHERE ccp.product_id=?
-				 GROUP by cce.entity_id,store_id
-	    		 ORDER by store_id,cce.entity_id";
+	    		 ORDER by is_parent DESC,csg.default_store_id,cce.entity_id";
 		//build data array for request
-		$data=array_merge(array($inf["attribute_id"]),$catidlist,array($pid));
+		$data=array_merge(array($this->visinf["attribute_id"]),$catidlist,array($pid));
 		//create index line(s)
 		$this->insert($sqlsel,$data);
 	}
@@ -118,35 +134,101 @@ class ItemIndexer extends Magmi_ItemProcessor
 	 * @param int $pid , product id to create index entry for
 	 */
 
+	public function buildUrlCatProdRewrite($pid,$purlk)
+	{
+			$catpathlist=$this->getItemCategoryPaths($pid);
+			$data=array();
+			$vstr=array();
+			//now we have catpaths per store
+			foreach($catpathlist as $storeid=>$paths)
+			{
+				$catids=array();
+				
+				foreach($paths as $pathinfo)
+				{
+					$catids=array_unique(array_merge($catids,explode("/",$pathinfo["cshortpath"])));
+				}
+				
+				$catin=$this->arr2values($catids);
+				
+				//use tricky double join on eav_attribute to find category related 'name' attribute using 'children' category only attr to distinguish on category entity_id
+				$sql="SELECT cce.entity_id as catid,COALESCE(ccev.value,ccevd.value) as value 
+				FROM {$this->tns["cce"]} as cce 
+			  	JOIN {$this->tns["ea"]} as ea1 ON ea1.attribute_code='children'
+			 	JOIN {$this->tns["ea"]} as ea2 ON ea2.attribute_code ='name' AND ea2.entity_type_id=ea1.entity_type_id
+			  	JOIN {$this->tns["ccev"]} as ccevd ON ccevd.attribute_id=ea2.attribute_id AND ccevd.entity_id=cce.entity_id AND ccevd.store_id=0
+			  	LEFT JOIN {$this->tns["ccev"]} as ccev ON ccev.attribute_id=ea2.attribute_id AND ccev.entity_id=cce.entity_id AND ccev.store_id=?
+			  	WHERE cce.entity_id IN ($catin)";
+				$result=$this->selectAll($sql,array_merge(array($storeid),$catids));
+				$cnames=array();
+				//iterate on all names
+				foreach($result as $row)
+				{
+					$catid=$row["catid"];
+					$cname[$catid]=$row["value"];
+				}
+				
+				foreach($paths as $pinfo)
+				{
+					$sp=$pinfo["cshortpath"];
+					$cpids=explode("/",$sp);
+					$names=array();
+					foreach($cpids as $cpid)
+					{
+						$names[]=$cname[$cpid];
+					}
+					//make string with that
+					$namestr=implode("/",$names);
+					//build category url key (allow / in slugging)
+					$curlk=Slugger::slug($namestr,true);
+					//product + category url entries request
+					$catid=$pinfo["catid"];
+					$sdata=array($pid,$storeid,$catid,"product/$pid/$catid","catalog/product/view/id/$pid/category/$catid","$curlk/$purlk",1);
+					$vstr[]="(".$this->arr2values($sdata).")";
+					$data=array_merge($data,$sdata);
+				}
+	
+			}
+			$sqlprodcat="INSERT IGNORE INTO {$this->tns["curw"]} (product_id,store_id,category_id,id_path,target_path,request_path,is_system) VALUES ".implode(",",$vstr);
+			$this->insert($sqlprodcat,$data);
+			
+			//now insert category url rewrite
+			
+			unset($data);
+			unset($sdata);
+			unset($vstr);
+	}
+	
 	public function buildUrlRewrite($pid)
 	{
-		//make sure we have attribute product info for needed attributes
-		$this->initAttrInfos(array("url_key","name"));
-		//getinfo for attributes
-		$urlkinf=$this->getAttrInfo("url_key");
-		$nameinf=$this->getAttrInfo("name");
-		$arr=array($urlkinf["attribute_id"],$nameinf["attribute_id"]);
 		
-		//build in string
-		$instr=$this->arr2values($arr);
-			
-		$sql="SELECT attribute_id,cpev.value FROM {$this->tns["cpev"]} as cpev WHERE entity_id=? AND attribute_id IN ($instr)";
-		$result=$this->selectAll($sql,array_merge(array($pid),$arr));
+		$sql="SELECT ea.attribute_code,cpei.value,cpev.attribute_id,cpev.value 
+			  FROM {$this->tns["cpe"]} AS cpe
+			  JOIN {$this->tns["ea"]} as ea ON ea.attribute_code IN ('url_key','name')
+			  JOIN {$this->tns["cpev"]} as cpev ON cpev.entity_id=cpe.entity_id AND cpev.attribute_id=ea.attribute_id
+			  JOIN {$this->tns["cpei"]} as cpei ON cpei.entity_id=cpe.entity_id AND cpei.attribute_id=? AND cpei.value>1
+			  WHERE cpe.entity_id=?";
+		$result=$this->selectAll($sql,array($this->visinf["attribute_id"],$pid));
+		//nothing to build, product is not visible,return
+		if(count($result)==0)
+		{
+			return;
+		}
 		//see what we get as available product attributes
 		foreach($result as $row)
 		{
-			if($row["attribute_id"]==$urlkinf["attribute_id"])
+			if($row["attribute_code"]=="url_key")
 			{
-				$pburlk=$row["value"];
+				$pburlk=nullifempty($row["value"]);
 			}
-			if($row["attribute_id"]==$nameinf["attribute_id"])
+			if($row["attribute_code"]=="name")
 			{
 				$pname=$row["value"];
 			}
 		}
 		//if we've got an url key use it, otherwise , make a slug from the product name as url key
 		$urlend=$this->getParam("OTFI:urlending",".html");
-		$purlk=isset($pburlk)?$pburlk:Slugger::slug($pname).$urlend;
+		$purlk=(isset($pburlk)?$pburlk:Slugger::slug($pname)).$urlend;
 		
 		//delete old "system" url rewrite entries for product
 		$sql="DELETE FROM {$this->tns["curw"]} WHERE product_id=? AND is_system=1";
@@ -166,54 +248,12 @@ class ItemIndexer extends Magmi_ItemProcessor
 				 WHERE cpe.entity_id=?";
 		
 		//insert lines
-		$sqlprod="INSERT INTO {$this->tns["curw"]} (product_id,store_id,id_path,target_path,request_path,is_system) $produrlsql";
+		$sqlprod="INSERT IGNORE INTO {$this->tns["curw"]} (product_id,store_id,id_path,target_path,request_path,is_system) $produrlsql";
 		$this->insert($sqlprod,array($purlk,$pid));
-		
-		//if we set "use categories in url" flag
+
 		if($this->getParam("OTFI:usecatinurl"))
 		{
-			//extract product category names with tree level > 1
-			$catids=$this->getItemCategoryIds($pid,1);
-			if(count($catids)==0)
-			{
-				return;
-			}
-			//make IN placeholder from returned values
-			$catin=$this->arr2values($catids);
-			//use tricky double join on eav_attribute to find category related 'name' attribute using 'children' category only attr to distinguish on category entity_id
-			$sql="SELECT ccev.value FROM {$this->tns["ccp"]} as ccp
-			  JOIN {$this->tns["cce"]} cce ON cce.entity_id IN ($catin)
-			  JOIN {$this->tns["ea"]} as ea1 ON ea1.attribute_code='children'
-			  JOIN {$this->tns["ea"]} as ea2 ON ea2.attribute_code='name' AND ea2.entity_type_id=ea1.entity_type_id
-			  JOIN {$this->tns["ccev"]} as ccev ON ccev.attribute_id=ea2.attribute_id AND ccev.entity_id=cce.entity_id
-			  WHERE ccp.product_id=?";
-			$result=$this->selectAll($sql,array_merge($catids,array($pid)));
-			$names=array();
-			//iterate on all names
-			foreach($result as $row)
-			{
-				$names[]=$row["value"];
-			}
-			//make string with that
-			$namestr=implode("/",$names);
-			//build category url key (allow / in slugging)
-			$curlk=Slugger::slug($namestr,true);
-			//product + category url entries request
-			$prodcaturlsql="
-				 SELECT cpe.entity_id,cs.store_id,cce.entity_id as category_id,
-				 CONCAT('product/',cpe.entity_id,'/',cce.entity_id) as id_path,
-				 CONCAT('catalog/product/view/id/',cpe.entity_id,'/category/',cce.entity_id) as target_path, 
-				 CONCAT(?,'/',?) as request_path,
-				 1 as is_system
-				 FROM {$this->tns["cpe"]} as cpe
-				 JOIN {$this->tns["cpw"]} as cpw ON cpw.product_id=cpe.entity_id
-				 JOIN {$this->tns["cs"]} as cs ON cs.website_id=cpw.website_id
-				 JOIN {$this->tns["ccp"]} as ccp ON ccp.product_id=cpe.entity_id
-				 JOIN {$this->tns["cce"]} as cce ON ccp.category_id=cce.entity_id
-				 WHERE cpe.entity_id=?";
-			//insert into index
-			$sqlprodcat="INSERT INTO {$this->tns["curw"]} (product_id,store_id,category_id,id_path,target_path,request_path,is_system) $prodcaturlsql";
-			$this->insert($sqlprodcat,array($curlk,$purlk,$pid));	
+		 $this->buildUrlCatProdRewrite($pid,$purlk);	
 		}
 			
 				 
