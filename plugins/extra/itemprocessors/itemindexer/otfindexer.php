@@ -12,7 +12,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly indexer",
             "author" => "Dweeves",
-            "version" => "0.1.2"
+            "version" => "0.1.2b1"
             );
 	}
 
