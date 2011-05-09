@@ -275,10 +275,10 @@ class ItemIndexer extends Magmi_ItemProcessor
 	/**
 	 * OBSOLETED , TO BE REWORKED LATER
 	 */
-	public function buildPriceIndex()
+	public function buildPriceIndex($pid)
 	{
-		$pid=$this->_toindex["pid"];
 		$priceidx=$this->tablename("catalog_product_index_price");
+		$pet=$this->_mmi->prod_etype;
 		$sql="DELETE FROM $priceidx WHERE entity_id=?";
 		$this->delete($sql,$pid);
 		$cpe=$this->tablename("catalog_product_entity");
@@ -301,8 +301,8 @@ class ItemIndexer extends Magmi_ItemProcessor
 				JOIN $cs as cs ON cs.store_id!=0
 				JOIN $cped as cped ON cped.store_id=cs.store_id AND cped.entity_id=cpe.entity_id
 				JOIN $cg as cg
-				JOIN $ea as ead ON ead.entity_type_id=4  AND ead.attribute_code IN('price','special_price','minimal_price') AND cped.attribute_id=ead.attribute_id 
-				JOIN $ea as eai ON eai.entity_type_id=4 AND eai.attribute_code='tax_class_id' 
+				JOIN $ea as ead ON ead.entity_type_id=?  AND ead.attribute_code IN('price','special_price','minimal_price') AND cped.attribute_id=ead.attribute_id 
+				JOIN $ea as eai ON eai.entity_type_id=ead.entity_type_id AND eai.attribute_code='tax_class_id' 
 				LEFT JOIN $cpetp as cpetp ON cpetp.entity_id=cped.entity_id 
 				LEFT JOIN $cpetp as cpetp2 ON cpetp2.entity_id=cped.entity_id AND cpetp2.customer_group_id=cg.customer_group_id
 				LEFT JOIN $cpei as cpei ON cpei.entity_id=cpe.entity_id AND cpei.attribute_id=eai.attribute_id 
@@ -310,7 +310,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 				GROUP by cs.website_id,cg.customer_group_id
 				ORDER by cg.customer_group_id,cs.website_id
 		";
-		$this->insert($sql,$pid);
+		$this->insert($sql,array($pet,$pid));
 		
 	}
 	
@@ -344,10 +344,10 @@ class ItemIndexer extends Magmi_ItemProcessor
 	{
 		if($this->_toindex!=null)
 		{
-			//$this->buildPrinceIndex();
 			$pid=$this->_toindex["pid"];
 			$this->buildCatalogCategoryProductIndex($pid);
 			$this->buildUrlRewrite($pid);
+			$this->buildPrinceIndex($pid);
 			$this->_toindex=null;
 		}		
 		
