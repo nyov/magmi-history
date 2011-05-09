@@ -93,9 +93,6 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  $tpvals=explode(";",$item[$k]);
 		  foreach($wsids as $wsid)
 		  {
-		  	//for each non admin website
-		  	if($wsid!=0)
-		  	{
 		  		//for each tier price value definition
 		  		foreach($tpvals as $tpval)
 		  		{
@@ -118,7 +115,6 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  			$data[]=$tpvinf[1];
 		  			$data[]=$wsid;
 		  		}
-		  	}
 		  }
 		  if(count($inserts)>0)
 		  {
