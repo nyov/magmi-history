@@ -33,8 +33,29 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 	public function processItemAfterId(&$item,$params=null)
 	{
 		$pid=$params["product_id"];
+		$tpn=$this->tablename("catalog_product_entity_tier_price");
 		$tpcol=array_intersect(array_keys($this->_tpcol),array_keys($item));
-
+		//do nothing if item has no tier price info or has not change
+		if(count($tpcol)==0 || $params["same"]==true )
+		{
+			return true;
+		}
+		else
+		{
+			//clear all existing tier price info for existing customer groups in csv
+			$cgids=array();
+			foreach($tpcol as $k)
+			{
+				$tpinf=$this->_tpcol[$k];
+				$cgids[]=$tpinf["id"];
+			}
+			$instr=$this->arr2values($cgids);
+			
+			//clear tier prices for selected tier price columns
+			$sql="DELETE FROM $tpn WHERE product_id=? AND customer_group_id IN ($instr)";
+			$this->delete($sql,array_merge(array($pid),$cgids));
+		}
+		
 		foreach($tpcol as $k)
 		{
 		//get tier price column info
@@ -42,11 +63,13 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  //now we've got a customer group id
 		  $cgid=$tpinf["id"];
 		  //add tier price
-		  $sql="INSERT INTO ".$this->tablename("catalog_product_entity_tier_price")."
+		  $sql="INSERT INTO $tpn
 			(entity_id,all_groups,customer_group_id,qty,value,website_id) VALUES ";
 		  $inserts=array();
 		  $data=array();
-		  $wsids=$this->getItemWebsites($item);
+		  //it seems that magento cannot handle correctly "per website" tier price , so force it to "default"
+		  //$wsids=$this->getItemWebsites($item);
+		  $wsids=array(0);
 		  $tpvals=explode(";",$item[$k]);
 		  foreach($wsids as $wsid)
 		  {
@@ -70,7 +93,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  			$data[]=$pid;
 		  			//if all , set all_groups flag
 		  			$data[]=(isset($cgid)?0:1);
-		  			$data[]=$cgid;
+		  			$data[]=(isset($cgid)?$cgid:0);
 		  			$data[]=$tpvinf[0];
 		  			$data[]=$tpvinf[1];
 		  			$data[]=$wsid;
