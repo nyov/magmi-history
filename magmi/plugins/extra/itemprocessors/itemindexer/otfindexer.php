@@ -12,7 +12,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly indexer",
             "author" => "Dweeves",
-            "version" => "0.1.2b1"
+            "version" => "0.1.2b2"
             );
 	}
 
@@ -76,7 +76,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 		$sql="SELECT cce.path as cpath,SUBSTR(cce.path,LOCATE('/',cce.path,3)+1) as cshortpath,csg.default_store_id as store_id,cce.entity_id as catid
 			  FROM {$this->tns["ccp"]} as ccp 
 			  JOIN {$this->tns["cce"]} as cce ON cce.entity_id=ccp.category_id 
-			  JOIN {$this->tns["csg"]} as csg ON csg.root_category_id=SUBSTR(cce.path,3,LOCATE('/',cce.path)-1) 
+			  JOIN {$this->tns["csg"]} as csg ON csg.root_category_id=SUBSTR(SUBSTRING_INDEX(cce.path,'/',2),LOCATE('/',SUBSTRING_INDEX(cce.path,'/',2))+1)
 			  WHERE ccp.product_id=?";
 		$result=$this->selectAll($sql,$pid);
 		$cpaths=array();
@@ -120,7 +120,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 				 JOIN {$this->tns["cpe"]} as cpe ON ccp.product_id=cpe.entity_id
 				 JOIN {$this->tns["cpei"]} as cpei ON cpei.attribute_id=? AND cpei.entity_id=cpe.entity_id
 				 JOIN {$this->tns["cce"]} as cce ON cce.entity_id IN ($catidin)
-				 JOIN {$this->tns["csg"]} as csg ON csg.root_category_id=SUBSTR(cce.path,3,LOCATE('/',cce.path)-1) 
+				 JOIN {$this->tns["csg"]} as csg ON csg.root_category_id=SUBSTR(SUBSTRING_INDEX(cce.path,'/',2),LOCATE('/',SUBSTRING_INDEX(cce.path,'/',2))+1)
 				 WHERE ccp.product_id=?
 	    		 ORDER by is_parent DESC,csg.default_store_id,cce.entity_id";
 		//build data array for request
@@ -189,9 +189,11 @@ class ItemIndexer extends Magmi_ItemProcessor
 				}
 	
 			}
-			$sqlprodcat="INSERT IGNORE INTO {$this->tns["curw"]} (product_id,store_id,category_id,id_path,target_path,request_path,is_system) VALUES ".implode(",",$vstr);
-			$this->insert($sqlprodcat,$data);
-			
+			if(count($vstr)>0)
+			{
+				$sqlprodcat="INSERT IGNORE INTO {$this->tns["curw"]} (product_id,store_id,category_id,id_path,target_path,request_path,is_system) VALUES ".implode(",",$vstr);
+				$this->insert($sqlprodcat,$data);
+			}
 			//now insert category url rewrite
 			
 			unset($data);
@@ -261,7 +263,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 	public function buildUrlRewrite($pid)
 	{
 		
-		$purlk=builProductUrlRewrite($pid);
+		$purlk=$this->builProductUrlRewrite($pid);
 		if($this->getParam("OTFI:usecatinurl"))
 		{
 		 $this->buildUrlCatProdRewrite($pid,$purlk);	
