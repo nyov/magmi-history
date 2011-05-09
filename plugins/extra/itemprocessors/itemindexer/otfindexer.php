@@ -6,13 +6,14 @@ class ItemIndexer extends Magmi_ItemProcessor
 	protected $_toindex;
 	protected $tns;
 	protected $visinf;
+	protected $catpaths;
 	
 	public function getPluginInfo()
 	{
 		return array(
             "name" => "On the fly indexer",
             "author" => "Dweeves",
-            "version" => "0.1.2b2"
+            "version" => "0.1.2c"
             );
 	}
 
@@ -165,7 +166,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 				foreach($result as $row)
 				{
 					$catid=$row["catid"];
-					$cname[$catid]=$row["value"];
+					$cnames[$catid]=$row["value"];
 				}
 				
 				foreach($paths as $pinfo)
@@ -175,12 +176,13 @@ class ItemIndexer extends Magmi_ItemProcessor
 					$names=array();
 					foreach($cpids as $cpid)
 					{
-						$names[]=$cname[$cpid];
+						$names[]=$cnames[$cpid];
 					}
 					//make string with that
 					$namestr=implode("/",$names);
 					//build category url key (allow / in slugging)
 					$curlk=Slugger::slug($namestr,true);
+					
 					//product + category url entries request
 					$catid=$pinfo["catid"];
 					$sdata=array($pid,$storeid,$catid,"product/$pid/$catid","catalog/product/view/id/$pid/category/$catid","$curlk/$purlk",1);
@@ -194,7 +196,9 @@ class ItemIndexer extends Magmi_ItemProcessor
 				$sqlprodcat="INSERT IGNORE INTO {$this->tns["curw"]} (product_id,store_id,category_id,id_path,target_path,request_path,is_system) VALUES ".implode(",",$vstr);
 				$this->insert($sqlprodcat,$data);
 			}
+			
 			//now insert category url rewrite
+			$this->buildCatUrlRewrite($catpathlist,$cnames);
 			
 			unset($data);
 			unset($sdata);
@@ -202,9 +206,35 @@ class ItemIndexer extends Magmi_ItemProcessor
 	}
 	
 	
-	public function buildCatUrlRewrites($pid)
+	public function buildCatUrlRewrite($catpathlist,$cnames)
 	{
-			
+		$vstr=array();
+		$data=array();
+		foreach($catpathlist as $storeid=>$paths)
+		{
+			foreach($paths as $pinfo)
+			{
+				$sp=$pinfo["cshortpath"];
+				$cpids=explode("/",$sp);
+				$names=array();			
+				foreach($cpids as $cpid)
+				{
+					$names[]=$cnames[$cpid];
+					//make string with that
+					$namestr=implode("/",$names);
+					//build category url key (allow / in slugging)
+					$curlk=Slugger::slug($namestr,true);
+					$cdata=array($storeid,$cpid,"category/$cpid","catalog/category/view/id/$cpid","$curlk",1);
+					$vstr[]="(".$this->arr2values($cdata).")";
+					$data=array_merge($data,$cdata);
+				}	
+			}
+		}	
+		if(count($vstr)>0)
+		{
+			$sqlcat="INSERT IGNORE INTO {$this->tns["curw"]} (store_id,category_id,id_path,target_path,request_path,is_system) VALUES ".implode(",",$vstr);
+			$this->insert($sqlcat,$data);
+		}
 	}
 	
 	public function builProductUrlRewrite($pid)
@@ -347,7 +377,6 @@ class ItemIndexer extends Magmi_ItemProcessor
 			$pid=$this->_toindex["pid"];
 			$this->buildCatalogCategoryProductIndex($pid);
 			$this->buildUrlRewrite($pid);
-			$this->buildPrinceIndex($pid);
 			$this->_toindex=null;
 		}		
 		
