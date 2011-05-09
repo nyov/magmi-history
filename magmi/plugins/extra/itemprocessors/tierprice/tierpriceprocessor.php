@@ -47,13 +47,33 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 			foreach($tpcol as $k)
 			{
 				$tpinf=$this->_tpcol[$k];
-				$cgids[]=$tpinf["id"];
-			}
-			$instr=$this->arr2values($cgids);
+				if($tpinf["id"]!=null)
+				{
+					$cgids[]=$tpinf["id"];
+				}
+				else
+				{
+					$cgids=array();
+					break;
+				}
 			
-			//clear tier prices for selected tier price columns
-			$sql="DELETE FROM $tpn WHERE product_id=? AND customer_group_id IN ($instr)";
-			$this->delete($sql,array_merge(array($pid),$cgids));
+			}
+			//if we have specific customer groups
+			if(count($cgids)>0)
+			{
+				//delete only for thos customer groups
+				$instr=$this->arr2values($cgids);
+			
+				//clear tier prices for selected tier price columns
+				$sql="DELETE FROM $tpn WHERE product_id=? AND customer_group_id IN ($instr)";
+				$this->delete($sql,array_merge(array($pid),$cgids));
+			}
+			else
+			{
+				//delete for all customer groups
+				$sql="DELETE FROM $tpn WHERE product_id=?";
+				$this->delete($sql,$pid);
+			}
 		}
 		
 		foreach($tpcol as $k)
