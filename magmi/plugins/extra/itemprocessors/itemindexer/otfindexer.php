@@ -199,10 +199,15 @@ class ItemIndexer extends Magmi_ItemProcessor
 			unset($vstr);
 	}
 	
-	public function buildUrlRewrite($pid)
+	
+	public function buildCatUrlRewrites($pid)
 	{
-		
-		$sql="SELECT ea.attribute_code,cpei.value,cpev.attribute_id,cpev.value 
+			
+	}
+	
+	public function builProductUrlRewrite($pid)
+	{
+			$sql="SELECT ea.attribute_code,cpei.value,cpev.attribute_id,cpev.value 
 			  FROM {$this->tns["cpe"]} AS cpe
 			  JOIN {$this->tns["ea"]} as ea ON ea.attribute_code IN ('url_key','name')
 			  JOIN {$this->tns["cpev"]} as cpev ON cpev.entity_id=cpe.entity_id AND cpev.attribute_id=ea.attribute_id
@@ -250,7 +255,13 @@ class ItemIndexer extends Magmi_ItemProcessor
 		//insert lines
 		$sqlprod="INSERT IGNORE INTO {$this->tns["curw"]} (product_id,store_id,id_path,target_path,request_path,is_system) $produrlsql";
 		$this->insert($sqlprod,array($purlk,$pid));
-
+		return $purlk;
+	}
+	
+	public function buildUrlRewrite($pid)
+	{
+		
+		$purlk=builProductUrlRewrite($pid);
 		if($this->getParam("OTFI:usecatinurl"))
 		{
 		 $this->buildUrlCatProdRewrite($pid,$purlk);	
