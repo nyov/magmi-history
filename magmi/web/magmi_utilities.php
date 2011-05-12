@@ -3,6 +3,46 @@
 	require_once("../engines/magmi_utilityengine.php");
 	
 ?>
+<script type="text/javascript">
+
+	updatePanel=function(pclass,pparams)
+	{
+		params={
+			engine:'magmi_utilityengine:Magmi_UtilityEngine',
+			pluginclass:pclass,
+			plugintype:'utilities',
+			profile:'__utilities__'};
+		getPluginParams(params,pparams);
+		
+		new Ajax.Updater("pluginoptions:"+pclass,"ajax_pluginconf.php",{parameters:params});
+	};
+
+	getPluginParams=function(pclass,pcontainer)
+	{
+		Object.extend(pcontainer,$(pclass+"_params").serialize(true));
+	}
+	
+	runUtility=function(pclass)
+	{
+		var pparams={
+				engine:'magmi_utilityengine:Magmi_UtilityEngine',
+				logfile:'utility_run.txt',
+				pluginclass:pclass,	
+				};
+		getPluginParams(pclass,pparams);
+		
+		new Ajax.Updater("plugin_run:"+pclass,
+						 "magmi_run.php",
+						 {parameters:pparams,
+						  onComplete:function(){updatePanel(pclass);}});
+	};
+	
+	togglePanel=function(pclass)
+	{
+		var target="pluginoptions:"+pclass;
+		$(target).toggle();
+	};
+</script>
 <div class="container_12">
 <div class="grid_12 col omega">
 <h3>Magmi Utilities</h3>
@@ -43,9 +83,13 @@
 		<span><a id="plrun_<?php echo $pclass?>" href="javascript:runUtility('<?php echo $pclass?>')" class="actionbutton " >Run Utility</a></span>
 	</div>
 	<div id="plugin_run:<?php echo $pclass?>"></div>
+		<form id="<?php echo $pclass?>_params">
+
 	<div class="pluginoptionpanel" id="pluginoptions:<?php echo $pclass?>" style="display:none">
 		<?php echo $pinst->getOptionsPanel()->getHtml()?>
 	</div>
+	</form>
+
 	</li>
 <?php }?>	
 </ul>
@@ -53,34 +97,6 @@
 </div>
 
 <script type="text/javascript">
-
-	updatePanel=function(pclass)
-	{
-		new Ajax.Updater("pluginoptions:"+pclass,"ajax_pluginconf.php",{parameters:{
-			engine:'magmi_utilityengine:Magmi_UtilityEngine',
-			pluginclass:pclass,
-			plugintype:'utilities',
-			profile:'__utilities__'}});
-	};
-	
-	runUtility=function(pclass)
-	{
-		new Ajax.Updater("plugin_run:"+pclass,
-						 "magmi_run.php",
-						 {parameters:{
-									engine:'magmi_utilityengine:Magmi_UtilityEngine',
-									logfile:'utility_run.txt',
-									pluginclass:pclass,
-									},
-						  onComplete:function(){updatePanel(pclass);}});
-	};
-	
-	togglePanel=function(pclass)
-	{
-		var target="pluginoptions:"+pclass;
-		$(target).toggle();
-	};
-
 	var warntargets=[];
 	<?php $warn=$pinst->getWarning();
 	if($warn!=null)
