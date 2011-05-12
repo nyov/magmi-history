@@ -162,8 +162,22 @@ class DBHelper
 		$this->_laststmt=$stmt;
 		if($params!=null)
 		{
-			$params=is_array($params)?$params:array($params);
-			$stmt->execute($params);
+			if(!$this->is_assoc($params))
+			{
+				$params=is_array($params)?$params:array($params);
+				$stmt->execute($params);
+			}
+			else
+			{
+				foreach($params as $pname=>$pval)
+				{
+					if(count(explode(":",$pname))==1)
+					{
+						$stmt->bindParam(":$pname",$pval);
+					}
+				}
+				$stmt->execute();
+			}	
 		}
 		else
 		{
@@ -361,5 +375,65 @@ class DBHelper
 		$this->_debug=$debug;	
 		$this->_debugfile=$debugfname;
 	}
+	
+	public function replaceParams(&$stmt,&$rparams)
+	{
+		$params=array();
+		$hasp=preg_match_all('|\[\[(.*?)\]\]|msi',$stmt,$matches);
+		if($hasp)
+		{
+			$pdefs=$matches[0];
+			$params=$matches[1];
+			
+		}
+		for($i=0;$i<count($params);$i++)
+		{
+			$param=$params[$i];
+			$pdef=$pdefs[$i];
+			$pinfo=explode("/",$param);
+			$pname=$pinfo[0];
+			$epar=explode(":",$pname);
+			if(count($epar)>1)
+			{
+				$stmt=str_replace($pdef,$rparams[$pname],$stmt);
+				unset($rparams[$pname]);
+			}
+			else
+			{
+				$stmt=str_replace($pdef,":$pname",$stmt);
+			}
+		}
+	}
+		
+	
+	public function is_assoc($var) {
+    	return is_array($var) && array_keys($var)!==range(0,sizeof($var)-1);
+	}
+	 
+	public function multipleParamRequests($sql,$params)
+	{
+		$sqllines=explode("--",$sql);
+ 		foreach($sqllines as $sqlline)
+ 		{
+ 			if($sqlline!="")
+ 			{
+ 				$subs=explode(";\n","--".$sqlline);
+ 				foreach($subs as $sub)
+ 				{
+ 					
+ 					if(trim($sub)!="" && substr($sub,0,2)!="--")
+ 					{
+ 						$stmts[]=$sub;
+ 					}
+ 				}
+ 			}	
+ 		}
+ 		foreach($stmts as $stmt)
+ 		{
+ 			$this->replaceParams($stmt,$params);
+ 			$this->exec_stmt($stmt,$params);
+ 		}	
+	}
+	
 	
 }
