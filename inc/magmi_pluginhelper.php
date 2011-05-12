@@ -164,8 +164,24 @@ class Magmi_PluginHelper
      		return array("plugin_install"=>"ERROR",
      					 "ERROR"=>"Invalid Plugin Package Archive");
      	}
-     }	
-	
+     	$packages=glob("$this->plugin_dir/*");
+     	foreach($packages as $pdir)
+     	{
+     		if(file_exists($pdir.DS."obsolete.txt"))
+     		{
+     			$content=file_get_contents($pdir.DS."obsolete.txt");
+     			$obsolete=explode("\n",$content);
+     			foreach($obsolete as $todelete)
+     			{
+     				if($todelete!="")
+     				{
+     					@unlink($pdir.DS.$todelete);
+     				}
+     			}
+     			unlink($pdir.DS."obsolete.txt");
+     		}
+     	}		
+	}
 	
 	public function removePlugin($pgpath)
 	{
