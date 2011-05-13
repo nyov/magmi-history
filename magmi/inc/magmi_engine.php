@@ -194,18 +194,22 @@ abstract class Magmi_Engine extends DbHelper
 	 * @param string $data : string to log
 	 * @param string $type : log type
 	 */
-	public function log($data,$type="default")
+	public function log($data,$type="default",$logger=null)
 	{
-		if(isset($this->logger))
+		if($logger==null)
+		{
+			$logger=$this->logger;
+		}
+		if(isset($logger))
 		{
 			$this->logger->log($data,$type);
 		}
 	}
 	
-	public function logException($e,$data="")
+	public function logException($e,$data="",$logger=null)
 	{
 		$this->trace($e,$data);
-		$this->log($this->_excid.":".$e->getMessage()." - ".$data,"error");
+		$this->log($this->_excid.":".$e->getMessage()." - ".$data,"error",$logger);
 	}
 	
 	public function getExceptionTrace($tk,&$traces)
