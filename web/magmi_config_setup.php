@@ -109,6 +109,11 @@ Zip library not available, Upgrade/Upload function are not enabled
 		</div>
 </form>
 <?php }?>
+<div class="container_12">
+<div class="grid_12">
+<a href="magmi_utilities.php">Advanced Utilities</a>
+</div>
+</div>
 <div class="container_12" >
 <div class="grid_12 subtitle"><span>Configure Global Parameters</span>
 <span id="commonconf_msg" class="saveinfo">
