@@ -173,7 +173,7 @@ class DBHelper
 				{
 					if(count(explode(":",$pname))==1)
 					{
-						$stmt->bindParam(":$pname",$pval);
+						$stmt->bindParam(":$pname",strval($pval));
 					}
 				}
 				$stmt->execute();
