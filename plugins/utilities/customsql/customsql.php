@@ -38,12 +38,13 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 		{
 			$pinfo=explode("/",$param);
 			$plabel=(count($pinfo)==1)?$pinfo[0]:$pinfo[1];
+			$pdefault=(count($pinfo)>2?$pinfo[2]:"");
 			$pname=$pinfo[0];
 			$epar=explode(":",$pname);
 			$addit=$noprefix && count($epar)==1 || !$noprefix;
 			if($addit)
 			{
-				$outparams[$plabel]=$pname;
+				$outparams[$plabel]=array("name"=>$pname,"default"=>$pdefault);
 			}
 		}
 		return $outparams;
