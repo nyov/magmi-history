@@ -5,7 +5,7 @@
 	$_SESSION["last_runned_profile"]=$profile;
 	
 	$mode=isset($_REQUEST['mode'])?$_REQUEST['mode']:null;
-	
+	session_write_close();
 	
 	?>
 	<div class="clear"></div>
@@ -35,15 +35,17 @@
 	
 	endImport=function(t)
 	{
-		$('cancel_button').hide();
-		window.upd.stop();
-		window.upd=null;
-		updateTime('endimport_div','Import Ended');
-		if(window._sr!=null)
+		if(window.upd!=null)
 		{
-			
-			window._sr.transport.abort();
-			window._sr=null;
+			$('cancel_button').hide();
+			window.upd.stop();
+			window.upd=null;
+			updateTime('endimport_div','Import Ended');
+			if(window._sr!=null)
+			{		
+				window._sr.transport.abort();
+				window._sr=null;
+			}
 		}
 	}
 
@@ -77,10 +79,13 @@
 	cancelImport=function()
 	{
 		var rq=new Ajax.Request("magmi_cancel.php",{method:'get'});
-		window._sr.transport.abort();
-		window._sr=null;
+		if(window._sr!=null)
+		{
+			window._sr.transport.abort();
+			window._sr=null;
+		}
 	}
-	
+
 	<?php if($mode!==null){?>
 	startImport();
 	<?php }else{
