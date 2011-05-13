@@ -95,7 +95,13 @@
 </ul>
 </div>
 </div>
-
+<div class="container_12">
+<div class="grid_12">
+<a href="magmi.php">
+Back to Magmi Config Interface
+</a>
+</div>
+</div>
 <script type="text/javascript">
 	var warntargets=[];
 	<?php $warn=$pinst->getWarning();
