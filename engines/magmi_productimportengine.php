@@ -58,7 +58,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.6a","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.7","author"=>"dweeves");
 	}
 	
 	/**
@@ -774,14 +774,15 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$sql="SELECT entity_id FROM $cce
 			  WHERE entity_id IN (".$item['category_ids'].")";
 		$ccpt=$this->tablename("catalog_category_product");
-		#remove category assignment of current product
-		#only for current store
-		$sql="DELETE $ccpt.*
-		FROM $ccpt
-		JOIN $cce ON $cce.entity_id=$ccpt.category_id
-		WHERE product_id=?";
-		$this->delete($sql,$pid);
-
+		#handle assignment reset
+		if(!isset($item["category_reset"]) || $item["category_reset"]==1)
+		{
+			$sql="DELETE $ccpt.*
+			FROM $ccpt
+			JOIN $cce ON $cce.entity_id=$ccpt.category_id
+			WHERE product_id=?";
+			$this->delete($sql,$pid);
+		}
 		$inserts=array();
 		$data=array();
 		foreach($catids as $catid)
