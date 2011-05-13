@@ -10,10 +10,10 @@ if(isset($dr))
 {
 	$rparams=$this->getRequestParameters($dr,true);
 }
-foreach($rparams as $plabel=>$pname)
+foreach($rparams as $plabel=>$pinfo)
 {?>
 <ul class="formline">
 <li class="label"><?php echo $plabel	?> </li>
-<li class="value"><input name="UTCSQL:<?php echo $pname?>" type="text" value="<?php echo $this->getParam("UTCSQL:$pname") ?>"></input></li>
+<li class="value"><input name="UTCSQL:<?php echo $pinfo["name"]?>" type="text" value="<?php echo $this->getParam("UTCSQL:{$pinfo["name"]}",$pinfo["default"]) ?>"></input></li>
 </ul>
 <?}
