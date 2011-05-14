@@ -159,7 +159,8 @@ class ItemIndexer extends Magmi_ItemProcessor
 			 	JOIN {$this->tns["ea"]} as ea2 ON ea2.attribute_code ='name' AND ea2.entity_type_id=ea1.entity_type_id
 			  	JOIN {$this->tns["ccev"]} as ccevd ON ccevd.attribute_id=ea2.attribute_id AND ccevd.entity_id=cce.entity_id AND ccevd.store_id=0
 			  	LEFT JOIN {$this->tns["ccev"]} as ccev ON ccev.attribute_id=ea2.attribute_id AND ccev.entity_id=cce.entity_id AND ccev.store_id=?
-			  	WHERE cce.entity_id IN ($catin)";
+			  	WHERE cce.entity_id IN ($catin)
+			  	GROUP BY cce.entity_id";
 				$result=$this->selectAll($sql,array_merge(array($storeid),$catids));
 				$cnames=array();
 				//iterate on all names
