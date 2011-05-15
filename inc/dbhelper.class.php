@@ -173,7 +173,8 @@ class DBHelper
 				{
 					if(count(explode(":",$pname))==1)
 					{
-						$stmt->bindParam(":$pname",strval($pval));
+						$val=strval($pval);
+						$stmt->bindValue(":$pname",$val);
 					}
 				}
 				$stmt->execute();
@@ -396,11 +397,21 @@ class DBHelper
 			if(count($epar)>1)
 			{
 				$stmt=str_replace($pdef,$rparams[$pname],$stmt);
-				unset($rparams[$pname]);
 			}
 			else
 			{
 				$stmt=str_replace($pdef,":$pname",$stmt);
+			}
+		}
+		for($i=0;$i<count($params);$i++)
+		{
+			$param=$params[$i];
+			$pinfo=explode("/",$param);
+			$pname=$pinfo[0];
+			$epar=explode(":",$pname);
+			if(count($epar)>1)
+			{
+				unset($rparams[$pname]);
 			}
 		}
 	}
