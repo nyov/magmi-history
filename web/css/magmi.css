@@ -548,3 +548,21 @@ li.utility
 	clear:both;
 	border:1px solid #000000;
 }
+
+.pluginrun_results 
+{
+	border:1px solid #0000cc;
+}
+
+p.logentry
+{
+ margin:0px;
+ padding:0px;
+ border-bottom:1px solid #cccccc;
+}
+
+.pluginrun_results h3
+{
+ background-color:#0000cc;
+ color:#ffffff;
+} 
