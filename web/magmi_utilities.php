@@ -1,7 +1,7 @@
 <?php
 	require_once("header.php");
 	require_once("../engines/magmi_utilityengine.php");
-	
+
 ?>
 <script type="text/javascript">
 
@@ -26,15 +26,18 @@
 	{
 		var pparams={
 				engine:'magmi_utilityengine:Magmi_UtilityEngine',
-				logfile:'utility_run.txt',
 				pluginclass:pclass,	
 				};
 		getPluginParams(pclass,pparams);
 		
-		new Ajax.Updater("plugin_run:"+pclass,
+		new Ajax.Updater("plugin_run:"+pclass+"_res",
 						 "magmi_run.php",
 						 {parameters:pparams,
-						  onComplete:function(){updatePanel(pclass);}});
+						  onComplete:function(){
+			  				$$(".pluginrun_results").each(function(el){el.hide();});
+							$("plugin_run:"+pclass).show();
+			  				updatePanel(pclass);}
+						});
 	};
 	
 	togglePanel=function(pclass)
@@ -82,7 +85,6 @@
 	<div class="utility_run">
 		<span><a id="plrun_<?php echo $pclass?>" href="javascript:runUtility('<?php echo $pclass?>')" class="actionbutton " >Run Utility</a></span>
 	</div>
-	<div id="plugin_run:<?php echo $pclass?>"></div>
 		<form id="<?php echo $pclass?>_params">
 
 	<div class="pluginoptionpanel" id="pluginoptions:<?php echo $pclass?>" style="display:none">
@@ -93,6 +95,20 @@
 	</li>
 <?php }?>	
 </ul>
+</div>
+<div class="grid_12">
+<?php foreach($plist as $pinst)
+{
+	$pclass=$pinst->getPluginClass();
+	$pinfo=$pinst->getPluginInfo();?>
+	
+		<div id="plugin_run:<?php echo $pclass?>" class="pluginrun_results" style="display:none">
+	<h3><?php echo $pinfo["name"]." v".$pinfo["version"];?> Results</h3>
+	<div id="plugin_run:<?php echo $pclass?>_res">
+	</div>
+	</div>
+	
+<?php }?>
 </div>
 </div>
 <div class="container_12">
