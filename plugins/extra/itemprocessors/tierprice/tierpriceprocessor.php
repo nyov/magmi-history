@@ -14,7 +14,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Tier price importer",
             "author" => "Dweeves",
-            "version" => "0.0.3"
+            "version" => "0.0.4"
             );
 	}
 
@@ -65,13 +65,13 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 				$instr=$this->arr2values($cgids);
 			
 				//clear tier prices for selected tier price columns
-				$sql="DELETE FROM $tpn WHERE product_id=? AND customer_group_id IN ($instr)";
+				$sql="DELETE FROM $tpn WHERE entity_id=? AND customer_group_id IN ($instr)";
 				$this->delete($sql,array_merge(array($pid),$cgids));
 			}
 			else
 			{
 				//delete for all customer groups
-				$sql="DELETE FROM $tpn WHERE product_id=?";
+				$sql="DELETE FROM $tpn WHERE entity_id=?";
 				$this->delete($sql,$pid);
 			}
 		}
