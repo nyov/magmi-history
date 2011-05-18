@@ -9,7 +9,7 @@ class ImportLimiter extends Magmi_ItemProcessor
 	{
 		return array("name"=>"Magmi Import Limiter",
 					 "author"=>"Dweeves",
-					 "version"=>"0.0.3");
+					 "version"=>"0.0.4");
 	}
 	
 	
@@ -77,12 +77,17 @@ class ImportLimiter extends Magmi_ItemProcessor
 	public function parseFilters($fltstr)
 	{
 		$this->_filters=array();
+		if($fltstr=="")
+		{	
+			return;
+		}
 		$fltlist=explode(";;",$fltstr);
 		foreach($fltlist as $fltdef)
 		{
 			$fltinf=explode("::",$fltdef);
 			$this->_filters[]=$fltinf;			
 		}
+		
 	}
 	
 	public function parseRanges($rangestr)
