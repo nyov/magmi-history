@@ -312,6 +312,13 @@ class DBHelper
 		return $str;
 	}
 	
+	public function arr2select($arr,$cname="id")
+	{
+		$rpt=str_repeat("? AS $cname UNION SELECT ",count($arr));
+		$subsel=substr($rpt,0,-1*strlen(" UNION SELECT "));
+		return "(SELECT $subsel)";
+	}
+	
 	public function arr2update($arr)
 	{
 		$arrout=array();
