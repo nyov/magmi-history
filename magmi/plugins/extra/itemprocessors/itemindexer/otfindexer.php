@@ -197,10 +197,11 @@ class ItemIndexer extends Magmi_ItemProcessor
 				$sqlprodcat="INSERT IGNORE INTO {$this->tns["curw"]} (product_id,store_id,category_id,id_path,target_path,request_path,is_system) VALUES ".implode(",",$vstr);
 				$this->insert($sqlprodcat,$data);
 			}
-			
-			//now insert category url rewrite
-			$this->buildCatUrlRewrite($catpathlist,$cnames);
-			
+			if(count($catpathlist)>0)
+			{
+				//now insert category url rewrite
+				$this->buildCatUrlRewrite($catpathlist,$cnames);
+			}
 			unset($data);
 			unset($sdata);
 			unset($vstr);

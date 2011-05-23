@@ -456,7 +456,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			};
 			return false;
 		}
-		
+		$checkexist= ($this->getParam("IMG:existingonly")=="yes");
 		$curlh=false;
 		$bimgfile=$this->getTargetName(basename($imgfile),$item,$extra);
 		//source file exists
@@ -487,7 +487,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{			
 				$exists=($this->getImageFSPath($imgfile,true)!==false);
 			}
-			if(!$exists)
+			if(!$exists && $checkexist)
 			{
 				$this->log("$fname not found, skipping image","warning");
 				$this->fillErrorAttributes($item);
@@ -495,44 +495,47 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				$this->destroyUrlContext($curlh);
 				return false;
 			}
-			/* test if 1st level product media dir exists , create it if not */
-			if(!file_exists("$l1d"))
+			if($exists)
 			{
-				$tst=@mkdir($l1d,0777);
-				if(!$tst)
+				/* test if 1st level product media dir exists , create it if not */
+				if(!file_exists("$l1d"))
 				{
-					$errors= error_get_last();
-					$this->log("error creating $l1d: {$errors["type"]},{$errors["message"]}","warning");
-					unset($errors);
-					$this->destroyUrlContext($curlh);
-					return false;
+					$tst=@mkdir($l1d,0777);
+					if(!$tst)
+					{
+						$errors= error_get_last();
+						$this->log("error creating $l1d: {$errors["type"]},{$errors["message"]}","warning");
+						unset($errors);
+						$this->destroyUrlContext($curlh);
+						return false;
+					}
 				}
-			}
-			/* test if 2nd level product media dir exists , create it if not */
-			if(!file_exists("$l2d"))
-			{
-				$tst=@mkdir($l2d,0777);
-				if(!$tst)
+				/* test if 2nd level product media dir exists , create it if not */
+				if(!file_exists("$l2d"))
 				{
-					$errors= error_get_last();
-					$this->log("error creating $l2d: {$errors["type"]},{$errors["message"]}","warning");
-					unset($errors);
-					$this->destroyUrlContext($curlh);
-					return false;
+					$tst=@mkdir($l2d,0777);
+					if(!$tst)
+					{
+						$errors= error_get_last();
+						$this->log("error creating $l2d: {$errors["type"]},{$errors["message"]}","warning");
+						unset($errors);
+						$this->destroyUrlContext($curlh);
+						return false;
+					}
 				}
-			}
 
-			if(!$this->saveImage($imgfile,"$l2d/$bimgfile",$curlh))
-			{
-				$errors=error_get_last();
-				$this->fillErrorAttributes($item);
-				$this->log("error copying $l2d/$bimgfile : {$errors["type"]},{$errors["message"]}","warning");
-				unset($errors);
+				if(!$this->saveImage($imgfile,"$l2d/$bimgfile",$curlh))
+				{
+					$errors=error_get_last();
+					$this->fillErrorAttributes($item);
+					$this->log("error copying $l2d/$bimgfile : {$errors["type"]},{$errors["message"]}","warning");
+					unset($errors);
+					$this->destroyUrlContext($curlh);
+					return false;
+				}
 				$this->destroyUrlContext($curlh);
-				return false;
-			}
-			$this->destroyUrlContext($curlh);
-			@chmod("$l2d/$bimgfile",0664);			
+				@chmod("$l2d/$bimgfile",0664);
+			}			
 		}
 		$this->_lastimage=$result;
 		/* return image file name relative to media dir (with leading / ) */
