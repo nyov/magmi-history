@@ -31,6 +31,12 @@ if you've got 5 stores,i will create 5 different copies of the input image &amp;
 <option value="keep" <?php if($iwm=="keep"){?>selected="selected"<?php }?>>Keep existing images</option>
 <option value="override" <?php if($iwm=="override"){?>selected="selected"<?php }?>>Override existing images</option>
 </select>
+<span>Assign only existing images</span>
+<select name="IMG:existingonly">
+<?php $existonly=$this->getParam("IMG:existingonly","no");?>
+<option value="yes" <?php if($existonly=="yes"){?>selected="selected"<?php }?>>Yes</option>
+<option value="no" <?php if($existonly=="no"){?>selected="selected"<?php }?>>No</option>
+</select>
 </div>
 <ul class="formline">
 	<li class="label">Change attributes on image error</li>
