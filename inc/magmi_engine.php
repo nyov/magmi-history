@@ -17,6 +17,7 @@ abstract class Magmi_Engine extends DbHelper
 	protected $_connected;
 	protected $_activeplugins;
 	protected $_pluginclasses;
+	protected $_builtinplugins=array();
 	private $_excid=0;
 	public $logger=null;
 	
@@ -31,6 +32,7 @@ abstract class Magmi_Engine extends DbHelper
 		mb_internal_encoding("UTF-8");
 	}
 	
+
 	public final  function initialize($params=array())
 	{
 		try
@@ -80,7 +82,21 @@ abstract class Magmi_Engine extends DbHelper
 	
 	public function getBuiltinPluginClasses()
 	{
-		return array();
+		$bplarr=array();
+		
+		foreach($this->_builtinplugins as $pfamily=>$pdef)
+		{
+			$plinfo=explode("::",$pdef);
+			$pfile=$plinfo[0];
+			$pclass=$plinfo[1];
+			require_once($pfile);
+			if(!isset($bplarr[$pfamily]))
+			{
+				$bplarr[$pfamily]=array();
+			}
+			$bplarr[$pfamily][]=$pclass;
+		}
+		return $bplarr;
 	}
 	
 	public function getPluginClasses()
@@ -102,10 +118,23 @@ abstract class Magmi_Engine extends DbHelper
 		return $pil;
 	}
 	
+	public function setBuiltinPluginClasses($pfamily,$pclasses)
+	{
+		$this->_builtinplugins[$pfamily]=$pclasses;
+	}
+	
 	public function createPlugins($profile,$params)
 	{
 		$plhelper=Magmi_PluginHelper::getInstance($profile);
 		$this->_pluginclasses = array_merge_recursive($this->_pluginclasses,$this->getBuiltinPluginClasses());
+		foreach($this->_pluginclasses as $pfamily=>$pclasses)
+		{
+			if($pfamily[0]=="*")
+			{
+				$this->_pluginclasses[substr($pfamily,1)]=$pclasses;
+				unset($this->_pluginclasses[$pfamily]);
+			}
+		}
 		foreach($this->_pluginclasses as $pfamily=>$pclasses)
 		{
 			if(!isset($this->_activeplugins[$pfamily]))
@@ -137,8 +166,12 @@ abstract class Magmi_Engine extends DbHelper
 		return $inst;
 	}
 	
-	public function getPluginInstance($family,$order=0)
+	public function getPluginInstance($family,$order=-1)
 	{
+		if($order<0)
+		{
+			$order+=count($this->_activeplugins[$family]);
+		}
 		return $this->_activeplugins[$family][$order];	
 	}
 	

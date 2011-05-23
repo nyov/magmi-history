@@ -1,6 +1,10 @@
 <?php
 class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 {
+	protected $_basecols=array("store"=>"admin","websites"=>"base","type"=>"simple","attribute_set"=>"Default");
+	protected $_baseattrs=array("status"=>1,"visibility"=>4,"page_layout"=>"");
+	protected $_missingcols=array();
+	protected $_missingattrs=array();
 	
 	public function initialize($params)
 	{
@@ -14,6 +18,44 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
             "author" => "Dweeves",
             "version" => "1.0.0"
             );
+	}
+	
+	public function processColumnList(&$cols)
+	{
+		$this->_missingcols=array_diff(array_keys($this->_basecols),$cols);
+		$this->_missingattrs=array_diff(array_keys($this->_baseattrs),$cols);
+		$cols=array_merge($cols,$this->_missingcols,$this->_missingattrs);
+	}
+	
+	public function initializeBaseCols(&$item)
+	{
+		foreach($this->_missingcols as $missing)
+		{
+			$item[$missing]=$this->_basecols[$missing];
+		}
+	}
+	
+	public function initializeBaseAttrs(&$item)
+	{
+		foreach($this->_missingattrs as $missing)
+		{
+			$item[$missing]=$this->_baseattrs[$missing];
+		}
+	}
+	
+	public function processItemBeforeId(&$item,$params=null)
+	{
+		$this->initializeBaseCols($item);
+		return true;
+	}
+
+	public function processItemAfterId(&$item,$params=null)
+	{
+		if($params["new"]==true)
+		{
+			$this->initializeBaseAttrs($item);
+		}
+		return true;
 	}
 	
 	/**

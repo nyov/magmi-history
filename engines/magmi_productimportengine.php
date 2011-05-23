@@ -41,7 +41,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	
 	
 	
-
 	public function addExtraAttribute($attr)
 	{
 		$attinfo=$this->attrinfo[$attr];
@@ -54,6 +53,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function __construct()
 	{
+		$this->setBuiltinPluginClasses("itemprocessors",dirname(dirname(__FILE__))."/plugins/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor");	
 	}
 
 	public function getEngineInfo()
@@ -204,62 +204,77 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	
 	public function initAttrInfos($cols)
 	{
-		//Find product entity type
-		$tname=$this->tablename("eav_entity_type");
-		$this->prod_etype=$this->selectone("SELECT entity_type_id FROM $tname WHERE entity_type_code=?","catalog_product","entity_type_id");
-		//create statement parameter string ?,?,?.....
-		$qcolstr=$this->arr2values($cols);
-		
-		$tname=$this->tablename("eav_attribute");
-		if($this->magversion=="1.4.x")
+		if($this->prod_etype==null)
 		{
-			$extra=$this->tablename("catalog_eav_attribute");
-			//SQL for selecting attribute properties for all wanted attributes
-			$sql="SELECT `$tname`.*,$extra.is_global FROM `$tname`
-			LEFT JOIN $extra ON $tname.attribute_id=$extra.attribute_id
-			WHERE  ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=$this->prod_etype)";		
+			//Find product entity type
+			$tname=$this->tablename("eav_entity_type");
+			$this->prod_etype=$this->selectone("SELECT entity_type_id FROM $tname WHERE entity_type_code=?","catalog_product","entity_type_id");
 		}
-		else
-		{
-			$sql="SELECT `$tname`.* FROM `$tname` WHERE ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=$this->prod_etype)";
-		}
-		$result=$this->selectAll($sql,$cols);
 
-		//create an attribute code based array for the wanted columns
-		foreach($result as $r)
+		$toscan=array_values(array_diff($cols,array_keys($this->attrinfo)));
+		if(count($toscan>0))
 		{
-			$this->attrinfo[$r["attribute_code"]]=$r;
-		}
-		unset($result);
-		//create a backend_type based array for the wanted columns
-		//this will greatly help for optimizing inserts when creating attributes
-		//since eav_ model for attributes has one table per backend type
-		foreach($this->attrinfo as $k=>$a)
-		{
-			//do not index attributes that are not in header (media_gallery may have been inserted for other purposes)
-			if(!in_array($k,$cols))
-			{
-				continue;
-			}
-			$bt=$a["backend_type"];
-			if(!isset($this->attrbytype[$bt]))
-			{
-				$this->attrbytype[$bt]=array("data"=>array());
-
-			}
-			$this->attrbytype[$bt]["data"][]=$a;
-		}
-		//now add a fast index in the attrbytype array to store id list in a comma separated form
-		foreach($this->attrbytype as $bt=>$test)
-		{
-			$idlist;
-			foreach($test["data"] as $it)
-			{
-				$idlist[]=$it["attribute_id"];
-			}
-			$this->attrbytype[$bt]["ids"]=implode(",",$idlist);
-		}
+			//create statement parameter string ?,?,?.....
+			$qcolstr=$this->arr2values($toscan);
 		
+			$tname=$this->tablename("eav_attribute");
+			if($this->magversion=="1.4.x")
+			{
+				$extra=$this->tablename("catalog_eav_attribute");
+				//SQL for selecting attribute properties for all wanted attributes
+				$sql="SELECT `$tname`.*,$extra.is_global FROM `$tname`
+				LEFT JOIN $extra ON $tname.attribute_id=$extra.attribute_id
+				WHERE  ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=?)";		
+			}
+			else
+			{
+				$sql="SELECT `$tname`.* FROM `$tname` WHERE ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=?)";
+			}
+			$toscan[]=$this->prod_etype;
+			$result=$this->selectAll($sql,$toscan);
+
+			$attrinfs=array();
+			//create an attribute code based array for the wanted columns
+			foreach($result as $r)
+			{
+				$attrinfs[$r["attribute_code"]]=$r;
+			}
+			unset($result);
+		
+			//create a backend_type based array for the wanted columns
+			//this will greatly help for optimizing inserts when creating attributes
+			//since eav_ model for attributes has one table per backend type
+			foreach($attrinfs as $k=>$a)
+			{
+				//do not index attributes that are not in header (media_gallery may have been inserted for other purposes)
+				if(!in_array($k,$cols))
+				{
+					continue;
+				}
+				$bt=$a["backend_type"];
+				if(!isset($this->attrbytype[$bt]))
+				{
+					$this->attrbytype[$bt]=array("data"=>array());	
+				}
+				$this->attrbytype[$bt]["data"][]=$a;
+			}
+			//now add a fast index in the attrbytype array to store id list in a comma separated form
+			foreach($this->attrbytype as $bt=>$test)
+			{
+				$idlist;
+				foreach($test["data"] as $it)
+				{
+					$idlist[]=$it["attribute_id"];
+				}
+				$this->attrbytype[$bt]["ids"]=implode(",",$idlist);
+			}
+			$this->attrinfo=array_merge($this->attrinfo,$attrinfs);
+		}
+		$notattribs=array_diff($cols,array_keys($this->attrinfo));
+		foreach($notattribs as $k)
+		{
+			$this->attrinfo[$k]=null;
+		}
 		/*now we have 2 index arrays
 		 1. $this->attrinfo  which has the following structure:
 		 key : attribute_code
@@ -919,7 +934,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			return false;
 		}
-		
 		$itemids=$this->getItemIds($item);
 		$pid=$itemids["pid"];
 		$asid=$itemids["asid"];
@@ -1024,15 +1038,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		return $count;
 	}
 
-
 	
-	public function getBuiltinPluginClasses()
-	{
-		//force include for this "special" handler
-		$plpath=dirname(dirname(__FILE__))."/plugins/inc/magmi_defaultattributehandler.php";
-		require_once($plpath);
-		return array("itemprocessors"=>"Magmi_DefaultAttributeItemProcessor");
-	}
 	
 
 	
@@ -1057,7 +1063,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$this->_profile=$this->getParam($params,"profile","default");
 		$this->initPlugins($this->_profile);
 		$this->mode=$this->getParam($params,"mode","update");
-		$this->createPlugins($this->_profile,$params);
+		
 	}
 	
 	
@@ -1071,13 +1077,48 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$tdiff=microtime(true);
 	}
 	
-	public function engineRun($params)
+	
+	
+	public function initImport($params)
 	{
 		$this->log("Import Mode:$this->mode","startup");
 		$this->log("MAGMI by dweeves - version:".Magmi_Version::$version,"title");
 		$this->log("step:".$this->getProp("GLOBAL","step",0.5)."%","step");
-		//initialize db connectivity
-		$this->datasource=$this->getPluginInstance("datasources",0);
+		//intialize store id cache
+		$this->connectToMagento();
+		try
+		{
+			$this->initWebsites();
+			$this->initProdType();
+			$this->createPlugins($this->_profile,$params);
+			$this->callPlugins("datasources,itemprocessors","startImport");
+		}
+		catch(Exception $e)
+		{
+		 $this->disconnectFromMagento();	
+		}
+	}
+	
+	public function exitImport()
+	{
+		$this->callPlugins("datasources,general,itemprocessors","endImport");
+		$this->callPlugins("datasources,general,itemprocessors","afterImport");
+		$this->disconnectFromMagento();
+	}
+	
+	public function getDataSource()
+	{
+		return $this->getPluginInstance("datasources");
+		
+	}
+	
+	public function engineRun($params,$forcebuiltin=array())
+	{
+		$this->log("Import Mode:$this->mode","startup");
+		$this->log("MAGMI by dweeves - version:".Magmi_Version::$version,"title");
+		$this->log("step:".$this->getProp("GLOBAL","step",0.5)."%","step");
+		$this->createPlugins($this->_profile,$params);
+		$this->datasource=$this->getDataSource();	
 		$this->callPlugins("datasources,general","beforeImport");			
 		$nitems=$this->lookup();
 		Magmi_StateManager::setState("running");
@@ -1156,14 +1197,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				}
 				unset($item);
 			}
-			$this->callPlugins("datasource,general,itemprocessors","endImport");
+			$this->callPlugins("datasources,general,itemprocessors","endImport");
 			$this->reportStats($tstart,$tdiff,$lastdbtime,$lastrec);
 		}
 		else
 		{
 			$this->log("No Records returned by datasource","warning");
 		}
-		$this->callPlugins("datasource,general,itemprocessors","afterImport");
+		$this->callPlugins("datasources,general,itemprocessors","afterImport");
 		$this->log("Import Ended","end");
 		Magmi_StateManager::setState("idle");		
 	}
