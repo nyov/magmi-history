@@ -93,7 +93,7 @@ class ImportLimiter extends Magmi_ItemProcessor
 	public function parseRanges($rangestr)
 	{
 		$this->_recranges=array();
-		if($rangelist=="")
+		if($rangestr=="")
 		{
 		  return;
 		}
