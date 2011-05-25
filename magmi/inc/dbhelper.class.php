@@ -430,6 +430,8 @@ class DBHelper
 	 
 	public function multipleParamRequests($sql,$params)
 	{
+		//ensure windows/mac compatibility for user made requests
+		$sql=str_replace("\r\n","\n",$sql);
 		$sqllines=explode("--",$sql);
  		foreach($sqllines as $sqlline)
  		{
