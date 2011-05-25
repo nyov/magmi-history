@@ -57,33 +57,37 @@ class RelatedProducts extends Magmi_ItemProcessor
  
  public function deleteRelatedItems($item,$inf)
  {
- 	$joininfo=$this->buildJoinCond($item,$inf);
- 	if($joininfo["join"]!="")
+ 	$joininfo=$this->buildJoinCond($item,$inf,"cpe2.sku");
+ 	$j2=$joininfo["join"]["cpe2.sku"];
+ 	if($j2!="")
  	{
  	$sql="DELETE cplai.*,cpl.*
  		  FROM ".$this->tablename("catalog_product_entity")." as cpe
  		  JOIN ".$this->tablename("catalog_product_link")." as cpl ON cpl.product_id=cpe.entity_id
  		  JOIN ".$this->tablename("catalog_product_link_attribute_int")." as cplai ON cplai.link_id=cpl.link_id
-		  JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND {$joininfo["join"]}
+		  JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND $j2
 		  JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
 		  WHERE cpe.sku=?";
-	$this->delete($sql,array_merge($joininfo["data"],array($item["sku"])));
+	$this->delete($sql,array_merge($joininfo["data"]["cpe2.sku"],array($item["sku"])));
  	}
  }
  
  public function deleteXRelatedItems($item,$inf)
  {
- 	$joininfo=$this->buildJoinCond($item,$inf);
- 	if($joininfo["join"]!="")
+ 	$joininfo=$this->buildJoinCond($item,$inf,"cpe2.sku,cpe.sku");
+ 	$j2=$joininfo["join"]["cpe2.sku"];
+ 	$j=$joininfo["join"]["cpe.sku"];
+ 	if($j2!="")
  	{
+ 
  	$sql="DELETE cplai.*,cpl.*
  		  FROM ".$this->tablename("catalog_product_entity")." as cpe
  		  JOIN ".$this->tablename("catalog_product_link")." as cpl ON cpl.product_id=cpe.entity_id
  		  JOIN ".$this->tablename("catalog_product_link_attribute_int")." as cplai ON cplai.link_id=cpl.link_id
-		  JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND (cpe2.sku=? OR {$joininfo["join"]})
+		  JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND (cpe2.sku=? OR $j2)
 		  JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
-		  WHERE cpe.sku=? OR {$joininfo["join"]}";
-	$this->delete($sql,array_merge(array($item["sku"]),$joininfo["data"],array($item["sku"]),$joininfo["data"]));
+		  WHERE cpe.sku=? OR $j";
+	$this->delete($sql,array_merge(array($item["sku"]),$joininfo["data"]["cpe2.sku"],array($item["sku"]),$joininfo["data"]["cpe.sku"]));
  	}
  }
  
@@ -145,29 +149,36 @@ class RelatedProducts extends Magmi_ItemProcessor
  	return array("add"=>$relskusadd,"del"=>$relskusdel);
  }
  
- public function buildJoinCond($item,$rinfo)
+ public function buildJoinCond($item,$rinfo,$keys)
  {
 	$joinconds=array();
- 	$data=array();
- 	if(count($rinfo["direct"])>0)
+	$joins=array();
+	$klist=explode(",",$keys);
+ 	foreach($klist as $key)
  	{
- 		$joinconds[]="cpe2.sku IN (".$this->arr2values($rinfo["direct"]).")";	
- 		$data=array_merge($data,$rinfo["direct"]);
- 	}
- 	if(count($rinfo["re"])>0)
- 	{
- 		foreach($rinfo["re"] as $rinf)
+ 		$data[$key]=array();
+ 		$joinconds[$key]=array();
+ 		if(count($rinfo["direct"])>0)
  		{
- 			$joinconds[]="cpe2.sku REGEXP ?";
-			$data[]=$rinf;
+ 			$joinconds[$key][]="$key IN (".$this->arr2values($rinfo["direct"]).")";	
+ 			$data[$key]=array_merge($data[$key],$rinfo["direct"]);
  		}
+ 		if(count($rinfo["re"])>0)
+ 		{
+ 			foreach($rinfo["re"] as $rinf)
+ 			{
+ 			$joinconds[$key][]="$key REGEXP ?";
+			$data[$key][]=$rinf;
+ 			}
+ 		}
+ 		$joins[$key] = implode(" OR ",$joinconds[$key]);
+ 		if($joins[$key]!="")
+ 		{
+ 			$joins[$key]="({$joins[$key]})";
+ 		}
+ 		
  	}
- 	$join = implode(" OR ",$joinconds);
- 	if($join!="")
- 	{
- 		$join="($join)";
- 	}
- 	return array("join"=>$join,"data"=>$data);
+ 	return array("join"=>$joins,"data"=>$data);
  }
  
  
@@ -176,17 +187,18 @@ class RelatedProducts extends Magmi_ItemProcessor
  	if($this->checkRelated($rinfo)>0)
  	
  	{
- 	$joininfo=$this->buildJoinCond($item,$rinfo);
- 	if($joininfo["join"]!="")
+ 	$joininfo=$this->buildJoinCond($item,$rinfo,"cpe2.sku");
+ 	$jinf=$joininfo["join"]["cpe2.sku"];
+ 	if($jinf!="")
  	{
   		//insert into link table
  		$bsql="SELECT cplt.link_type_id,cpe.entity_id as product_id,cpe2.entity_id as linked_product_id 
 			FROM ".$this->tablename("catalog_product_entity")." as cpe
-			JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND {$joininfo["join"]}
+			JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND $jinf
 			JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
 			WHERE cpe.sku=?";
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link")." (link_type_id,product_id,linked_product_id)  $bsql";
- 	$data=array_merge($joininfo["data"],array($item["sku"]));
+ 	$data=array_merge($joininfo["data"]["cpe2.sku"],array($item["sku"]));
  	$this->insert($sql,$data);
  	$this->updateLinkAttributeTable($joininfo);
  	}
@@ -198,17 +210,19 @@ class RelatedProducts extends Magmi_ItemProcessor
  	if($this->checkRelated($rinfo)>0)
  	
  	{
- 	$joininfo=$this->buildJoinCond($item,$rinfo);
- 	if($joinfo["join"]!="")
+ 	$joininfo=$this->buildJoinCond($item,$rinfo,"cpe.sku,cpe2.sku");
+ 	$j2=$joininfo["join"]["cpe2.sku"];
+ 	$j=$joininfo["join"]["cpe.sku"];
+ 	if($j2!="")
  	{
   	//insert into link table
  	$bsql="SELECT cplt.link_type_id,cpe.entity_id as product_id,cpe2.entity_id as linked_product_id 
 			FROM ".$this->tablename("catalog_product_entity")." as cpe
-			JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND (cpe2.sku=? OR {$joininfo["join"]})
+			JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND (cpe2.sku=? OR $j2)
 			JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
-			WHERE cpe.sku=? OR {$joininfo["join"]}";
+			WHERE cpe.sku=? OR $j";
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link")." (link_type_id,product_id,linked_product_id)  $bsql";
- 	$data=array_merge(array($item["sku"]),$joininfo["data"],array($item["sku"]),$joininfo["data"]);
+ 	$data=array_merge(array($item["sku"]),$joininfo["data"]["cpe2.sku"],array($item["sku"]),$joininfo["data"]["cpe.sku"]);
  	$this->insert($sql,$data);
  	$this->updateLinkAttributeTable($joininfo);
  	}
