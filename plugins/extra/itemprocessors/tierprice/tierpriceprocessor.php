@@ -14,7 +14,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Tier price importer",
             "author" => "Dweeves",
-            "version" => "0.0.4"
+            "version" => "0.0.5"
             );
 	}
 
@@ -90,7 +90,12 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  //it seems that magento cannot handle correctly "per website" tier price , so force it to "default"
 		  //$wsids=$this->getItemWebsites($item);
 		  $wsids=array(0);
+		  if($item[$k]=="")
+		  {
+		  	continue;
+		  }
 		  $tpvals=explode(";",$item[$k]);
+		  
 		  foreach($wsids as $wsid)
 		  {
 		  		//for each tier price value definition
