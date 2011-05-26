@@ -15,6 +15,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	protected $_buffersize;
 	protected $_curline;
 	protected $_nhcols;
+	protected $_ignored=array();
 	
 	public function initialize($params)
 	{
@@ -30,7 +31,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		
 		$this->_cenc=$this->getParam("CSV:enclosure",'"');
 		$this->_buffersize=$this->getParam("CSV:buffer",0);
-		
+		$this->_ignored=explode(",",$this->getParam("CSV:ignore"));
 		
 	}
 	
@@ -56,13 +57,13 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function getPluginParamNames()
 	{
-		return array('CSV:filename','CSV:enclosure','CSV:separator','CSV:basedir');
+		return array('CSV:filename','CSV:enclosure','CSV:separator','CSV:basedir','CSV:headerline');
 	}
 	public function getPluginInfo()
 	{
 		return array("name"=>"CSV Datasource",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.7");
+					 "version"=>"1.0.8");
 	}
 	
 	public function getRecordsCount()
@@ -70,13 +71,22 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		//open csv file
 		$f=fopen($this->_filename,"rb");
 		$count=-1;
-	
+		$linenum=0;
 		if($f!=false)
 		{
+			$line=1;
+			while($line<$this->getParam("CSV:headerline",1))
+			{
+				$line++;
+				$dummy=fgetcsv($f,$this->_buffersize,$this->_csep,$this->_cenc);
+			}
 			//get records count
 			while(fgetcsv($f,$this->_buffersize,$this->_csep,$this->_cenc))
 			{
-				$count++;
+				if(!in_array($line,$this->_ignored))
+				{
+					$count++;
+				}
 			}
 			fclose($f);
 		}
@@ -121,20 +131,27 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function getColumnNames($prescan=false)
 	{
-	
 		if($prescan==true)
 		{
 			$this->_fh=fopen($this->getParam("CSV:filename"),"rb");
 			$this->_csep=$this->getParam("CSV:separator",",");
 			$this->_dcsep=$this->_csep;
 		
-		if($this->_csep=="\\t")
-		{
-			$this->_csep="\t";
+			if($this->_csep=="\\t")
+			{
+				$this->_csep="\t";
+			}
+		
+			$this->_cenc=$this->getParam("CSV:enclosure",'"');
+			$this->_buffersize=$this->getParam("CSV:buffer",0);
 		}
 		
-		$this->_cenc=$this->getParam("CSV:enclosure",'"');
-		$this->_buffersize=$this->getParam("CSV:buffer",0);
+		$line=1;
+		while($line<$this->getParam("CSV:headerline",1))
+		{
+			$line++;
+			$dummy=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
+			$this->log("skip line $line:$dummy","info");
 		}
 		$this->_cols=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
 		$this->_nhcols=count($this->_cols);
@@ -163,6 +180,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	public function isemptyline($row) {
   		return ( !isset($row[1]) && empty($row[0]) );
 	}
+	
 	public function getNextRecord()
 	{
 		$row=null;
@@ -174,7 +192,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 			if(!$this->isemptyline($row) && $rcols!=$this->_nhcols)
 			{				
 				$this->log("warning: line $this->_curline , wrong column number : $rcols found over $this->_nhcols, line skipped","warning");
-			}			
+			}
 		}
 		//create product attributes values array indexed by attribute code
 		$record=(is_array($row)?array_combine($this->_cols,$row):false);
