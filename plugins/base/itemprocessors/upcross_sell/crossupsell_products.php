@@ -1,11 +1,11 @@
 <?php
-class RelatedProducts extends Magmi_ItemProcessor
+class CrossUpsellProducts extends Magmi_ItemProcessor
 {
 	
  public function getPluginInfo()
  {
  	return array(
-            "name" => "Product relater",
+            "name" => "Product Cross/Upsell",
             "author" => "Dweeves",
             "version" => "1.0.0"
             );
@@ -30,32 +30,32 @@ class RelatedProducts extends Magmi_ItemProcessor
  
  public function processItemAfterId(&$item,$params=null)
  {
- 	$related=isset($item["re_skus"])?$item["re_skus"]:null;
- 	$xrelated=isset($item["xre_skus"])?$item["xre_skus"]:null;
+ 	$usell=isset($item["cs_skus"])?$item["cs_skus"]:null;
+ 	$csell=isset($item["us_skus"])?$item["us_skus"]:null;
 	$pid=$params["product_id"];
 	$new=$params["new"];
  
-	if(isset($related))
+	if(isset($usell))
  	{
- 		$rinf=$this->getRelInfos($related);
+ 		$rinf=$this->getRelInfos($usell);
 		if($new==false)
 		{
-			$this->deleteRelatedItems($item,$rinf["del"]);
+			$this->deleteUsellItems($item,$rinf["del"]);
 		}
- 		$this->setRelatedItems($item,$rinf["add"]);
+ 		$this->setUsellItems($item,$rinf["add"]);
  	}
- 	if(isset($xrelated))
+ 	if(isset($csell))
  	{
- 		$rinf=$this->getRelInfos($xrelated);
+ 		$rinf=$this->getRelInfos($csell);
  		if($new==false)
 		{
-			$this->deleteXRelatedItems($item,$rinf["del"]);
+			$this->deleteCSellItems($item,$rinf["del"]);
 		}
-		$this->setXRelatedItems($item,$rinf["add"]);
+		$this->setCSellItems($item,$rinf["add"]);
  	}
  }
  
- public function deleteRelatedItems($item,$inf)
+ public function deleteUSellItems($item,$inf)
  {
  	$joininfo=$this->buildJoinCond($item,$inf,"cpe2.sku");
  	$j2=$joininfo["join"]["cpe2.sku"];
@@ -66,17 +66,16 @@ class RelatedProducts extends Magmi_ItemProcessor
  		  JOIN ".$this->tablename("catalog_product_link")." as cpl ON cpl.product_id=cpe.entity_id
  		  JOIN ".$this->tablename("catalog_product_link_attribute_int")." as cplai ON cplai.link_id=cpl.link_id
 		  JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND $j2
-		  JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
+		  JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='up_sell'
 		  WHERE cpe.sku=?";
 	$this->delete($sql,array_merge($joininfo["data"]["cpe2.sku"],array($item["sku"])));
  	}
  }
  
- public function deleteXRelatedItems($item,$inf)
+ public function deleteCSellItems($item,$inf)
  {
  	$joininfo=$this->buildJoinCond($item,$inf,"cpe2.sku,cpe.sku");
  	$j2=$joininfo["join"]["cpe2.sku"];
- 	$j=$joininfo["join"]["cpe.sku"];
  	if($j2!="")
  	{
  
@@ -85,9 +84,9 @@ class RelatedProducts extends Magmi_ItemProcessor
  		  JOIN ".$this->tablename("catalog_product_link")." as cpl ON cpl.product_id=cpe.entity_id
  		  JOIN ".$this->tablename("catalog_product_link_attribute_int")." as cplai ON cplai.link_id=cpl.link_id
 		  JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND (cpe2.sku=? OR $j2)
-		  JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
-		  WHERE cpe.sku=? OR $j";
-	$this->delete($sql,array_merge(array($item["sku"]),$joininfo["data"]["cpe2.sku"],array($item["sku"]),$joininfo["data"]["cpe.sku"]));
+		  JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='cross_sell'
+		  WHERE cpe.sku=?";
+	$this->delete($sql,array_merge($joininfo["data"]["cpe2.sku"],array($item["sku"])));
  	}
  }
  
@@ -182,7 +181,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  }
  
  
- public function setRelatedItems($item,$rinfo)
+ public function setUSellItems($item,$rinfo)
  {
  	if($this->checkRelated($rinfo)>0)
  	
@@ -195,52 +194,51 @@ class RelatedProducts extends Magmi_ItemProcessor
  		$bsql="SELECT cplt.link_type_id,cpe.entity_id as product_id,cpe2.entity_id as linked_product_id 
 			FROM ".$this->tablename("catalog_product_entity")." as cpe
 			JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND $jinf
-			JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
+			JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='up_sell'
 			WHERE cpe.sku=?";
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link")." (link_type_id,product_id,linked_product_id)  $bsql";
  	$data=array_merge($joininfo["data"]["cpe2.sku"],array($item["sku"]));
  	$this->insert($sql,$data);
- 	$this->updateLinkAttributeTable($joininfo);
+ 	$this->updateLinkAttributeTable($joininfo,'up_sell');
  	}
  	}
  }
  
- public function setXRelatedItems($item,$rinfo)
+ public function setCSellItems($item,$rinfo)
  {
  	if($this->checkRelated($rinfo)>0)
  	
  	{
- 	$joininfo=$this->buildJoinCond($item,$rinfo,"cpe.sku,cpe2.sku");
+ 	$joininfo=$this->buildJoinCond($item,$rinfo,"cpe2.sku");
  	$j2=$joininfo["join"]["cpe2.sku"];
- 	$j=$joininfo["join"]["cpe.sku"];
  	if($j2!="")
  	{
   	//insert into link table
  	$bsql="SELECT cplt.link_type_id,cpe.entity_id as product_id,cpe2.entity_id as linked_product_id 
 			FROM ".$this->tablename("catalog_product_entity")." as cpe
-			JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND (cpe2.sku=? OR $j2)
-			JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
-			WHERE cpe.sku=? OR $j";
+			JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND $j2
+			JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='cross_sell'
+			WHERE cpe.sku=?";
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link")." (link_type_id,product_id,linked_product_id)  $bsql";
- 	$data=array_merge(array($item["sku"]),$joininfo["data"]["cpe2.sku"],array($item["sku"]),$joininfo["data"]["cpe.sku"]);
+ 	$data=array_merge($joininfo["data"]["cpe2.sku"],array($item["sku"]));
  	$this->insert($sql,$data);
- 	$this->updateLinkAttributeTable($joininfo);
+ 	$this->updateLinkAttributeTable($joininfo,'cross_sell');
  	}
  	}
  }
  
- public function updateLinkAttributeTable($joininfo)
+ public function updateLinkAttributeTable($joininfo,$reltype)
  {
  	 	//insert into attribute link attribute int table,reusing the same relations
  	//this enable to mass add 
  	$bsql="SELECT cpl.link_id,cpla.product_link_attribute_id,0 as value
 	   	   FROM ".$this->tablename("catalog_product_entity")." AS cpe
 		   JOIN ".$this->tablename("catalog_product_entity")." AS cpe2 ON cpe2.sku!=cpe.sku
-		   JOIN ".$this->tablename("catalog_product_link_type")." AS cplt ON cplt.code='relation'
+		   JOIN ".$this->tablename("catalog_product_link_type")." AS cplt ON cplt.code=?
 		   JOIN ".$this->tablename("catalog_product_link_attribute")." AS cpla ON cpla.product_link_attribute_code='position' AND cpla.link_type_id=cplt.link_type_id
 		   JOIN ".$this->tablename("catalog_product_link") ." AS cpl ON cpl.link_type_id=cplt.link_type_id AND cpl.product_id=cpe.entity_id AND cpl.linked_product_id=cpe2.entity_id";
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link_attribute_int")." (link_id,product_link_attribute_id,value) $bsql";
- 	$this->insert($sql);
+ 	$this->insert($sql,array($reltype));
  	
  }
 }
