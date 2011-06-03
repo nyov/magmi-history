@@ -14,7 +14,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Tier price importer",
             "author" => "Dweeves",
-            "version" => "0.0.5"
+            "version" => "0.0.6"
             );
 	}
 
@@ -110,14 +110,32 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  				array_unshift($tpvinf,1.0);
 		  			}
 		  			//if more thant 1, qty first,price second
-		  			
+		  			$tpquant=$tpvinf[0];
+		  			$tpprice=str_replace(",",".",$tpvinf[1]);
+		  			if($tpprice=="")
+		  			{
+		  				continue;
+		  			}
+		  			if(substr($tpprice,-1)=="%")
+		  			{
+		  				//if no reference price,skip % tier price
+		  				if(!isset($item["price"]))
+		  				{
+		  					$this->warning("No price define, cannot apply % on tier price");
+		  					continue;
+		  				}
+		  				$fp=(float)(str_replace(",",".",$item["price"]));
+		  				$pc=(float)(substr($tpprice,0,-1));
+		  				$m=($pc<0?(100+$pc):$pc);
+		  				$tpprice=strval(($fp*($m))/100.0);
+		  			}
 		  			$inserts[]="(?,?,?,?,?,?)";
 		  			$data[]=$pid;
 		  			//if all , set all_groups flag
 		  			$data[]=(isset($cgid)?0:1);
 		  			$data[]=(isset($cgid)?$cgid:0);
-		  			$data[]=$tpvinf[0];
-		  			$data[]=$tpvinf[1];
+		  			$data[]=$tpquant;
+		  			$data[]=$tpprice;
 		  			$data[]=$wsid;
 		  		}
 		  }
