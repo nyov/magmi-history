@@ -16,7 +16,7 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Value Trimmer for select/multiselect",
             "author" => "Dweeves",
-            "version" => "0.0.2a"
+            "version" => "0.0.3"
         );
     }
 	
@@ -65,12 +65,13 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 			else
 			//for multiselect, recompose trimmed value list
 			{
-				$vt=explode(",",$item[$col]);
+				$sep=Magmi_Config::getInstance()->get("GLOBAL","mutiselect_sep",",");
+				$vt=explode($sep,$item[$col]);
 				foreach($vt as &$v)
 				{
 					$v=trim($v);
 				}
-				$item[$col]=implode(",",$vt);
+				$item[$col]=implode($sep,$vt);
 				unset($vt);
 			}
 		}
