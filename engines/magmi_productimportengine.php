@@ -918,11 +918,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		return $this->_curitemids;
 	}
-	/**
-	 * full import workflow for item
-	 * @param array $item : attribute values for product indexed by attribute_code
-	 */
-	public function importItem($item)
+	
+	public function handleIgnore(&$item)
 	{
 		//filter __MAGMI_IGNORE__ COLUMNS
 		foreach($item as $k=>$v)
@@ -931,8 +928,16 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			{
 				unset($item[$k]);
 			}
-		}
+		}	
+	}
+	/**
+	 * full import workflow for item
+	 * @param array $item : attribute values for product indexed by attribute_code
+	 */
+	public function importItem($item)
+	{
 		
+		$this->handleIgnore($item);
 		if(Magmi_StateManager::getState()=="canceled")
 		{
 			exit();
@@ -943,6 +948,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			return false;
 		}
+		//handle "computed" ignored columns
+		$this->handleIgnore($item);
 		$itemids=$this->getItemIds($item);
 		$pid=$itemids["pid"];
 		$asid=$itemids["asid"];
@@ -980,7 +987,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				return false;
 			}
 				
-			
+			//handle "computed" ignored columns from afterImport 
+			$this->handleIgnore($item);
+		
 				
 			//create new ones
 			$attrmap=$this->attrbytype;
