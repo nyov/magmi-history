@@ -516,6 +516,17 @@ ul#globstep.formline li.label
 	 width:200px;
 }
 
+ul#mssep input[type=text]
+{
+	 width:50px;
+}
+
+ul#mssep.formline li.label
+{
+	 width:250px;
+}
+
+
 li.utility
 {
 	margin-top:2px;
