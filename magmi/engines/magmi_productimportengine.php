@@ -58,7 +58,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.1.7","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.2.0","author"=>"dweeves");
 	}
 	
 	/**
@@ -924,6 +924,15 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function importItem($item)
 	{
+		//filter __MAGMI_IGNORE__ COLUMNS
+		foreach($item as $k=>$v)
+		{
+			if($v=="__MAGMI_IGNORE__")
+			{
+				unset($item[$k]);
+			}
+		}
+		
 		if(Magmi_StateManager::getState()=="canceled")
 		{
 			exit();
