@@ -5,7 +5,7 @@ class CrossUpsellProducts extends Magmi_ItemProcessor
  public function getPluginInfo()
  {
  	return array(
-            "name" => "Product Cross/Upsell",
+            "name" => "Cross/Upsell Importer",
             "author" => "Dweeves",
             "version" => "1.0.0"
             );
