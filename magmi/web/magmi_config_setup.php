@@ -205,6 +205,10 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 		<li class="label">Reporting step in %:</li>
 		<li class="value"><input type="text" name="GLOBAL:step" size="5" value="<?php echo $conf->get("GLOBAL","step")?>"></input></li>
 	</ul>
+	<ul class="formline" id="mssep" >
+		<li class="label">Multiselect value separator:</li>
+		<li class="value"><input type="text" name="GLOBAL:multiselect_sep" size="3" value="<?php echo $conf->get("GLOBAL","multiselect_sep",",")?>"></input></li>
+	</ul>
 	
 	</div>
 <div class="clear"></div>
