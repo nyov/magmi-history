@@ -7,7 +7,7 @@
 class Magmi_DatapumpDS extends Magmi_Datasource
 {
 	
-	public function getPluginInfo()
+	public static function getPluginInfo()
 	{
 		return array("name"=>"DataPump Datasource",
 					 "author"=>"Dweeves",
