@@ -8,7 +8,8 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 	{
 		return array("name"=>"Magmi Magento Reindexer",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.5");
+					 "version"=>"1.0.5",
+					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Magmi_Magento_Reindexer");
 	}
 	
 	public function afterImport()
