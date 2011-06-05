@@ -14,7 +14,8 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Generic mapper",
             "author" => "Dweeves",
-            "version" => "0.0.6a"
+            "version" => "0.0.6a",
+        	"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Generic_mapper"
             );
 	}
 
@@ -112,6 +113,11 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 				$this->_mapping[$idx][$target][$key]=$data[1];
 			}
 		}
+	}
+	
+	static public function getCategory()
+	{
+		return "Input Data Preprocessing";
 	}
 }
 

@@ -240,7 +240,11 @@ class RelatedProducts extends Magmi_ItemProcessor
 		   JOIN ".$this->tablename("catalog_product_link_attribute")." AS cpla ON cpla.product_link_attribute_code='position' AND cpla.link_type_id=cplt.link_type_id
 		   JOIN ".$this->tablename("catalog_product_link") ." AS cpl ON cpl.link_type_id=cplt.link_type_id AND cpl.product_id=cpe.entity_id AND cpl.linked_product_id=cpe2.entity_id";
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link_attribute_int")." (link_id,product_link_attribute_id,value) $bsql";
- 	$this->insert($sql);
- 	
+ 	$this->insert($sql);	
  }
+ 
+	static public function getCategory()
+	{
+		return "Related Products";
+	}
 }
