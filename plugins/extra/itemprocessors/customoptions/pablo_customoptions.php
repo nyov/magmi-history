@@ -18,7 +18,8 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Custom Options",
             "author" => "Pablo & Dweeves",
-            "version" => "0.0.7"
+            "version" => "0.0.7",
+			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Custom_Options"
             );
 	}
 
@@ -355,6 +356,11 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 
 	 }*/
 
+	public function getPluginDescription()
+	{
+		return "This plugins enable to import custom options using specific column syntax";
+	}
+	
 	public function initialize($params)
 	{
 		return true;

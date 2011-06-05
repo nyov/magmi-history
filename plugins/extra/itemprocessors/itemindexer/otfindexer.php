@@ -13,7 +13,8 @@ class ItemIndexer extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly indexer",
             "author" => "Dweeves",
-            "version" => "0.1.2c"
+            "version" => "0.1.2c",
+            "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_indexer"
             );
 	}
 
