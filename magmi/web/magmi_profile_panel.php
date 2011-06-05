@@ -63,7 +63,19 @@ else{?>
 	require_once("magmi_pluginhelper.php");
 	$order=array("datasources","general","itemprocessors");
 	$plugins=Magmi_PluginHelper::getInstance('main')->getPluginClasses($order);
-	
+	$pcats=array();
+	foreach($plugins as $k=>$pclasslist)
+	{
+		foreach($pclasslist as $pclass)
+		{
+			$pcat=$pclass::getCategory();
+			if(!isset($pcats[$pcat]))
+			{
+				$pcats[$pcat]=array();
+			}
+			$pcats[$pcat][]=$pclass;
+		}
+	}
 ?>
 </form>
 </div>
@@ -73,6 +85,7 @@ else{?>
 	<input type="hidden" name="profile" id="curprofile" value="<?php echo $profile?>">
 	<?php foreach($order as $k)
 	{?>
+	<input type="hidden" id="plc_<?php echo strtoupper($k)?>" value="<?php echo implode(",",$eplconf->getEnabledPluginClasses($k))?>" name="PLUGINS_<?php echo strtoupper($k)?>:classes"></input>
 	<div class="grid_12 col <?php if($k==$order[count($order)-1]){?>omega<?php }?>">
 		<h3><?php echo ucfirst($k)?></h3>
 		<?php if($k=="datasources")
@@ -80,6 +93,7 @@ else{?>
 			<?php $pinf=$plugins[$k];?>
 			<?php if(count($pinf)>0){?>
 			<div class="pluginselect" style="float:left">
+			
 			<select name="PLUGINS_DATASOURCES:class" class="pl_<?php echo $k?>">
 			
 			
@@ -105,6 +119,11 @@ else{?>
 			
 			</select>
 			</div>
+			<?php if(isset($pinfo["url"])){?>
+			<div class="plugindoc" >
+			<a href="<?php echo $pinfo["url"]?>" target="magmi_doc">documentation</a>
+			</div>
+			<?php }?>
 			<div class="pluginconfpanel selected">
 			<?php echo $sinst->getOptionsPanel()->getHtml();?>
 			</div>
@@ -117,59 +136,71 @@ else{?>
 			<?php 
 		}
 		else
-		{?>
-		<ul >
-		<?php $pinf=$plugins[$k];?>
-		<?php foreach($pinf as $pclass)	{
-			$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($k,$pclass);
-			$pinfo=$pinst->getPluginInfo();
-		?>
-		<li>
-		<div class="pluginselect">
-	<?php $plrunnable=$pinst->isRunnable()?>
-	<?php if($plrunnable[0]){?>
+		{
+			foreach($pcats as $pcat=>$pclasslist) {?>
+								
+				<?php 
+				$catopen=false;
+				$pinf=$plugins[$k];?>
+		
+				<?php foreach($pinf as $pclass)	{
+					if(!in_array($pclass,$pclasslist))
+					{
+						continue;
+					}
+					else
+					{?>
+						<?php if(!$catopen){$catopen=true?>
+						<div class="grid_12 omega"><h1><?php echo $pcat?></h1>
+						<?php }?>
+						<ul>
+						<?php
+							$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($k,$pclass);
+							$pinfo=$pinst->getPluginInfo();
+			  				$info=$pinst->getShortDescription();
+			  				$plrunnable=$pinst->isRunnable();
+							$enabled=$eplconf->isPluginEnabled($k,$pclass)
+			  				?>
+						<li>
+							<div class="pluginselect">
+							<?php if($plrunnable[0]){?>
+								<input type="checkbox" class="pl_<?php echo $k?>" name="<?php echo $pclass?>" <?php if($eplconf->isPluginEnabled($k,$pclass)){?>checked="checked"<?php }?>>
+							<?php } else {?>
+								<input type="checkbox" class="pl_<?php echo $k?>" name="<?php echo $pclass?>" disabled="disabled">
+							<?php }?>	
+							<span class="pluginname"><?php echo $pinfo["name"]." v".$pinfo["version"];?></span>
+							</div>	
+							<div class="plugininfo">
+							<?php if($info!==null){?>
+								<span>info</span>
+								<div class="plugininfohover">
+								<?php echo $info?>
+								<?php if(!$plrunnable[0]){?>
+									<div class="error">
+										<pre><?php echo $plrunnable[1]?></pre>
+									</div>
+								<?php }?>
+								</div>
+							<?php }?>
+							</div>
+							<div class="pluginconf"  <?php if(!$enabled){?>style="display:none"<?php }?>>
+							<span><a href="javascript:void(0)">configure</a></span>
+							</div>
+							<?php if(isset($pinfo["url"])){?>
+							<div class="plugindoc">
+							<a href="<?php echo $pinfo["url"]?>" target="magmi_doc">documentation</a>
+							</div>
+							<?php }?>
 	
-		<input type="checkbox" class="pl_<?php echo $k?>" name="<?php echo $pclass?>" <?php if($eplconf->isPluginEnabled($k,$pclass)){?>checked="checked"<?php }?>>
-	<?php } else {?>
-		<input type="checkbox" class="pl_<?php echo $k?>" name="<?php echo $pclass?>" disabled="disabled">
-	<?php }?>	
-	<span class="pluginname"><?php echo $pinfo["name"]." v".$pinfo["version"];?></span>
-		</div>
-	
-		<?php 
-			  $info=$pinst->getShortDescription();
-		?>
-		<div class="plugininfo">
-		<?php if($info!==null){?>
-			<span>info</span>
-			<div class="plugininfohover">
-				<?php echo $info?>
-	<?php if(!$plrunnable[0]){?>
-		<div class="error">
-			<pre><?php echo $plrunnable[1]?></pre>
-		</div>
-	<?php }?>
-	
-			</div>
-			
-		<?php }?>
-		</div>
-		<?php $enabled=$eplconf->isPluginEnabled($k,$pclass)?>
-		<div class="pluginconf"  <?php if(!$enabled){?>style="display:none"<?php }?>>
-			<span><a href="javascript:void(0)">configure</a></span>
-		</div>
-		<div class="pluginconfpanel">
-			<?php if($enabled){echo $pinst->getOptionsPanel()->getHtml();}?>
-		</div>
-
-		</li>
-		<?php }?>	
-		<input type="hidden" id="plc_<?php echo strtoupper($k)?>" value="<?php echo implode(",",$eplconf->getEnabledPluginClasses($k))?>" name="PLUGINS_<?php echo strtoupper($k)?>:classes"></input>
-					
-		<?php 
-		}?>
+							<div class="pluginconfpanel">
+							<?php if($enabled){echo $pinst->getOptionsPanel()->getHtml();}?>
+							</div>
+					</li>
 				</ul>
-
+			<?php }?>
+		<?php }?>	
+		<?php if($catopen){?></div><?php }?>
+		<?php }}?>
 	</div>
 	<?php }?>
 </form>
