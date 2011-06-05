@@ -365,6 +365,12 @@ div.pluginconf
  margin-left:10px;
 }
 
+div.plugindoc
+{
+ float:left;
+ margin-left:10px;
+}
+
 select
 {
  border:1px solid #888888;
