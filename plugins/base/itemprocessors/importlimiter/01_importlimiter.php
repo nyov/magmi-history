@@ -9,7 +9,8 @@ class ImportLimiter extends Magmi_ItemProcessor
 	{
 		return array("name"=>"Magmi Import Limiter",
 					 "author"=>"Dweeves",
-					 "version"=>"0.0.4a");
+					 "version"=>"0.0.4a",
+					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Magmi_Import_Limiter");
 	}
 	
 	
@@ -143,5 +144,10 @@ class ImportLimiter extends Magmi_ItemProcessor
 	public function getPluginParamNames()
 	{
 		return array('LIMITER:ranges','LIMITER:filters');
+	}
+	
+	static public function getCategory()
+	{
+		return "Input Data Preprocessing";
 	}
 }

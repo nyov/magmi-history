@@ -241,4 +241,9 @@ class CrossUpsellProducts extends Magmi_ItemProcessor
  	$this->insert($sql,array($reltype));
  	
  }
+ 
+static public function getCategory()
+	{
+		return "Related Products";
+	}
 }

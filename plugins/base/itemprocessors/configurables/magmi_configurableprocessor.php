@@ -18,7 +18,8 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.2.1"
+            "version" => "1.2.1",
+			"url"=> "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Configurable_Item_processor"
             );
 	}
 	
@@ -318,5 +319,10 @@ public function getConfigurableOptsFromAsId($asid)
 	public function getPluginParamNames()
 	{
 		return array("CFGR:simplesbeforeconf");
+	}
+	
+	static public function getCategory()
+	{
+		return "Product Type Import";
 	}
 }

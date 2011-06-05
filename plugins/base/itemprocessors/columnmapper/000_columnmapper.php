@@ -15,7 +15,8 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Column mapper",
             "author" => "Dweeves",
-            "version" => "0.0.3"
+            "version" => "0.0.3",
+        	"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Column_mapper"
         );
     }
 	
@@ -105,5 +106,10 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 			}
 		}	
 		return $pp;
-	}	
+	}
+	
+	static public function getCategory()
+	{
+		return "Input Data Preprocessing";
+	}
 }
