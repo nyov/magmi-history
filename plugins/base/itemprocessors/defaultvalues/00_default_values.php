@@ -16,7 +16,8 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Default Values setter",
             "author" => "Dweeves",
-            "version" => "0.0.5"
+            "version" => "0.0.5",
+        	"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Default_Values_setter"
         );
     }
 	
@@ -90,5 +91,10 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
 		$this->log("Adding Columns ".implode(",",$dcols),"startup");
 		
 		return true;
+	}
+	
+static public function getCategory()
+	{
+		return "Input Data Preprocessing";
 	}
 }
