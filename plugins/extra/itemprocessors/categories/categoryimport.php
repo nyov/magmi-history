@@ -120,12 +120,12 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$info=$info[0];
 		//insert new category
 		$sql="INSERT INTO $cet 	(entity_type_id,attribute_set_id,parent_id,position,level,path) VALUES (?,?,?,?,?,?)";
-	
+		//insert empty path until we get category id
 		$data=array($info["entity_type_id"],$info["attribute_set_id"],$parentid,$info["position"],$info["level"],"");		
 		//insert in db,get cat id
 		$catid=$this->insert($sql,$data);
 		unset($data);
-		//set category path
+		//set category path with inserted category id
 		$sql="UPDATE $cet SET path=?,created_at=NOW(),updated_at=NOW() WHERE entity_id=?";
 		$data=array("$path/$catid",$catid);
 		$this->update($sql,$data);
