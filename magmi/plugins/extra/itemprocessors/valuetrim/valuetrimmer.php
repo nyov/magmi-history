@@ -16,7 +16,8 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Value Trimmer for select/multiselect",
             "author" => "Dweeves",
-            "version" => "0.0.3"
+            "version" => "0.0.3",
+			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Value_Trimmer_for_select/multiselect"
         );
     }
 	
@@ -85,6 +86,11 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 		$this->_totrim=array();
 		return true;
 		
+	}
+
+	static public function getCategory()
+	{
+		return "Input Data Preprocessing";
 	}
 	
 }

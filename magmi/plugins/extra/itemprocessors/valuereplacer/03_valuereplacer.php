@@ -15,7 +15,8 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Value Replacer",
             "author" => "Dweeves",
-            "version" => "0.0.4"
+            "version" => "0.0.4",
+					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Value_Replacer"
         );
     }
 	
@@ -122,4 +123,9 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 		}	
 		return $pp;
 	}	
+	
+	static public function getCategory()
+	{
+		return "Input Data Preprocessing";
+	}
 }
