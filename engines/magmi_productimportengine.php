@@ -218,7 +218,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$qcolstr=$this->arr2values($toscan);
 		
 			$tname=$this->tablename("eav_attribute");
-			if($this->magversion=="1.4.x")
+			if($this->magversion!="1.3.x")
 			{
 				$extra=$this->tablename("catalog_eav_attribute");
 				//SQL for selecting attribute properties for all wanted attributes
