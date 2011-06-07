@@ -73,18 +73,76 @@ body
 	font-family: sans-serif;
 }
 
-.title
+div.title
+{
+ width:100%;
+ position:relative;
+ height:120px;
+ background-color:#ffffff;
+}
+
+.title .logo
+{
+ 	float:left;
+ 	height:120px;
+	width:340px;
+	background:url("../images/logo.png") no-repeat transparent;
+	background-color:#ffffff;
+}
+
+.title  .logoauth
+{
+	position:absolute;
+	top:104px;
+	left:5px;
+	font-size:xx-small;
+}
+
+.title .info
+{
+ float:left;
+ width:598px;
+ border: 1px solid #8888cc;
+ height:100%;
+}
+
+.title .info h3
+{
+	background-color:#8888cc;
+	width:100%;
+	color:#ffffff;
+}
+
+.title  .author
 {
 	width:100%;
-	line-height: 3em;
-	font-size: large;
-	background-color: #0044cc;
-	color: #ffffff;
-	border: 1px solid ##0044cc;
+	float:right;
+	font-size:12pt;
 }
-.title > span
+
+.title .license .hover
 {
-	padding-left: 10px;
+ display:none;
+}
+
+
+.title .license a:hover .hover
+{
+ font-family:monospace;
+ display:block;
+ z-index:200;
+ background:#ffffcc;
+ border:1px solid #000000;
+ color:#000000;
+
+}
+
+
+
+.title  .version
+{
+	width:100%;
+		float:right;
 	font-weight: bold;
 }
 
