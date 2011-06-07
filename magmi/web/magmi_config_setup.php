@@ -121,7 +121,11 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 </span>
 </div>
 </div>
-
+<?php 
+$cansock=true;
+ $dmysqlsock=DBHelper::getMysqlSocket();
+ $cansock=!($dmysqlsock===false);
+?>	
 <div class="clear"></div>
 <form method="post" action="magmi_saveconfig.php" id="commonconf_form">
 <div class="container_12" id="common_config">
@@ -133,7 +137,9 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 		<li class="label">Connectivity</li>
 		<li class="value"><select name="DATABASE:connectivity" id="DATABASE:connectivity">
 			<option value="net" <?php if($curconn=="net"){?>selected="selected"<?php }?>>Using host/port</option>
+			<?php if($cansock){?>
 			<option value="socket" <?php if($curconn=="socket"){?>selected="selected"<?php }?>>Using local socket</option>
+			<?php }?>
 		</select></li>
 	</ul>
 		
@@ -146,13 +152,12 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 		<li class="value"><input type="text" name="DATABASE:port" value="<?php echo $conf->get("DATABASE","port","3306")?>" ></input></li>
 	</ul>
 	</div>
-	
+	<?php if($cansock){?>
 	<div id="connectivity:socket" class="connectivity" <?php if($curconn!="socket"){?>style="display:none"<?php  }?>>
 	<ul class="formline">
 		<li class="label">Unix Socket:</li>
 		
 		<?php
-           $dmysqlsock=DBHelper::getMysqlSocket();
 		   $mysqlsock= $conf->get("DATABASE","unix_socket",$dmysqlsock);
 		   if(!file_exists($mysqlsock))
    		   {
@@ -162,7 +167,7 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 		<li class="value"><input type="text" name="DATABASE:unix_socket" value="<?php echo $mysqlsock?>" ></input></li>
 	</ul>
 	</div>
-
+	<?php }?>	
 	<hr/>
 
 	<ul class="formline">
@@ -188,7 +193,7 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 	<ul class="formline">
 		<li class="label">Version:</li>
 		<li class="value"><select name="MAGENTO:version">
-			<?php foreach(array("1.4.x","1.3.x") as $ver){?>
+			<?php foreach(array("1.5.x","1.4.x","1.3.x") as $ver){?>
 				<option value="<?php echo $ver?>" <?php if($conf->get("MAGENTO","version")==$ver){?>selected=selected<?php }?>><?php echo $ver?></option>
 			<?php }?>
 		</select></li>
