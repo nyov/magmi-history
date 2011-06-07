@@ -73,12 +73,17 @@ class DBHelper
 	public static function getMysqlSocket()
 	{
 		$mysqlsock="";
+		$old_track = ini_set('track_errors', '1');
 		try
 		{
 			$mysqlsock=ini_get("mysql.default_socket");
 			
-			if(isset($mysqlsock) && !file_exists($mysqlsock))
+			if(isset($mysqlsock) && !@file_exists($mysqlsock))
 			{
+				if(error_get_last()!==null)
+				{
+					throw new Exception();
+				}
 				ob_start();
 				phpinfo();
 				$data=ob_get_contents();
@@ -89,14 +94,20 @@ class DBHelper
 					$mysqlsock=$matches[1];
 				}
 			}
-			if(isset($mysqlsock) && !file_exists($mysqlsock))
+			if(isset($mysqlsock) && !@file_exists($mysqlsock))
 			{
 				$mysqlsock="";
 			}
+			
 		}
 		catch(Exception $e)
-		{	
+		{
 		}
+			if(error_get_last()!==null)
+			{
+				$mysqlsock=false;
+			}	
+		ini_set('track_errors',$old_track);
 		return $mysqlsock;
 	}
 	 
