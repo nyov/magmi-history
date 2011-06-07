@@ -1,6 +1,6 @@
 
 <div class="plugin_description">
-This plugin enables magmi import from csv files 
+This plugin enables magmi import from csv files (using Dataflow format + magmi extended columns)<br/> <b>NOT Magento 1.5 new importexport format!!</b>
 </div>
 <div>
 <ul class="formline">
