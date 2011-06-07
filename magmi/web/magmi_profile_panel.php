@@ -68,7 +68,8 @@ else{?>
 	{
 		foreach($pclasslist as $pclass)
 		{
-			$pcat=$pclass::getCategory();
+			//invoke static method, using call_user_func (5.2 compat mode)
+			$pcat=call_user_func(array($pclass,"getCategory"));
 			if(!isset($pcats[$pcat]))
 			{
 				$pcats[$pcat]=array();
