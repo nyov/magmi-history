@@ -3,14 +3,10 @@ require_once("dbhelper.class.php");
 
 class ExtDBHelper extends DBHelper
 {
-	public function initDBMysql($dbname,$host,$user,$pass,$init)
+	public function initDBMysql($dbname,$host,$user,$pass)
 	{
 		
-		if($init!="")
-		{
-			$init=array(PDO::MYSQL_ATTR_INIT_COMMAND => "$init");
-		}
-		$this->_db=new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass,$init);
+		$this->_db=new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
 	}
 	
 	public function initDBPDOStr($user,$pass,$pdostr)
@@ -44,12 +40,13 @@ class SQL_Datasource extends Magmi_Datasource
 			$cdbname=$this->getParam("SQL:dbname");
 			$cdbhost=$this->getParam("SQL:dbhost");
 			$extra=$this->getParam("SQL:dbextra");
-			$this->dbh->initDbMysql($cdbname,$cdbhost,$cdbusr, $cdbpass,$extra);
+			$this->dbh->initDbMysql($cdbname,$cdbhost,$cdbusr, $cdbpass);
 			
-		}			
+		}		
+		//handle extra initial commands			
 		if(isset($extra) && $extra!="")
 		{
-			foreach(explode(";",$extra) as $st)
+			foreach(explode(";\n",$extra) as $st)
 			{
 				if($st!="")
 				{
