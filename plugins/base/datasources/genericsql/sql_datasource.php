@@ -66,7 +66,7 @@ class SQL_Datasource extends Magmi_Datasource
 	{
 		return array("name"=>"Generic SQL Datasource",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.1");
+					 "version"=>"1.0.2");
 	}
 	
 	public function getPluginParamNames()
