@@ -17,8 +17,8 @@
 </ul>
 <ul class="formline">
 <li class="label">Input DB Initial Statements (optional)</li>
-<li class="value"><textarea name="SQL:extra" cols="80" rows="5">
-<?echo $this->getParam("SQL:extra","")?>
+<li class="value"><textarea name="SQL:dbextra" cols="80" rows="5">
+<?echo $this->getParam("SQL:dbextra","")?>
 </textarea>
 <div class="fieldinfo">
 Put DB requests like SET NAMES if necessary separated by ;
