@@ -57,20 +57,27 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function getPluginParamNames()
 	{
-		return array('CSV:filename','CSV:enclosure','CSV:separator','CSV:basedir','CSV:headerline');
+		return array('CSV:filename','CSV:enclosure','CSV:separator','CSV:basedir','CSV:headerline','CSV:noheader');
 	}
 	public function getPluginInfo()
 	{
 		return array("name"=>"CSV Datasource",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.9");
+					 "version"=>"1.1");
 	}
 	
 	public function getRecordsCount()
 	{
 		//open csv file
 		$f=fopen($this->_filename,"rb");
-		$count=-1;
+		if($this->getParam("CSV:noheader",false)==true)
+		{
+			$count=0;
+		}
+		else
+		{
+			$count=-1;
+		}
 		$linenum=0;
 		if($f!=false)
 		{
@@ -147,13 +154,25 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		}
 		
 		$line=1;
+		
 		while($line<$this->getParam("CSV:headerline",1))
 		{
 			$line++;
 			$dummy=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
 			$this->log("skip line $line:$dummy","info");
 		}
-		$this->_cols=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
+		$cols=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
+		//if csv has no headers,use column number as column name
+		if($this->getParam("CSV:noheader",false)==true)
+		{
+			$kl=array_merge(array("dummy"),$cols);
+			unset($kl[0]);
+			
+			$cols=array_keys($kl);
+			//reset file pointer	
+			fseek($this->_fh,0);
+		}
+		$this->_cols=$cols;
 		$this->_nhcols=count($this->_cols);
 		//trim column names
 		for($i=0;$i<$this->_nhcols;$i++)
