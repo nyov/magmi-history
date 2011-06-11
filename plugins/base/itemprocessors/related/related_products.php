@@ -7,7 +7,8 @@ class RelatedProducts extends Magmi_ItemProcessor
  	return array(
             "name" => "Product relater",
             "author" => "Dweeves",
-            "version" => "1.0.0"
+            "version" => "1.0.0",
+ 			"url"=>"https://sourceforge.net/apps/mediawiki/magmi/index.php?title=Product_relater"
             );
  }
  
