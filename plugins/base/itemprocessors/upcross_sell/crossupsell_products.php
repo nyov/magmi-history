@@ -7,7 +7,8 @@ class CrossUpsellProducts extends Magmi_ItemProcessor
  	return array(
             "name" => "Cross/Upsell Importer",
             "author" => "Dweeves",
-            "version" => "1.0.0"
+            "version" => "1.0.1",
+ 			"url"=>"https://sourceforge.net/apps/mediawiki/magmi/index.php?title=Cross/Upsell_Importer"
             );
  }
  
@@ -30,8 +31,8 @@ class CrossUpsellProducts extends Magmi_ItemProcessor
  
  public function processItemAfterId(&$item,$params=null)
  {
- 	$usell=isset($item["cs_skus"])?$item["cs_skus"]:null;
- 	$csell=isset($item["us_skus"])?$item["us_skus"]:null;
+ 	$usell=isset($item["us_skus"])?$item["us_skus"]:null;
+ 	$csell=isset($item["cs_skus"])?$item["cs_skus"]:null;
 	$pid=$params["product_id"];
 	$new=$params["new"];
  
