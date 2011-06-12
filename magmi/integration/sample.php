@@ -9,7 +9,7 @@
  	}
  }
  $dp=Magmi_DataPumpFactory::getDataPumpInstance("productimport");
- $dp->beginImportSession("test_ptj","update",new TestLogger());
+ $dp->beginImportSession("test_ptj","create",new TestLogger());
  /* Create 5000 items , with  every 100 :
   * 
   * 	upsell on last 100 even
@@ -61,8 +61,6 @@
  		$item["cs_skus"]=implode(",",$csell);
  		$item["re_skus"]=implode(",",$re);
  		$item["xre_skus"]=implode(",",$xre);
- 		echo $sku.".\n";
- 		flush();
  	}
  	$dp->ingest($item);
  }
