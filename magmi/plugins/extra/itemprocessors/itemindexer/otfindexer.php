@@ -225,8 +225,9 @@ class ItemIndexer extends Magmi_ItemProcessor
 					$names[]=$cnames[$cpid];
 					//make string with that
 					$namestr=implode("/",$names);
+					$urlend=$this->getParam("OTFI:urlending",".html");
 					//build category url key (allow / in slugging)
-					$curlk=Slugger::slug($namestr,true);
+					$curlk=Slugger::slug($namestr,true).$urlend;
 					$cdata=array($storeid,$cpid,"category/$cpid","catalog/category/view/id/$cpid","$curlk",1);
 					$vstr[]="(".$this->arr2values($cdata).")";
 					$data=array_merge($data,$cdata);
@@ -235,7 +236,8 @@ class ItemIndexer extends Magmi_ItemProcessor
 		}	
 		if(count($vstr)>0)
 		{
-			$sqlcat="INSERT IGNORE INTO {$this->tns["curw"]} (store_id,category_id,id_path,target_path,request_path,is_system) VALUES ".implode(",",$vstr);
+			$sqlcat="INSERT INTO {$this->tns["curw"]} (store_id,category_id,id_path,target_path,request_path,is_system) VALUES ".implode(",",$vstr).
+			" ON DUPLICATE KEY UPDATE request_path=VALUES(`request_path`)";
 			$this->insert($sqlcat,$data);
 		}
 	}
@@ -288,7 +290,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 				 WHERE cpe.entity_id=?";
 		
 		//insert lines
-		$sqlprod="INSERT IGNORE INTO {$this->tns["curw"]} (product_id,store_id,id_path,target_path,request_path,is_system) $produrlsql";
+		$sqlprod="INSERT INTO {$this->tns["curw"]} (product_id,store_id,id_path,target_path,request_path,is_system) $produrlsql ON DUPLICATE KEY UPDATE request_path=VALUES(`request_path`)";
 		$this->insert($sqlprod,array($purlk,$pid));
 		return $purlk;
 	}
