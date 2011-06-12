@@ -167,8 +167,11 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		{
 			$kl=array_merge(array("dummy"),$cols);
 			unset($kl[0]);
-			
-			$cols=array_keys($kl);
+			$cols=array();
+			foreach(array_keys($kl) as $c)
+			{
+				$cols[]="col".$c;
+			}
 			//reset file pointer	
 			fseek($this->_fh,0);
 		}
