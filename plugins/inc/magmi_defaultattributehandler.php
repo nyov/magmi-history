@@ -39,7 +39,10 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		foreach($this->_missingattrs as $missing)
 		{
-			$item[$missing]=$this->_baseattrs[$missing];
+			if(!isset($item[$missing]))
+			{
+				$item[$missing]=$this->_baseattrs[$missing];
+			}
 		}
 	}
 	
