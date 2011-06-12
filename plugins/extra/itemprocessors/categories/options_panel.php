@@ -28,4 +28,8 @@ multiple categories supported :)
 <span>base category tree:</span><input type="text"  name="CAT:baseroot" size="80" value="<?php echo $this->getParam("CAT:baseroot","")?>"></input>
 <div class="fieldinfo">this enable you to import the categories prepending a base root tree to the values found in csv (use same syntax as described above)</div>
 </div>
+<div class="formline">
+<span>url ending:</span><input type="text"  name="CAT:urlending" size="80" value="<?php echo $this->getParam("CAT:urlending",".html")?>"></input>
+<div class="fieldinfo">Choose what url ending to put on category page (defaults to .html)</div>
+</div>
 
