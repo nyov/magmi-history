@@ -1,6 +1,7 @@
 <?php
  require_once("./magmi_datapump.php");
  
+ 
  /** Define a logger class that will receive all magmi logs **/
  class TestLogger
  {
@@ -24,6 +25,13 @@
   * - profile : test_ptj
   * - mode : create
   * - logger :  an instance of the class defined above
+  */
+ 
+ /**
+  * FOR THE SAMPLE TO WORK CORRECTLY , YOU HAVE TO DEFINE A test_ptj profile with :
+  * UPSELL/CROSS SELL, ITEM RELATER, CATEGORIES IMPORTER/CREATOR selected
+  * ON THE FLY INDEXER IS RECOMMENDED (better endimport performance)
+  * Reindexer needed also to have products show up on front : select all but "catalog_category_product" & "url_rewrite" (both are handled by on the fly indexer)
   */
  $dp->beginImportSession("test_ptj","create",new TestLogger());
  
