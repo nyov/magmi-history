@@ -173,7 +173,11 @@ class CategoryImporter extends Magmi_ItemProcessor
 			$cp=count($parts);
 			$cname=trim($parts[0]);
 			$odefs[]=$cname;
-			$attrs=array("name"=>$cname,"is_active"=>($cp>1)?$parts[1]:1,"is_anchor"=>($cp>2)?$parts[2]:1,"include_in_menu"=>$cp>3?$parts[3]:1,"url_key"=>Slugger::slug($cname),"url_path"=>Slugger::slug(implode("/",$odefs),true).".html");
+			$attrs=array("name"=>$cname,"is_active"=>($cp>1)?$parts[1]:1,
+						 "is_anchor"=>($cp>2)?$parts[2]:1,
+						 "include_in_menu"=>$cp>3?$parts[3]:1,
+						 "url_key"=>Slugger::slug($cname),
+						 "url_path"=>Slugger::slug(implode("/",$odefs),true).$this->getParam("CAT:urlending",".html"));
 			$clist[]=$attrs;
 		}
 		$catdef=implode("/",$odefs);
@@ -310,7 +314,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	
 	public function getPluginParamNames()
 	{
-		return array('CAT:baseroot','CAT:lastonly');
+		return array('CAT:baseroot','CAT:lastonly','CAT:urlending');
 	}
 	
 	public function afterImport()
