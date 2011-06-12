@@ -7,7 +7,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  	return array(
             "name" => "Product relater",
             "author" => "Dweeves",
-            "version" => "1.0.0",
+            "version" => "1.0.1",
  			"url"=>"https://sourceforge.net/apps/mediawiki/magmi/index.php?title=Product_relater"
             );
  }
@@ -64,10 +64,11 @@ class RelatedProducts extends Magmi_ItemProcessor
  	{
  	$sql="DELETE cplai.*,cpl.*
  		  FROM ".$this->tablename("catalog_product_entity")." as cpe
- 		  JOIN ".$this->tablename("catalog_product_link")." as cpl ON cpl.product_id=cpe.entity_id
+ 		  JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
+ 		  JOIN ".$this->tablename("catalog_product_link")." as cpl ON cpl.product_id=cpe.entity_id AND cpl.link_type_id=cplt.link_type_id
  		  JOIN ".$this->tablename("catalog_product_link_attribute_int")." as cplai ON cplai.link_id=cpl.link_id
 		  JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND $j2
-		  JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
+		  
 		  WHERE cpe.sku=?";
 	$this->delete($sql,array_merge($joininfo["data"]["cpe2.sku"],array($item["sku"])));
  	}
@@ -201,7 +202,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link")." (link_type_id,product_id,linked_product_id)  $bsql";
  	$data=array_merge($joininfo["data"]["cpe2.sku"],array($item["sku"]));
  	$this->insert($sql,$data);
- 	$this->updateLinkAttributeTable($joininfo);
+ 	$this->updateLinkAttributeTable($item["sku"],$joininfo);
  	}
  	}
  }
@@ -219,29 +220,39 @@ class RelatedProducts extends Magmi_ItemProcessor
   	//insert into link table
  	$bsql="SELECT cplt.link_type_id,cpe.entity_id as product_id,cpe2.entity_id as linked_product_id 
 			FROM ".$this->tablename("catalog_product_entity")." as cpe
-			JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND (cpe2.sku=? OR $j2)
+			JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.entity_id!=cpe.entity_id AND (cpe2.sku=? OR $j2)
 			JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
 			WHERE cpe.sku=? OR $j";
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link")." (link_type_id,product_id,linked_product_id)  $bsql";
  	$data=array_merge(array($item["sku"]),$joininfo["data"]["cpe2.sku"],array($item["sku"]),$joininfo["data"]["cpe.sku"]);
  	$this->insert($sql,$data);
- 	$this->updateLinkAttributeTable($joininfo);
+ 	$this->updateLinkAttributeTable($item["sku"],$joininfo);
  	}
  	}
  }
  
- public function updateLinkAttributeTable($joininfo)
+ public function updateLinkAttributeTable($sku,$joininfo)
  {
  	 	//insert into attribute link attribute int table,reusing the same relations
+ 	 $ji=$joininfo["join"];
+ 	 $data=array($sku);
+ 	 $addcond="";
+ 	 if(isset($ji["cpe.sku"]))
+ 	 {
+ 	 	$addcond="OR ".$joininfo["join"]["cpe.sku"];
+ 	 	$data=array_merge($data,$joininfo["data"]["cpe.sku"]);
+ 	 } 	 
  	//this enable to mass add 
  	$bsql="SELECT cpl.link_id,cpla.product_link_attribute_id,0 as value
 	   	   FROM ".$this->tablename("catalog_product_entity")." AS cpe
-		   JOIN ".$this->tablename("catalog_product_entity")." AS cpe2 ON cpe2.sku!=cpe.sku
+		   JOIN ".$this->tablename("catalog_product_entity")." AS cpe2 ON cpe2.entity_id!=cpe.entity_id
 		   JOIN ".$this->tablename("catalog_product_link_type")." AS cplt ON cplt.code='relation'
 		   JOIN ".$this->tablename("catalog_product_link_attribute")." AS cpla ON cpla.product_link_attribute_code='position' AND cpla.link_type_id=cplt.link_type_id
-		   JOIN ".$this->tablename("catalog_product_link") ." AS cpl ON cpl.link_type_id=cplt.link_type_id AND cpl.product_id=cpe.entity_id AND cpl.linked_product_id=cpe2.entity_id";
+		   JOIN ".$this->tablename("catalog_product_link") ." AS cpl ON cpl.link_type_id=cplt.link_type_id AND cpl.product_id=cpe.entity_id AND cpl.linked_product_id=cpe2.entity_id
+		   WHERE cpe.sku=? $addcond";
+ 			
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link_attribute_int")." (link_id,product_link_attribute_id,value) $bsql";
- 	$this->insert($sql);	
+ 	$this->insert($sql,$data);	
  }
  
 	static public function getCategory()
