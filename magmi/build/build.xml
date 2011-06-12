@@ -16,14 +16,17 @@
           target: default              
          ================================= -->
     <target name="default" depends="depends" description="Magmi project">
-        <zip destfile="magmi_${target_version}.zip" update="no">
-        	<zipfileset dir=".." excludes="**/build/**,**/state/**,**/conf/**,**/integration/**,.svn,**/plugins/**,**/tests/**,.project"  prefix="magmi"/>
+    	
+
+    	<zip destfile="magmi_${target_version}.zip" update="no">
+        	<zipfileset dir=".." excludes="**/build/**,**/state/**,**/conf/**,**/integration/**,.svn,.idea/**,.buildpath,.settings/**,.htaccess,**/plugins/**,**/tests/**,.project"  prefix="magmi"/>
            	<zipfileset dir=".." includes="**/state"  prefix="magmi" dirmode="777"/>
             <zipfileset dir=".." includes="**/conf/*.ini.default" prefix="magmi" dirmode="777"/>
             <zipfileset dir=".." includes="**/integration/*" prefix="magmi" dirmode="777"/>
         	<zipfileset dir=".." includes="**/plugins/inc/**" prefix="magmi" dirmode="777"/>
         	<zipfileset dir=".." includes="**/plugins/base/**" prefix="magmi" dirmode="777"/>
         </zip>
+    	
     </target>
 	 <tstamp>
 	    <format property="RLSDATE" pattern="yyyyMMdd" />
@@ -50,7 +53,12 @@
           target: depends                      
          - - - - - - - - - - - - - - - - - -->
     <target name="depends">
-    	<input message="target version" addproperty="target_version"/>		    	
+    	<input message="target version" addproperty="target_version"/>
+    	<echo file="../inc/magmi_version.php">&lt;?php
+    	class Magmi_Version
+    	{
+    		 public static $version="${target_version}";
+    	}</echo>
     </target>
 
 </project>
