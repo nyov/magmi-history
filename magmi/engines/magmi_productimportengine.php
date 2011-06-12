@@ -58,7 +58,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.2.0","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.2.1","author"=>"dweeves");
 	}
 	
 	/**
@@ -513,7 +513,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 * @param $pid : product id to create attribute values for
 	 * @param $item : attribute values in an array indexed by attribute_code
 	 */
-	public function createAttributes($pid,&$item,$attmap)
+	public function createAttributes($pid,&$item,$attmap,$isnew)
 	{
 		/**
 		 * get all store ids
@@ -660,7 +660,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 					$this->delete($sql,array($this->prod_etype,$pid));
 			}
 			
-			if(empty($deletes) && empty($inserts))
+			if(empty($deletes) && empty($inserts) && $isnew)
 			{
 				if(!$this->_same)
 				{
@@ -995,7 +995,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$attrmap=$this->attrbytype;
 			do
 			{
-				$attrmap=$this->createAttributes($pid,$item,$attrmap);	
+				$attrmap=$this->createAttributes($pid,$item,$attrmap,$isnew);	
 			}
 			while(count($attrmap)>0);
 			
@@ -1085,10 +1085,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	}
 	
 	
-	public function reportStats(&$tstart,&$tdiff,&$lastdbtime,&$lastrec)
+	public function reportStats($nrow,&$tstart,&$tdiff,&$lastdbtime,&$lastrec)
 	{
 		$tend=microtime(true);
-		$this->log($this->_current_row." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
+		$this->log($nrow." - ".($tend-$tstart)." - ".($tend-$tdiff),"itime");
 		$this->log($this->_nreq." - ".($this->_indbtime)." - ".($this->_indbtime-$lastdbtime)." - ".($this->_nreq-$lastrec),"dbtime");
 		$lastrec=$this->_nreq;
 		$lastdbtime=$this->_indbtime;
@@ -1177,7 +1177,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				$this->_current_row++;	
 				if($this->_current_row%$rstep==0)
 				{
-					$this->reportStats($tstart,$tdiff,$lastdbtime,$lastrec);
+					$this->reportStats($this->_current_row,$tstart,$tdiff,$lastdbtime,$lastrec);
 				}
 				try
 				{
@@ -1216,7 +1216,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				unset($item);
 			}
 			$this->callPlugins("datasources,general,itemprocessors","endImport");
-			$this->reportStats($tstart,$tdiff,$lastdbtime,$lastrec);
+			$this->reportStats($this->_current_row,$tstart,$tdiff,$lastdbtime,$lastrec);
 		}
 		else
 		{
