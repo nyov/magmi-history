@@ -12,7 +12,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	{
 
 		$this->initCats();
-		$this->_cattrinfos=array("varchar"=>array("name"=>array()),
+		$this->_cattrinfos=array("varchar"=>array("name"=>array(),"url_key"=>array(),"url_path"=>array()),
 						 "int"=>array("is_active"=>array(),"is_anchor"=>array(),"include_in_menu"=>array()));
 		foreach($this->_cattrinfos as $catype=>$attrlist)
 		{
@@ -80,7 +80,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.1.4",
+            "version" => "0.1.5",
 			"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_category_creator/importer"
             );
 	}
@@ -125,6 +125,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$data=array($info["entity_type_id"],$info["attribute_set_id"],$parentid,$info["position"],$info["level"],"");		
 		//insert in db,get cat id
 		$catid=$this->insert($sql,$data);
+		
 		unset($data);
 		//set category path with inserted category id
 		$sql="UPDATE $cet SET path=?,created_at=NOW(),updated_at=NOW() WHERE entity_id=?";
@@ -171,8 +172,8 @@ class CategoryImporter extends Magmi_ItemProcessor
 			$parts=explode("::",$cdef);
 			$cp=count($parts);
 			$cname=trim($parts[0]);
-			$attrs=array("name"=>$cname,"is_active"=>($cp>1)?$parts[1]:1,"is_anchor"=>($cp>2)?$parts[2]:1,"include_in_menu"=>$cp>3?$parts[3]:1);
 			$odefs[]=$cname;
+			$attrs=array("name"=>$cname,"is_active"=>($cp>1)?$parts[1]:1,"is_anchor"=>($cp>2)?$parts[2]:1,"include_in_menu"=>$cp>3?$parts[3]:1,"url_key"=>Slugger::slug($cname),"url_path"=>Slugger::slug(implode("/",$odefs),true).".html");
 			$clist[]=$attrs;
 		}
 		$catdef=implode("/",$odefs);
@@ -275,7 +276,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return $rootpaths;
 	}
 	
-	public function processItemBeforeId(&$item,$params=null)
+	public function processItemAfterId(&$item,$params=null)
 	{
 		if(isset($item["categories"]))
 		{
