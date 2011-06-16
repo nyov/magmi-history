@@ -88,7 +88,7 @@
  			//on each 10 before, cross relate
  			if($i%10==0)
  			{
- 				$xre[]=$rsku;
+ 				$xre[]="-$rsku";
  			}
  			else
  			{
