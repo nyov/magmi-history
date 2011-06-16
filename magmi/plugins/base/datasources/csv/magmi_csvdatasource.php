@@ -225,19 +225,21 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 					$this->log("warning: line $this->_curline , wrong column number : $rcols found over $this->_nhcols, line skipped","warning");
 					continue;
 				}
+				break;
 			}
 		}
 		//if we read something
-		if($row!==false)
+		if(is_array($row))
 		{
 			//strict mode
-			if(!$this->allowtrunc)
+			if(!$allowtrunc)
 			{
 				//create product attributes values array indexed by attribute code
 				$record=array_combine($this->_cols,$row);
 			}
 			else
 			{
+				
 				//relax mode, recompose keys from read columns , others will be left unset
 				$ncols=count($row);
 				$cols=array_slice($this->_cols,0,$ncols);
