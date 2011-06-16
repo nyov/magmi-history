@@ -57,13 +57,13 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function getPluginParamNames()
 	{
-		return array('CSV:filename','CSV:enclosure','CSV:separator','CSV:basedir','CSV:headerline','CSV:noheader');
+		return array('CSV:filename','CSV:enclosure','CSV:separator','CSV:basedir','CSV:headerline','CSV:noheader','CSV:allowtrunc');
 	}
 	public function getPluginInfo()
 	{
 		return array("name"=>"CSV Datasource",
 					 "author"=>"Dweeves",
-					 "version"=>"1.1");
+					 "version"=>"1.1.1");
 	}
 	
 	public function getRecordsCount()
@@ -206,18 +206,50 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	public function getNextRecord()
 	{
 		$row=null;
-		while($row!==false && count($row)!=count($this->_cols))
+		$allowtrunc=$this->getParam("CSV:allowtrunc",false);
+		while($row!==false)
 		{
 			$row=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
-			$this->_curline++;			
-			$rcols=count($row);
-			if(!$this->isemptyline($row) && $rcols!=$this->_nhcols)
-			{				
-				$this->log("warning: line $this->_curline , wrong column number : $rcols found over $this->_nhcols, line skipped","warning");
+			if($row !==false)
+			{
+				$this->_curline++;			
+				//skip empty lines
+				if($this->isemptyline($row))
+				{
+					continue;
+				}
+				$rcols=count($row);
+				if(!$allowtrunc && $rcols!=$this->_nhcols)
+				{			
+					//if strict matching, warning & continue	
+					$this->log("warning: line $this->_curline , wrong column number : $rcols found over $this->_nhcols, line skipped","warning");
+					continue;
+				}
 			}
 		}
-		//create product attributes values array indexed by attribute code
-		$record=(is_array($row)?array_combine($this->_cols,$row):false);
+		//if we read something
+		if($row!==false)
+		{
+			//strict mode
+			if(!$this->allowtrunc)
+			{
+				//create product attributes values array indexed by attribute code
+				$record=array_combine($this->_cols,$row);
+			}
+			else
+			{
+				//relax mode, recompose keys from read columns , others will be left unset
+				$ncols=count($row);
+				$cols=array_slice($this->_cols,0,$ncols);
+				$record=array_combine($cols,$row);
+			}
+			
+				
+		}
+		else
+		{
+			$record=false;
+		}
 		unset($row);
 		return $record;
 	}
