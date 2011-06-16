@@ -7,26 +7,30 @@ class CrossUpsellProducts extends Magmi_ItemProcessor
  	return array(
             "name" => "Cross/Upsell Importer",
             "author" => "Dweeves",
-            "version" => "1.0.2",
+            "version" => "1.0.3",
  			"url"=>"https://sourceforge.net/apps/mediawiki/magmi/index.php?title=Cross/Upsell_Importer"
             );
  }
  
  public function checkRelated(&$rinfo)
  {
-  $sql="SELECT testid.sku,cpe.sku as esku FROM ".$this->arr2select($rinfo["direct"],"sku")." AS testid
-  LEFT JOIN ".$this->tablename("catalog_product_entity")." as cpe ON cpe.sku=testid.sku
-  WHERE testid.sku NOT LIKE '%re::%'
-  HAVING esku IS NULL";
-  $result=$this->selectAll($sql,$rinfo["direct"]);
-  $to_delete=array();
-  foreach($result as $row)
+ if(count($rinfo["direct"])>0)
   {
-  	$this->log("Unknown related sku ".$row["sku"],"warning");
-  	$to_delete[]=$row["sku"];
+ 	 $sql="SELECT testid.sku,cpe.sku as esku FROM ".$this->arr2select($rinfo["direct"],"sku")." AS testid
+  	LEFT JOIN ".$this->tablename("catalog_product_entity")." as cpe ON cpe.sku=testid.sku
+  	WHERE testid.sku NOT LIKE '%re::%'
+  	HAVING esku IS NULL";
+  	$result=$this->selectAll($sql,$rinfo["direct"]);
+  
+  	$to_delete=array();
+  	foreach($result as $row)
+  	{
+  		$this->log("Unknown related sku ".$row["sku"],"warning");
+  		$to_delete[]=$row["sku"];
+  	}
+  	$rinfo["direct"]=array_diff($rinfo["direct"],$to_delete);
   }
-  $rinfo["direct"]=array_diff($rinfo["direct"],$to_delete);
-  return count($rinfo["direct"]);
+  return count($rinfo["direct"])+count($rinfo["re"]);
  }
  
  public function processItemAfterId(&$item,$params=null)
@@ -36,7 +40,7 @@ class CrossUpsellProducts extends Magmi_ItemProcessor
 	$pid=$params["product_id"];
 	$new=$params["new"];
  
-	if(isset($usell))
+	if(isset($usell) && trim($usell)!="")
  	{
  		$rinf=$this->getRelInfos($usell);
 		if($new==false)
@@ -45,7 +49,7 @@ class CrossUpsellProducts extends Magmi_ItemProcessor
 		}
  		$this->setUsellItems($item,$rinf["add"]);
  	}
- 	if(isset($csell))
+ 	if(isset($csell) && trim($csell)!="")
  	{
  		$rinf=$this->getRelInfos($csell);
  		if($new==false)
@@ -251,6 +255,21 @@ class CrossUpsellProducts extends Magmi_ItemProcessor
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link_attribute_int")." (link_id,product_link_attribute_id,value) $bsql";
  	$this->insert($sql,array($reltype,$sku));
  	
+ }
+ 
+ public function afterImport()
+ {
+	//remove maybe inserted doubles 
+ 	$cplai=$this->tablename("catalog_product_link_attribute_int");
+ 	$sql="DELETE cplaix FROM $cplai as cplaix 
+ 		  WHERE cplaix.value_id IN 
+ 		  (SELECT s1.value_id FROM 
+ 		  	(SELECT cplai.link_id,cplai.value_id,MAX(cplai.value_id) as latest 
+ 		  		FROM $cplai as cplai 
+ 		  		GROUP BY cplai.link_id
+				HAVING cplai.value_id!=latest) 
+			as s1)";
+ 	$this->delete($sql);
  }
  
 static public function getCategory()
