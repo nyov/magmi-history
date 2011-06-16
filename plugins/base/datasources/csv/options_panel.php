@@ -20,8 +20,12 @@ This plugin enables magmi import from csv files (using Dataflow format + magmi e
 <span class="">CSV separator:</span><input type="text" maxlength="3" size="3" name="CSV:separator" value="<?php echo $this->getParam("CSV:separator")?>"></input>
 <span class="">CSV Enclosure:</span><input type="text" maxlength="3" size="3" name="CSV:enclosure" value='<?php echo $this->getParam("CSV:enclosure")?>'></input>
 </div>
+
 <div class=""><input type="checkbox" name="CSV:noheader" <?php if($this->getParam("CSV:noheader",false)==true){?>checked="checked"<?php }?>>
 Headerless CSV (Use Column Mapper Plugin to set processable column names)</div>
+<div class=""><input type="checkbox" name="CSV:allowtrunc" <?php if($this->getParam("CSV:allowtrunc",false)==true){?>checked="checked"<?php }?>>
+Allow truncated lines (bypasses data line structure correlation with headers)</div>
+
 <?php $hdline=$this->getParam("CSV:headerline","");
 $malformed=($hdline!="" && $hdline!=1)?>
 <input type="checkbox" id="malformedcb" <?php if($malformed){?>checked="checked"<?php }?>>Malformed CSV (column list line not at top of file)</input>
