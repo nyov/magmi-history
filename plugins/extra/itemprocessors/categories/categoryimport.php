@@ -7,7 +7,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	protected $_catroots=array();
 	protected $_catrootw=array();
 	protected $_cat_eid=null;
-	
+	protected $_tsep;
 	public function initialize($params)
 	{
 
@@ -21,6 +21,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 				$this->_cattrinfos[$catype][$catatt]=$this->getCatAttributeInfos($catatt);
 			}
 		}
+		$this->_tsep=$this->getParam("CAT:treesep","/");
 			
 	}
 	
@@ -80,7 +81,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.1.5",
+            "version" => "0.1.6",
 			"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_category_creator/importer"
             );
 	}
@@ -163,7 +164,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	
 	public function extractCatAttrs(&$catdef)
 	{
-		$cdefs=explode("/",$catdef);
+		$cdefs=explode($this->_tsep,$catdef);
 		$odefs=array();
 		$clist=array();
 		foreach($cdefs as $cdef)
@@ -180,7 +181,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 						 "url_path"=>Slugger::slug(implode("/",$odefs),true).$this->getParam("CAT:urlending",".html"));
 			$clist[]=$attrs;
 		}
-		$catdef=implode("/",$odefs);
+		$catdef=implode($this->_tsep,$odefs);
 		return $clist;
 	}
 	
@@ -199,16 +200,16 @@ class CategoryImporter extends Magmi_ItemProcessor
 			$catids=array();
 			$lastcached=array();
 			//get cat tree branches names
-			$catparts=explode("/",$catdef);
+			$catparts=explode($this->_tsep,$catdef);
 			//path as array
-			$basearr=explode("/",$basepath);
+			$basearr=explode($this->_tsep,$basepath);
 			//for each cat tree branch		
 			$pdef=array();	
 			foreach($catparts as $catpart)
 			{
 				//add it to the current tree level
 				$pdef[]=$catpart;
-				$ptest=implode("/",$pdef);
+				$ptest=implode($this->_tsep,$pdef);
 				//test for tree level in cache
 				if($this->isInCache($ptest,$basepath))
 				{
@@ -240,7 +241,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 				$curpath[]=$catid;
 				//cache newly created levels
 				$lastcached[]=$catparts[$i];				
-				$this->putInCache(implode("/",$lastcached),$basepath,$catids);
+				$this->putInCache(implode($this->_tsep,$lastcached),$basepath,$catids);
 			
 			}
 		}
@@ -294,7 +295,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 					$root=$this->getParam("CAT:baseroot","");
 					if($root!="")
 					{
-						$catdef="$root/$catdef";
+						$catdef=$root.$this->_tsep.$catdef;
 					}
 					foreach(array_keys($rootpaths) as $rp)
 					{
@@ -314,7 +315,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	
 	public function getPluginParamNames()
 	{
-		return array('CAT:baseroot','CAT:lastonly','CAT:urlending');
+		return array('CAT:baseroot','CAT:lastonly','CAT:urlending','CAT:treesep');
 	}
 	
 	public function afterImport()
