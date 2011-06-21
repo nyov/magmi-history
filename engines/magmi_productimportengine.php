@@ -12,7 +12,13 @@
 /* use external file for db helper */
 require_once("../inc/magmi_engine.php");
 
-/* Magmi ProductImporter is now a Magmi_Engine instance */
+/**
+ * 
+ * Magmi Product Import engine class
+ * This class handle product import
+ * @author dweeves
+ *
+ */
 class Magmi_ProductImportEngine extends Magmi_Engine
 {
 
@@ -55,7 +61,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	{
 		$this->setBuiltinPluginClasses("itemprocessors",dirname(dirname(__FILE__))."/plugins/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor");	
 	}
-
+	
+	/**
+	 * (non-PHPdoc)
+	 * @see Magmi_Engine::getEngineInfo()
+	 */
 	public function getEngineInfo()
 	{
 		return array("name"=>"Magmi Product Import Engine","version"=>"1.2.1","author"=>"dweeves");
@@ -112,6 +122,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		
 	}
 
+	/**
+	 * 
+	 * Return list of store codes that share the same website than the stores passed as parameter
+	 * @param string $scodes comma separated list of store view codes
+	 */
 	public function getStoreIdsForWebsiteScope($scodes)
 	{
 		if(!isset($this->_sid_wsscope[$scodes]))
@@ -150,6 +165,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		return $this->_sid_sscope[$scodes];
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param string $storestr (comma separated), list of store view codes
+	 * @return array of store ids corresponding to store codes
+	 */
 	public function getStoreIds($storestr)
 	{
 		//if no cache hit for these store list
@@ -202,6 +223,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		return $required;
 	}
 	
+	/**
+	 * 
+	 * gets attribute metadata from DB and put it in attribute metadata caches
+	 * @param array $cols list of attribute codes to get metadata from
+	 *                    if in this list, some values are not attribute code, no metadata will be cached.
+	 */
 	public function initAttrInfos($cols)
 	{
 		if($this->prod_etype==null)
@@ -212,7 +239,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 
 		$toscan=array_values(array_diff($cols,array_keys($this->attrinfo)));
-		if(count($toscan>0))
+		if(count($toscan)>0)
 		{
 			//create statement parameter string ?,?,?.....
 			$qcolstr=$this->arr2values($toscan);
@@ -286,10 +313,28 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		 the backend type
 		 ids => list of attribute ids of the backend type */
 	}
-
-	public function getAttrInfo($col)
+	
+	/**
+	 * 
+	 * retrieves attribute metadata
+	 * @param string $attcode attribute code
+	 * @param boolean $lookup if set, this will try to get info from DB otherwise will get from cache and may return null if not cached
+	 * @return array attribute metadata info
+	 */
+	public function getAttrInfo($attcode,$lookup=true)
 	{
-		return isset($this->attrinfo[$col])?$this->attrinfo[$col]:null;
+		$attrinf=isset($this->attrinfo[$attcode])?$this->attrinfo[$attcode]:null;
+		if($attrinf==null && $lookup)
+		{
+			$this->initAttrInfos(array($attcode));
+		}
+		if(count($this->attrinfo[$attcode])==0)
+		{
+			
+			$attrinf=null;
+			unset($this->attrinfo[$attcode]);
+		}
+		return $attrinf;
 	}
 
 	/**
@@ -948,6 +993,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			return false;
 		}
+		
+		if(count($item)==0)
+		{
+			return true;
+		}
 		//handle "computed" ignored columns
 		$this->handleIgnore($item);
 		$itemids=$this->getItemIds($item);
@@ -986,7 +1036,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			{
 				return false;
 			}
-				
+			if(count($item)==0)
+			{
+				return true;
+			}
 			//handle "computed" ignored columns from afterImport 
 			$this->handleIgnore($item);
 		
