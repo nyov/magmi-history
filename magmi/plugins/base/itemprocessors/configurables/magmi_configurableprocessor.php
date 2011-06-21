@@ -18,7 +18,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.2.1",
+            "version" => "1.3",
 			"url"=> "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Configurable_Item_processor"
             );
 	}
@@ -59,7 +59,7 @@ public function getConfigurableOptsFromAsId($asid)
 }
 
 	
-	public function dolink($pid,$cond)
+	public function dolink($pid,$cond,$conddata=array())
 	{
 			$cpsl=$this->tablename("catalog_product_super_link");
 			$cpr=$this->tablename("catalog_product_relation");
@@ -73,13 +73,13 @@ public function getConfigurableOptsFromAsId($asid)
 				  FROM $cpe as cpec 
 				  JOIN $cpe as cpes ON cpes.type_id='simple' AND cpes.sku $cond
 			  	  WHERE cpec.entity_id=?";
-			$this->insert($sql,array($pid));
+			$this->insert($sql,array_merge($conddata,array($pid)));
 			$sql="INSERT INTO $cpr (`parent_id`,`child_id`) SELECT cpec.entity_id as parent_id,cpes.entity_id  as child_id  
 				  FROM $cpe as cpec 
 				  JOIN $cpe as cpes ON cpes.type_id='simple' AND cpes.sku $cond
 			  	  WHERE cpec.entity_id=?";
-			$this->insert($sql,array($pid));
-		
+			$this->insert($sql,array_merge($conddata,array($pid)));
+			unset($conddata);
 	}
 	
 	
@@ -88,12 +88,30 @@ public function getConfigurableOptsFromAsId($asid)
 		$this->dolink($pid,"LIKE CONCAT(cpec.sku,'%')");
 	}
 	
+	public function updSimpleVisibility($pid,$targets)
+	{
+		if($targets=="__auto__")
+		{
+			$cond="LIKE CONCAT(cpec.sku,'%')";
+			$conddata=array();
+		}
+		else
+		{
+			$arrin=csl2arr($targets);
+			$cond="IN (".$this->arr2values($arrin).")";
+			$conddata=$arrin;
+		}
+		$attinfo=$this->getAttrInfo("visibility");
+		$sql="UPDATE ".$this->tablename("catalog_product_entity_int")." as cpei
+		JOIN catalog_product_entity as cpe ON cpe.sku $cond
+		SET cpei.value=1 
+		WHERE cpei.entity_id=cpe.entity_id AND attribute_id=?";
+		$this->update($sql,array_merge($conddata,array($attinfo["attribute_id"])));
+	}
+	
 	public function fixedLink($pid,$skulist)
 	{
-		$arrin=csl2arr($skulist);
-		$skulist=implode(",",$this->quotearr($arrin));
-		unset($arrin);
-		$this->dolink($pid,"IN ($skulist)");		
+		$this->dolink($pid,"IN (".$this->arr2values($skulist).")",$skulist);		
 	}
 	
 	public function buildSAPTable($sapdesc)
@@ -285,13 +303,18 @@ public function getConfigurableOptsFromAsId($asid)
 			case "auto":
 				//destroy old associations
 				$this->autoLink($pid);
+				$this->updSimpleVisibility($pid,"__auto__");
 				break;
 			case "cursimples":
-				$this->fixedLink($pid,implode(",",$this->_currentsimples));
-	
+				$this->fixedLink($pid,$this->_currentsimples);
+				$this->updSimpleVisibility($pid,implode(",",$this->_currentsimples));
+				
 				break;
 			case "fixed":
-				$this->fixedLink($pid,$item["simples_skus"]);
+				$sskus=explode(",",$item["simples_skus"]);
+				trimarray($sskus);
+				$this->fixedLink($pid,$sskus);
+				$this->updSimpleVisibility($pid,implode(",",$sskus));
 				unset($item["simples_skus"]);
 				break;
 			default:
@@ -306,6 +329,7 @@ public function getConfigurableOptsFromAsId($asid)
 		return true;
 	}
 	
+	
 	public function processColumnList(&$cols,$params=null)
 	{
 		if(!in_array("options_container",$cols))
@@ -318,7 +342,7 @@ public function getConfigurableOptsFromAsId($asid)
 	
 	public function getPluginParamNames()
 	{
-		return array("CFGR:simplesbeforeconf");
+		return array("CFGR:simplesbeforeconf","CFGR:updsimplevis");
 	}
 	
 	static public function getCategory()
