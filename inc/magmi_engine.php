@@ -6,6 +6,13 @@ require_once("magmi_utils.php");
 require_once("magmi_statemanager.php");
 require_once("magmi_pluginhelper.php");
 
+/**
+ * 
+ * This class is the mother class for magmi engines
+ * A magmi engine is a class that performs operations on DB
+ * @author dweeves
+ *
+ */
 abstract class Magmi_Engine extends DbHelper
 {
 	protected $_conf;
