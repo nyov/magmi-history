@@ -1,6 +1,10 @@
 <?php
-/*
- * Database helper using pdo
+/**
+ * 
+ * This class is a Database Operation Helper based on PDO library
+ * It provides shortcuts for common DB CRUD operations and some advanced templated requests operations
+ * @author dweeves
+ *
  */
 class DBHelper
 {
@@ -44,7 +48,11 @@ class DBHelper
 		$this->prepared=array();
 
 	}
-
+	/**
+	 * 
+	 * store output in some debug file
+	 * @param unknown_type $data
+	 */
 	public function logdebug($data)
 	{
 		if($this->_debug)
@@ -56,10 +64,16 @@ class DBHelper
 			fclose($f);
 		}
 	}
+	/**
+	 * 
+	 * Sets or unsets the usage of internal prepared statement cache for reuse
+	 * @param boolean $uc true:use cache,false:do not use cache 
+	 */
 	public function usestmtcache($uc)
 	{
-		$this->_use_stmt_cache=$uc;
+		$this->_use_stmt_cache=$uc;		
 	}
+	
 	/**
 	 * releases database connection
 	 */
@@ -69,7 +83,12 @@ class DBHelper
 		$this->_db=NULL;
 			
 	}
-
+	
+	/**
+	 * 
+	 * Helper method to try to guess mysql socket based on some tricky phpinfo analysis
+	 * @throws Exception if something got wrong during detection
+	 */
 	public static function getMysqlSocket()
 	{
 		$mysqlsock="";
@@ -111,22 +130,41 @@ class DBHelper
 		return $mysqlsock;
 	}
 	 
+	/**
+	 * 
+	 * Initializes database requests stats counters
+	 */
 	public function initDbqStats()
 	{
 		$this->_nreq=0;
 		$this->_indbtime=0;
 	}
 
+	/**
+	 * 
+	 * Enter description here ...
+	 * @param unknown_type $nbreq
+	 */
 	public function collectDbqStats(&$nbreq)
 	{
 		return $this->_nreq;
 	}
 	
+	/**
+	 * cache sorting comparison method
+	 * 
+	 * @param unknown_type $a
+	 * @param unknown_type $b
+	 */
 	public function cachesort($a,$b)
 	{
 		return $b[1]-$a[1];
 	}
 	
+	/**
+	 * Garbages statement cache if above 500 , removes less used statements
+	 * Enter description here ...
+	 */
 	public function garbageStmtCache()
 	{	
 		if(count($this->prepared)>=500)
@@ -137,7 +175,7 @@ class DBHelper
 	}
 	/**
 	 * executes an sql statement
-	 * @param string $sql : sql statement (may include ? placeholders)
+	 * @param string $sql : sql statement (may include ? placeholders or named variables)
 	 * @param array $params : parameters to replace placeholders (can be null)
 	 * @param boolean $close : auto close cursor after statement execution (defaults to true)
 	 * @return PDOStatement : statement for further processing if needed
@@ -217,6 +255,12 @@ class DBHelper
 			$this->exec_stmt($sql,$params);
 	}
 
+	/**
+	 * Performs an update statement
+	 * Enter description here ...
+	 * @param string $sql UPDATE statement sql (placeholder allowed)
+	 * @param array $params parameter values if placeholders in SQL
+	 */
 	public function update($sql,$params=null)
 	{
 			$this->exec_stmt($sql,$params);
@@ -295,6 +339,11 @@ class DBHelper
 		return $this->selectone($sql,$params,$col)!=null;
 	}
 
+	/**
+	 * Quote array values in order to be used as parameters (handy if array used directly in explode in a IN condition)
+	 * Enter description here ...
+	 * @param array $arr array of values to be quoted
+	 */
 	public function quotearr($arr)
 	{
 		$arrout=array();
@@ -305,6 +354,11 @@ class DBHelper
 		return $arrout;
 	}
 	
+	/**
+	 * 
+	 * transforms an array in a comma separated list of enclosed column names for request
+	 * @param array $arr list of names to enclose 
+	 */
 	public function arr2columns($arr)
 	{
 		$arrout=array();
@@ -317,12 +371,23 @@ class DBHelper
 		return $colstr;
 	}
 	
+	/**
+	 * 
+	 * transform an array of values into equivalent comma separated list of unnamed placeholders.
+	 * @param array $arr 
+	 */
 	public function arr2values($arr)
 	{
 		$str=substr(str_repeat("?,",count($arr)),0,-1);
 		return $str;
 	}
 	
+	/**
+	 * 
+	 * transform a list of values into static select to use it as SQL static resultset
+	 * @param array $arr list of values to use as SQL dataset
+	 * @param string $cname sql column name to use to represent dataset
+	 */
 	public function arr2select($arr,$cname="id")
 	{
 		$rpt=str_repeat("? AS $cname UNION SELECT ",count($arr));
@@ -330,6 +395,11 @@ class DBHelper
 		return "(SELECT $subsel)";
 	}
 	
+	/**
+	 * 
+	 * transform a associative array into a list of update prepared placeholders
+	 * @param array $arr associative array to prepare for update , array keys used as column to update
+	 */
 	public function arr2update($arr)
 	{
 		$arrout=array();
@@ -342,6 +412,12 @@ class DBHelper
 		return $updstr;
 	}
 	
+	/**
+	 * 
+	 * Enter description here ...
+	 * @param unknown_type $kvarr
+	 * @param unknown_type $keys
+	 */
 	public function filterkvarr($kvarr,$keys)
 	{
 		$out=array();
@@ -389,12 +465,30 @@ class DBHelper
 		
 	}
 	
+	/**
+	 * 
+	 * Sets debug management
+	 * @param bool $debug debug flag
+	 * @param string $debugfname debug file name to use
+	 */
 	public function setDebug($debug,$debugfname)
 	{
 		$this->_debug=$debug;	
 		$this->_debugfile=$debugfname;
 	}
 	
+	/**
+	 * 
+	 * Replaces named params in a descriptive parameterized request
+	 * Descriptive parameterized request have parameters defined as
+	 * [namespace:name/label/default value] , this parameters may represent table names or any request parameter
+	 * namespace is optional, as label & default value
+	 * - NameSpaces:
+	 * tn : tablename, this namespace ensures replacement of given name with defined DB prefix so, parameterized request can use generic names to define their ops
+	 * 
+	 * @param unknown_type $stmt
+	 * @param unknown_type $rparams
+	 */
 	public function replaceParams(&$stmt,&$rparams)
 	{
 		$params=array();
@@ -434,11 +528,22 @@ class DBHelper
 		}
 	}
 		
-	
+	/**
+	 * 
+	 * Checks wether an array is associative
+	 * @param mixed $var array or variable to test
+	 */
 	public function is_assoc($var) {
     	return is_array($var) && array_keys($var)!==range(0,sizeof($var)-1);
 	}
 	 
+	/**
+	 * 
+	 * This method handled mutiple statements in a single SQL (PDO cannot do it by itself)
+	 * Statements have to be separed by ; & line return.
+	 * @param string $sql multiple statements
+	 * @param array $params values to use for parameter placeholder, in case of named parameters,array has to have array keys aligned with parameter names
+	 */
 	public function multipleParamRequests($sql,$params)
 	{
 		//ensure windows/mac compatibility for user made requests
