@@ -32,6 +32,14 @@ function csl2arr($cslarr,$sep=",")
 	return $arr;
 }
 
+function trimarray(&$arr)
+{
+	for($i=0;$i<count($arr);$i++)
+	{
+		$arr[$i]=trim($arr[$i]);		
+	}
+	
+}
 class Slugger
 {
 	static protected $_translit=array(
