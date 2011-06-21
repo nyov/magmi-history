@@ -7,3 +7,8 @@ This plugins handles configurable import</b>
 	<option value="0" <?php if ($this->getParam("CFGR:simplesbeforeconf")==0){?>selected="selected"<?php }?>>No</option>
 	<option value="1" <?php if ($this->getParam("CFGR:simplesbeforeconf")==1){?>selected="selected"<?php }?>>Yes</option></select></li>
 </ul>
+<ul  class="formline">
+<li>
+<input type="checkbox" name="CFGR:updsimplevis" <?php if($this->getParam("CFGR:updsimplevis",false)==true){?>checked="checked"<?php }?>>Make associated simples not visible
+</li>
+</ul>
