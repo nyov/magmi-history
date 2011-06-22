@@ -74,7 +74,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			if($imagefile!==false)
 			{
 				//add to gallery
-				$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$label,$exclude);
+				$targetsids=$this->getStoreIdsForStoreScope($item["store"]);
+				$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$targetsids,$label,$exclude);
 			}
 		}
 		unset($images);
@@ -130,7 +131,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{
 				$label=$item[$attrcode."_label"];
 			}
-			$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$label,$exclude,$attrdesc["attribute_id"]);
+			$targetsids=$this->getStoreIdsForStoreScope($item["store"]);
+			$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$targetsids,$label,$exclude,$attrdesc["attribute_id"]);
 		}
 		return $ovalue;
 	}
@@ -218,7 +220,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @param array $attrdesc : product attribute description
 	 * @param string $imgname : image file name (relative to /products/media in magento dir)
 	 */
-	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$imglabel=null,$excluded=false,$refid=null)
+	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$targetsids,$imglabel=null,$excluded=false,$refid=null)
 	{
 		$gal_attinfo=$this->getAttrInfo("media_gallery");
 		if($gal_attinfo==null)
@@ -242,15 +244,23 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			$pos=($pos==null?0:$pos+1);
 			#insert new value (ingnore duplicates)
 				
+			$vinserts=array();
+			$data=array();
+			 
+			foreach($targetsids as $tsid)
+			{
+				$vinserts[]="(?,?,?,?,".($imglabel==null?"NULL":"?").")";
+				$data=array_merge($data,array($vid,$tsid,$pos,$excluded?1:0));
+				if($imglabel!=null)
+				{
+					$data[]=$imglabel;
+				}
+			}
+			
 			$sql="INSERT INTO $tgv
 				(value_id,store_id,position,disabled,label)
-				VALUES(?,?,?,?,".($imglabel==null?"NULL":"?").")
+				VALUES ".implode(",",$vinserts)." 
 				ON DUPLICATE KEY UPDATE label=VALUES(`label`)";
-			$data=array($vid,$storeid,$pos,$excluded?1:0);
-			if($imglabel!=null)
-			{
-				$data[]=$imglabel;
-			}
 			$this->insert($sql,$data);
 			unset($data);
 		}
