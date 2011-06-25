@@ -13,7 +13,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly indexer",
             "author" => "Dweeves",
-            "version" => "0.1.2c",
+            "version" => "0.1.3",
             "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_indexer"
             );
 	}
@@ -353,11 +353,13 @@ class ItemIndexer extends Magmi_ItemProcessor
 	//To be done, find a way to avoid reindexing if not necessary
 	public function shouldReindex($item)
 	{
-		return true;
+		return count($item)>0;
 	}
 	
 	public function processItemAfterImport(&$item,$params=null)
 	{
+		if(count($item)>0)
+		{
 		$this->reindexLastImported();
 		//if current item is not the same than previous one
 		if($params["same"]==false)
@@ -370,6 +372,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 			{
 				$this->log("Do not reindex, no indexed column changed");
 			}
+		}
 		}
 		return true;
 	}
