@@ -211,7 +211,110 @@ else{?>
 </div>
 </div>
 </div>
+
+<div id="paramchanged" style="display:none">
+		<div class="subtitle"><h3>Parameters changed</h3></div>
+
+	<div class="changedesc"><b>You changed parameters without saving profile , would you like to:</b></div>
+	
+	<ul>
+	<li>
+		<input type="radio" name="paramcr" value="saveprof">Save chosen Profile (<?php echo $profilename ?>) with current parameters
+	</li>
+	<li>
+		<input type="radio" name="paramcr" value="applyp" checked="checked">Apply current parameters as profile override without saving
+	</li>
+	<li>
+		<input type="radio" name="paramcr" value="useold">Discard changes &amp; apply last saved <?php echo $profilename ?> profile values
+	</li>
+	</ul>
+	<div class="actionbuttons">
+	<a class="actionbutton" href="javascript:handleRunChoice('paramcr',comparelastsaved());" id="paramchangeok">Run with selected option</a>
+	<a class="actionbutton" href="javascript:cancelimport();" id="paramchangecancel">Cancel Run</a>
+	</div>
+</div>
+
+<div id="pluginschanged" style="display:none">
+	<div class="subtitle"><h3>Plugin selection changed</h3></div>
+	<div class="changedesc"><b>You changed selected plugins without saving profile , would you like to:</b></div>
+	
+	<ul>
+	<li>
+		<input type="radio" name="plugselcr" value="saveprof" checked="checked">Save chosen Profile (<?php echo $profilename ?>) with current parameters
+	</li>
+	<li>
+		<input type="radio" name="plugselcr" value="useold">Discard changes &amp; apply  last saved <?php echo $profilename ?> profile values
+	</li>
+	</ul>
+	<div class="actionbuttons">
+	<a class="actionbutton" href="javascript:handleRunChoice('plugselcr',comparelastsaved());" id="plchangeok">Run with selected option</a>
+	<a class="actionbutton" href="javascript:cancelimport();" id="plchangecancel">Cancel Run</a>
+	</div>
+</div>
+
 <script type="text/javascript">
+
+lastsaved={};
+
+handleRunChoice=function(radioname,changeinfo)
+{
+	var changed=changeinfo.changed;
+	var sval=$$('input:checked[type="radio"][name="'+radioname+'"]').pluck('value');
+	if(sval=='saveprof')
+	{
+		saveProfile(1,function(){$('runmagmi').submit();});
+	}
+	if(sval=='useold')
+	{
+		$('runmagmi').submit();
+	}
+	if(sval=='applyp')
+	{
+		changed.each(function(it){
+			$('runmagmi').insert({bottom:'<input type="hidden" name="'+it.key+'" value="'+it.value+'">'});
+		});
+		$('runmagmi').submit();
+	}
+}
+
+cancelimport=function()
+{
+ $('overlay').hide();	
+}
+
+updatelastsaved=function()
+{ 
+ gatherclasses(['DATASOURCES','GENERAL','ITEMPROCESSORS']);
+ lastsaved=$H($('saveprofile_form').serialize(true));	
+};
+
+comparelastsaved=function()
+{
+ gatherclasses(['DATASOURCES','GENERAL','ITEMPROCESSORS']);
+ var curprofvals=$H($('saveprofile_form').serialize(true));
+ var changeinfo={changed:false,target:''};
+ if(curprofvals!=lastsaved)
+ {
+	 var out="";
+	 var diff={};
+	 changeinfo.target='paramchanged';
+	 curprofvals.each(function(kv)
+	 {
+		 var lastval=lastsaved.get(kv.key);
+	 	if(kv.value!=lastval)
+	 	{
+			diff[kv.key]=kv.value;
+			if(kv.key.substr(0,8)=="PLUGINS_")
+			{
+				changeinfo.target='pluginschanged';
+			}
+		}
+	 });
+	changeinfo.changed=$H(diff);
+ }
+ return changeinfo;
+};
+
 addclass=function(it,o)
 {
 	if(it.checked){
@@ -250,7 +353,7 @@ initConfigureLink=function(maincont)
  	 	});
 
  }
-}
+};
 showConfLink=function(maincont)
 {
 	var cfgdiv=maincont.select('.pluginconf');
@@ -261,7 +364,7 @@ showConfLink=function(maincont)
 	cfgdiv.show();
 	 }
 	
-}
+};
 
 loadConfigPanel=function(container,profile,plclass,pltype)
 {
@@ -276,7 +379,8 @@ loadConfigPanel=function(container,profile,plclass,pltype)
 	 		showConfLink($(container.parentNode));
 	 		initConfigureLink($(container.parentNode));
 	 	}});
-}
+};
+
 removeConfigPanel=function(container)
 {
 var cfgdiv=$(container.parentNode).select('.pluginconf');
@@ -285,7 +389,7 @@ cfgdiv.stopObserving('click');
  cfgdiv.hide();
  container.removeClassName('selected');
  container.update('');
-}
+};
 
 
 initAjaxConf=function(profile)
@@ -317,27 +421,50 @@ initAjaxConf=function(profile)
 			}
 		});
 	});			
-}
+};
+
 initDefaultPanels=function()
 {
 	$$('.pluginselect').each(function(it){initConfigureLink($(it.parentNode));});
-}
+};
 
-initAjaxConf('<?php echo $profile?>');
-initDefaultPanels();
-$('saveprofile').observe('click',function()
-		{
-		gatherclasses(['GENERAL','ITEMPROCESSORS']);
+saveProfile=function(confok,onsuccess)
+{
+	gatherclasses(['DATASOURCES','GENERAL','ITEMPROCESSORS']);
 	new Ajax.Updater('profileconf_msg',
 			 "magmi_saveprofile.php",
 			 {parameters:$('saveprofile_form').serialize('true'),
 			  onSuccess:function(){
-			  <?php if(!$conf_ok){?>
-					$('chooseprofile').submit();					
-			  <?php }else{?>
-			  		$('profileconf_msg').show();
-			  <?php }?>}
-			 
- 			});
-		});							
+			  if(confok)
+              {
+				 onsuccess();
+			  }
+			  else
+			  {
+			  	$('profileconf_msg').show();
+			  	updatelastsaved();
+			  }}
+	  		});
+	
+};
+
+initAjaxConf('<?php echo $profile?>');
+initDefaultPanels();
+
+
+$('saveprofile').observe('click',function()
+								{
+									saveProfile(<?php echo $conf_ok?1:0 ?>,function(){$('chooseprofile').submit();});
+									});	
+updatelastsaved();
+$('runmagmi').observe('submit',function(ev){
+
+	var ls=comparelastsaved();
+	if(ls.changed!==false)
+	{
+		 $('overlaycontent').update($(ls.target));
+		 $$('#overlaycontent > div').each(function(el){el.show()});
+		 $('overlay').show();			
+	}
+	ev.stop();});
 	</script>
