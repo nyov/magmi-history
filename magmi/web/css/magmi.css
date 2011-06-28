@@ -641,3 +641,49 @@ p.logentry
  background-color:#0000cc;
  color:#ffffff;
 } 
+
+#overlay {
+     position: absolute;
+     left: 0px;
+     top: 0px;
+     width:100%;
+     height:100%;
+     text-align:center;
+     z-index: 1000;
+	 background:url("../images/white50.png");
+}
+
+#overlaycontent {
+     width:800px;
+     margin: 200px auto;
+     background-color: #fff;
+     border:1px solid #000;
+     text-align:left;
+}
+
+div.actionbuttons
+{
+ width:100%;
+ border-top:1px solid #000000;
+ margin-top:5px;
+ padding-top:5px;
+ height:24px;
+}
+
+div.actionbuttons a
+{
+ display:block;
+ float:right;
+ margin-right:5px;
+}
+
+div.changedesc
+{
+ width:100%;
+ border-top:1px solid #000000;
+ border-bottom:1px solid #000000;
+ margin-top:5px;
+ padding-top:5px;
+ padding-bottom:5px;
+	
+}
