@@ -1,14 +1,16 @@
-	<script type="text/javascript">
-		var imp_params={engine:'magmi_productimportengine:Magmi_ProductImportEngine'};
 	<?php 
 	ini_set('magic_gpc_quotes',0);
 	$profile=isset($_REQUEST["profile"])?$_REQUEST["profile"]:'default';
 	$_SESSION["last_runned_profile"]=$profile;
 	session_write_close();
-	foreach($_REQUEST as $k=>$v)
-	{
-		echo "imp_params['$k']='$v';\n";	
-	}
+	?>
+	<script type="text/javascript">
+	var imp_params={engine:'magmi_productimportengine:Magmi_ProductImportEngine'};
+	<?php 
+		foreach($_REQUEST as $k=>$v)
+		{
+			echo "imp_params['$k']='$v';\n";	
+		}
 	?>
 	</script>
 	<div class="clear"></div>
