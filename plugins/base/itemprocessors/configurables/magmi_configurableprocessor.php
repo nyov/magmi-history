@@ -18,7 +18,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.3",
+            "version" => "1.3.1",
 			"url"=> "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Configurable_Item_processor"
             );
 	}
@@ -217,11 +217,9 @@ public function getConfigurableOptsFromAsId($asid)
 		
 		//check if item has exising options
 		$pid=$params["product_id"];
-		$psa=$this->tablename("catalog_product_super_attribute");
-		$sql="DELETE FROM `$psa` WHERE `product_id`=?";
-		$this->delete($sql,array($pid));
-	
-			
+		$cpsa=$this->tablename("catalog_product_super_attribute");
+		$cpsal=$this->tablename("catalog_product_super_attribute_label");
+					
 		//process configurable options
 		$ins_sa=array();
 		$data_sa=array();
@@ -233,11 +231,20 @@ public function getConfigurableOptsFromAsId($asid)
 			
 			$attrinfo=$this->getAttrInfo($confopt);
 			$attrid=$attrinfo["attribute_id"];
-			$cpsa=$this->tablename("catalog_product_super_attribute");
-			$cpsal=$this->tablename("catalog_product_super_attribute_label");
-			$sql="INSERT INTO `$cpsa` (`product_id`,`attribute_id`,`position`) VALUES (?,?,?)";
-			//inserting new options
-			$psaid=$this->insert($sql,array($pid,$attrid,$idx));		
+			$psaid=NULL;
+
+			//try to get psaid for attribute
+			$sql="SELECT product_super_attribute_id as psaid FROM `$cpsa` WHERE product_id=? AND attribute_id=?";
+			$psaid=$this->selectOne($sql,array($pid,$attid),"psaid");			
+			//if no entry found, create one
+			if($psaid==NULL)
+			{
+				$sql="INSERT INTO `$cpsa` (`product_id`,`attribute_id`,`position`) VALUES (?,?,?)";
+				//inserting new options
+				$psaid=$this->insert($sql,array($pid,$attrid,$idx));	
+			}
+			
+			
 			//for all stores defined for the item
 			$sids=$this->getItemStoreIds($item,0);
 			$data=array();
@@ -248,8 +255,11 @@ public function getConfigurableOptsFromAsId($asid)
 				$data[]=$sid;
 				$ins[]="(?,?,1,'')";
 			}
-			$sql="INSERT INTO `$cpsal` (`product_super_attribute_id`,`store_id`,`use_default`,`value`) VALUES ".implode(",",$ins);
+			//insert/update attribute value for association
+			$sql="INSERT INTO `$cpsal` (`product_super_attribute_id`,`store_id`,`use_default`,`value`) VALUES ".implode(",",$ins).
+			"ON DUPLICATE KEY UPDATE value=VALUES(`value`)";
 			$this->insert($sql,$data);
+			
 			//if we have price info for this attribute
 			if(isset($this->_optpriceinfo[$confopt]))
 			{
