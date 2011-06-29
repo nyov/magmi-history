@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.16",
+            "version" => "1.0.16a",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Image_attributes_processor"
             );
 	}
@@ -432,6 +432,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				curl_setopt($context, CURLOPT_FOLLOWLOCATION, 1);
 				
 				curl_exec($context);
+				@fclose($fp);
 				return true;
 			}
 			else
