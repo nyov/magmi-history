@@ -69,8 +69,8 @@
 			var rq=new Ajax.Request('magmi_run.php',{method:'post',
 								 parameters:imp_params,
 								onCreate:function(r){window._sr=r;},
-								onLoaded:function(r){
-													 startProgress(imp_params);
+								onLoading:function(r){
+													 startProgress(imp_params).delay(0.2);
 													}});
 		}
 	};
