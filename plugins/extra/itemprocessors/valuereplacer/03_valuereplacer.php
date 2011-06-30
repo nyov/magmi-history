@@ -15,13 +15,13 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Value Replacer",
             "author" => "Dweeves",
-            "version" => "0.0.4",
+            "version" => "0.0.5",
 					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Value_Replacer"
         );
     }
 	
 	
-    public function parseval($pvalue,$item)
+    public function parseval($pvalue,$item,$params)
 	{
 		$matches=array();
 		$ik=array_keys($item);
@@ -45,7 +45,28 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 			}
 		}
 		unset($matches);
+		$meta=$params;
 		
+		while(preg_match("|\{meta\.(.*?)\}|",$pvalue,$matches))
+		{
+			foreach($matches as $match)
+			{
+				if($match!=$matches[0])
+				{
+					if(in_array($match,$ik))
+					{
+						$rep='$meta["'.$match.'"]';
+					}
+					else
+					{
+						$rep="";
+					}
+					$pvalue=str_replace($matches[0],$rep,$pvalue);
+				}
+			}
+		}
+		unset($matches);
+	
 		//replacing expr values
 		while(preg_match("|\{\{\s*(.*?)\s*\}\}|",$pvalue,$matches))
 		{
@@ -88,7 +109,7 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 	{
 		foreach($this->_rvals as $attname=>$pvalue)
 		{
-			$item[$attname]=$this->parseval($pvalue,$item);
+			$item[$attname]=$this->parseval($pvalue,$item,$params);
 		}
 		return true;
 	}
