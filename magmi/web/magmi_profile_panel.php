@@ -254,7 +254,7 @@ else{?>
 
 <script type="text/javascript">
 
-lastsaved={};
+window.lastsaved={};
 
 handleRunChoice=function(radioname,changeinfo)
 {
@@ -285,7 +285,7 @@ cancelimport=function()
 updatelastsaved=function()
 { 
  gatherclasses(['DATASOURCES','GENERAL','ITEMPROCESSORS']);
- lastsaved=$H($('saveprofile_form').serialize(true));	
+ window.lastsaved=$H($('saveprofile_form').serialize(true));	
 };
 
 comparelastsaved=function()
@@ -293,25 +293,27 @@ comparelastsaved=function()
  gatherclasses(['DATASOURCES','GENERAL','ITEMPROCESSORS']);
  var curprofvals=$H($('saveprofile_form').serialize(true));
  var changeinfo={changed:false,target:''};
- if(curprofvals!=lastsaved)
+ var out="";
+ var diff={};
+ changeinfo.target='paramchanged';
+ curprofvals.each(function(kv)
  {
-	 var out="";
-	 var diff={};
-	 changeinfo.target='paramchanged';
-	 curprofvals.each(function(kv)
-	 {
-		 var lastval=lastsaved.get(kv.key);
-	 	if(kv.value!=lastval)
-	 	{
-			diff[kv.key]=kv.value;
-			if(kv.key.substr(0,8)=="PLUGINS_")
-			{
-				changeinfo.target='pluginschanged';
-			}
+	 var lastval=window.lastsaved.get(kv.key);
+ 	if(kv.value!=lastval)
+ 	{
+		diff[kv.key]=kv.value;
+		if(kv.key.substr(0,8)=="PLUGINS_")
+		{
+			changeinfo.target='pluginschanged';
 		}
-	 });
-	changeinfo.changed=$H(diff);
- }
+	}
+ });
+
+changeinfo.changed=$H(diff);
+if(changeinfo.changed.size()==0)
+{
+	changeinfo.changed=false;
+}
  return changeinfo;
 };
 
@@ -426,11 +428,13 @@ initAjaxConf=function(profile)
 initDefaultPanels=function()
 {
 	$$('.pluginselect').each(function(it){initConfigureLink($(it.parentNode));});
+	updatelastsaved();
 };
 
 saveProfile=function(confok,onsuccess)
 {
 	gatherclasses(['DATASOURCES','GENERAL','ITEMPROCESSORS']);
+  	updatelastsaved();
 	new Ajax.Updater('profileconf_msg',
 			 "magmi_saveprofile.php",
 			 {parameters:$('saveprofile_form').serialize('true'),
@@ -442,7 +446,6 @@ saveProfile=function(confok,onsuccess)
 			  else
 			  {
 			  	$('profileconf_msg').show();
-			  	updatelastsaved();
 			  }}
 	  		});
 	
@@ -456,7 +459,7 @@ $('saveprofile').observe('click',function()
 								{
 									saveProfile(<?php echo $conf_ok?1:0 ?>,function(){$('chooseprofile').submit();});
 									});	
-updatelastsaved();
+
 $('runmagmi').observe('submit',function(ev){
 
 	var ls=comparelastsaved();
@@ -465,6 +468,7 @@ $('runmagmi').observe('submit',function(ev){
 		 $('overlaycontent').update($(ls.target));
 		 $$('#overlaycontent > div').each(function(el){el.show()});
 		 $('overlay').show();			
+		 ev.stop();
 	}
-	ev.stop();});
+	});
 	</script>
