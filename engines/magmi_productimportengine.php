@@ -68,7 +68,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.2.1","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.3","author"=>"dweeves");
 	}
 	
 	/**
@@ -843,21 +843,46 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			WHERE product_id=?";
 			$this->delete($sql,$pid);
 		}
+		
+		
 		$inserts=array();
 		$data=array();
+		$ddata=array();
 		foreach($catids as $catid)
 		{
-			$inserts[]="(?,?)";
-			$data[]=$catid;
-			$data[]=$pid;
+			$rel=getRelative($catid);
+			if($rel=="-")
+			{
+				$ddata[]=$catid;
+			}
+			else
+			{
+				$inserts[]="(?,?)";
+				$data[]=$catid;
+				$data[]=$pid;
+			}
 		}
+		
+		#peform deletion of removed category affectation
+		if(count($ddata)>0)
+		{
+			$sql="DELETE FROM $ccpt WHERE category_id IN (".$this->arr2values($ddata).") AND product_id=?";
+			$ddata[]=$pid;
+			$this->delete($sql,$data);
+			unset($ddata);
+		}
+		
 		#create new category assignment for products, if multi store with repeated ids
 		#ignore duplicates
-		$sql="INSERT IGNORE INTO $ccpt (`category_id`,`product_id`)
-			 VALUES ";
-		$sql.=implode(",",$inserts);
-		$this->insert($sql,$data);
-		unset($data);
+		if(count($inserts)>0)
+		{
+			$sql="INSERT IGNORE INTO $ccpt (`category_id`,`product_id`)
+				 VALUES ";
+			$sql.=implode(",",$inserts);
+			$this->insert($sql,$data);
+			unset($data);
+		}
+		unset($deletes);
 		unset($inserts);
 	}
 
