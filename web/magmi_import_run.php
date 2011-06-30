@@ -36,7 +36,7 @@
 	{
 		new Ajax.Updater(tdiv,'ajax_gettime.php',{parameters:{prefix:xprefix},
 			onComplete:function(){$(tdiv).show();}});
-	}
+	};
 	
 	endImport=function(t)
 	{
@@ -52,13 +52,13 @@
 				window._sr=null;
 			}
 		}
-	}
+	};
 
 	startProgress=function(imp_params)
 	{
 		window.upd=new Ajax.PeriodicalUpdater("runlog","magmi_progress.php",{frequency:1,evalScripts:true,parameters:{
 		logfile:imp_params['logfile']}});
-	}
+	};
 	
 	startImport=function(imp_params)
 	{
@@ -68,16 +68,18 @@
 			updateTime('startimport_div','Import Started');
 			var rq=new Ajax.Request('magmi_run.php',{method:'post',
 								 parameters:imp_params,
-								onCreate:function(r){window._sr=r}});
-			startProgress(imp_params).delay(0.5);
+								onCreate:function(r){window._sr=r;},
+								onLoaded:function(r){
+													 startProgress(imp_params);
+													}});
 		}
-	}
+	};
 	
 	setProgress=function(pc)
 	{
 		$('import_current').setStyle({width:''+pc+'%'});
 		$('import_progress').update(''+pc+'%');
-	}
+	};
 
 	cancelImport=function()
 	{
@@ -87,7 +89,7 @@
 			window._sr.transport.abort();
 			window._sr=null;
 		}
-	}
+	};
 
 	if(imp_params.mode!==null)
 	{
