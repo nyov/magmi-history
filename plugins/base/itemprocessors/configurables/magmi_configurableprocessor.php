@@ -88,7 +88,7 @@ public function getConfigurableOptsFromAsId($asid)
 		$this->dolink($pid,"LIKE CONCAT(cpec.sku,'%')");
 	}
 	
-	public function updSimpleVisibility($pid,$targets)
+	public function updSimpleVisibility($pid,$targets,$vis)
 	{
 		if($targets=="__auto__")
 		{
@@ -104,9 +104,9 @@ public function getConfigurableOptsFromAsId($asid)
 		$attinfo=$this->getAttrInfo("visibility");
 		$sql="UPDATE ".$this->tablename("catalog_product_entity_int")." as cpei
 		JOIN catalog_product_entity as cpe ON cpe.sku $cond
-		SET cpei.value=1 
+		SET cpei.value=?
 		WHERE cpei.entity_id=cpe.entity_id AND attribute_id=?";
-		$this->update($sql,array_merge($conddata,array($attinfo["attribute_id"])));
+		$this->update($sql,array_merge($conddata,array($vis,$attinfo["attribute_id"])));
 	}
 	
 	public function fixedLink($pid,$skulist)
