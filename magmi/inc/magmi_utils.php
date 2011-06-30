@@ -40,6 +40,23 @@ function trimarray(&$arr)
 	}
 	
 }
+
+function getRelative(&$val)
+{
+	$dir="+";
+	if($val[0]=="-")
+	{
+		$val=substr($val,1);
+		$dir="-";
+	}
+	else 
+	if($val[0]=="+")
+	{
+		$val=substr($val,1);
+	}
+	return $dir;
+}
+
 class Slugger
 {
 	static protected $_translit=array(
