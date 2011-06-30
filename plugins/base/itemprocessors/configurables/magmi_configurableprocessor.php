@@ -18,7 +18,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.3.1",
+            "version" => "1.3.1a",
 			"url"=> "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Configurable_Item_processor"
             );
 	}
@@ -88,25 +88,29 @@ public function getConfigurableOptsFromAsId($asid)
 		$this->dolink($pid,"LIKE CONCAT(cpec.sku,'%')");
 	}
 	
-	public function updSimpleVisibility($pid,$targets,$vis)
+	public function updSimpleVisibility($pid,$targets)
 	{
-		if($targets=="__auto__")
+		$vis=$this->getParam("CFGR:updsimplevis",0);
+		if($vis!=0)
 		{
-			$cond="LIKE CONCAT(cpec.sku,'%')";
-			$conddata=array();
+			if($targets=="__auto__")
+			{
+				$cond="LIKE CONCAT(cpec.sku,'%')";
+				$conddata=array();
+			}
+			else
+			{
+				$arrin=csl2arr($targets);
+				$cond="IN (".$this->arr2values($arrin).")";
+				$conddata=$arrin;
+			}
+			$attinfo=$this->getAttrInfo("visibility");
+			$sql="UPDATE ".$this->tablename("catalog_product_entity_int")." as cpei
+			JOIN ".$this->tablename("catalog_product_entity")." as cpe ON cpe.sku $cond
+			SET cpei.value=?
+			WHERE cpei.entity_id=cpe.entity_id AND attribute_id=?";
+			$this->update($sql,array_merge($conddata,array($vis,$attinfo["attribute_id"])));
 		}
-		else
-		{
-			$arrin=csl2arr($targets);
-			$cond="IN (".$this->arr2values($arrin).")";
-			$conddata=$arrin;
-		}
-		$attinfo=$this->getAttrInfo("visibility");
-		$sql="UPDATE ".$this->tablename("catalog_product_entity_int")." as cpei
-		JOIN catalog_product_entity as cpe ON cpe.sku $cond
-		SET cpei.value=?
-		WHERE cpei.entity_id=cpe.entity_id AND attribute_id=?";
-		$this->update($sql,array_merge($conddata,array($vis,$attinfo["attribute_id"])));
 	}
 	
 	public function fixedLink($pid,$skulist)
@@ -235,7 +239,7 @@ public function getConfigurableOptsFromAsId($asid)
 
 			//try to get psaid for attribute
 			$sql="SELECT product_super_attribute_id as psaid FROM `$cpsa` WHERE product_id=? AND attribute_id=?";
-			$psaid=$this->selectOne($sql,array($pid,$attid),"psaid");			
+			$psaid=$this->selectOne($sql,array($pid,$attrid),"psaid");			
 			//if no entry found, create one
 			if($psaid==NULL)
 			{
