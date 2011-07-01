@@ -141,7 +141,7 @@ public function getConfigurableOptsFromAsId($asid)
 		{
 			return true;
 		}		
-		if($this->_use_defaultopc)
+		if($this->_use_defaultopc || ($item["options_container"]!="container1" && $item["options_container"]!="container2"))
 		{
 			$item["options_container"]="container2";
 		}
