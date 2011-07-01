@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.16a",
+            "version" => "1.0.17",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Image_attributes_processor"
             );
 	}
@@ -257,11 +257,15 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				}
 			}
 			
-			$sql="INSERT INTO $tgv
-				(value_id,store_id,position,disabled,label)
-				VALUES ".implode(",",$vinserts)." 
-				ON DUPLICATE KEY UPDATE label=VALUES(`label`)";
-			$this->insert($sql,$data);
+			if(count($data)>0)
+			{
+				$sql="INSERT INTO $tgv
+					(value_id,store_id,position,disabled,label)
+					VALUES ".implode(",",$vinserts)." 
+					ON DUPLICATE KEY UPDATE label=VALUES(`label`)";
+				$this->insert($sql,$data);
+			}
+			unset($vinserts);
 			unset($data);
 		}
 	}
