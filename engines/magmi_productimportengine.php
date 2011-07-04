@@ -779,9 +779,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$sql="INSERT IGNORE INTO `$csit` (product_id,stock_id) VALUES (?,?)";
 		$this->insert($sql,array($pid,$stock_id));
 		
-		
-	
-		
 		if(count($common)>0)
 		{
 			$cols=$this->arr2columns($common);
@@ -808,34 +805,25 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$sql="UPDATE `$csit` SET $svstr WHERE product_id=? AND stock_id=?";
 			$this->update($sql,array_merge(array_values($stockvals),array($pid,$stock_id)));
 		}
+
 		$data=array();		
 		$wsids=$this->getItemWebsites($item);
-		//for each website code
 		$csscols=array("website_id","product_id","stock_id","qty","stock_status");
 		$cssvals=$this->filterkvarr($item,$csscols);
 		$stock_id=(isset($cssvals["stock_id"])?$cssvals["stock_id"]:1);
 		$stock_status=(isset($cssvals["stock_status"])?$cssvals["stock_status"]:1);
-		#force unset/reinsert in $cssvals to ensure order even if value existed before
-		$cssvals["stock_id"]=$stock_id;
-		$cssvals["stock_status"]=$stock_status;
-		$cssvals["qty"]=(isset($item["qty"])?$item["qty"]:0);
-		//rebuild item stock status
-		$data=array();
-		$colstr=$this->arr2values($csscols);
-		foreach($wsids as $wsid)
-		{
-			$cssvals["product_id"]=$pid;
-			$cssvals["website_id"]=$wsid;
-			$inserts[]="($colstr)";
-			$data=array_merge($data,array_values($cssvals));
-		}
-		$sql="INSERT INTO `$css` (".$this->arr2columns($csscols).") VALUES ".implode(",",$inserts).
-		" ON DUPLICATE KEY UPDATE stock_status=VALUES(`stock_status`),qty=VALUES(`qty`)";
+		$sql="INSERT INTO `$css` SELECT csit.product_id,ws.website_id,cis.stock_id,csit.qty,? as stock_status
+				FROM `$csit` as csit 
+				JOIN ".$this->tablename("core_website")." as ws ON ws.website_id IN (".$this->arr2values($wsids).") 
+				JOIN ".$this->tablename("cataloginventory_stock")." as cis ON cis.stock_id=?
+				WHERE product_id=?
+				ON DUPLICATE KEY UPDATE stock_status=VALUES(`stock_status`),qty=VALUES(`qty`)";
+		$data[]=$stock_status;
+		$data=array_merge($data,$wsids);
+		$data[]=$stock_id;
+		$data[]=$pid;
 		$this->insert($sql,$data);	
-		unset($inserts);
 		unset($data);
-		unset($cssvals);
-		unset($csscols);
 	}
 	/**
 	 * assign categories for a given product id from values
