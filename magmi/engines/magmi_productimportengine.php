@@ -780,12 +780,31 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$this->insert($sql,array($pid,$stock_id));
 		
 		
+	
+		
 		if(count($common)>0)
 		{
 			$cols=$this->arr2columns($common);
 			$stockvals=$this->filterkvarr($item,$common);
+		
 			#fill with values
 			$svstr=$this->arr2update($stockvals);
+			$relqty=NULL;
+			//test for relative qty
+			if($item["qty"][0]=="+" || $item["qty"][0]=="-")
+			{
+				$relqty=getRelative($item["qty"]); 
+			}
+			//if relative qty
+			if($relqty!=NULL)
+			{
+				//update UPDATE statement value affectation
+				$svstr=preg_replace("/(^|,)qty=\?/","$1qty=qty$relqty?",$svstr);
+				$stockvals["qty"]=$item["qty"];
+				$svstr=str_replace("is_in_stock=?","is_in_stock=(qty>min_qty)",$svstr);
+				unset($stockvals["is_in_stock"]);
+			}
+			
 			$sql="UPDATE `$csit` SET $svstr WHERE product_id=? AND stock_id=?";
 			$this->update($sql,array_merge(array_values($stockvals),array($pid,$stock_id)));
 		}
@@ -800,8 +819,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$cssvals["stock_id"]=$stock_id;
 		$cssvals["stock_status"]=$stock_status;
 		$cssvals["qty"]=(isset($item["qty"])?$item["qty"]:0);
-		//clear item stock status
-		$this->delete("DELETE FROM `$css` where product_id=? AND stock_id=?",array($pid,$stock_id));
 		//rebuild item stock status
 		$data=array();
 		$colstr=$this->arr2values($csscols);
@@ -812,7 +829,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$inserts[]="($colstr)";
 			$data=array_merge($data,array_values($cssvals));
 		}
-		$sql="INSERT INTO `$css` (".$this->arr2columns($csscols).") VALUES ".implode(",",$inserts);
+		$sql="INSERT INTO `$css` (".$this->arr2columns($csscols).") VALUES ".implode(",",$inserts).
+		" ON DUPLICATE KEY UPDATE stock_status=VALUES(`stock_status`),qty=VALUES(`qty`)";
 		$this->insert($sql,$data);	
 		unset($inserts);
 		unset($data);
