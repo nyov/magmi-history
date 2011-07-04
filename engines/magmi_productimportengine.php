@@ -812,6 +812,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$cssvals=$this->filterkvarr($item,$csscols);
 		$stock_id=(isset($cssvals["stock_id"])?$cssvals["stock_id"]:1);
 		$stock_status=(isset($cssvals["stock_status"])?$cssvals["stock_status"]:1);
+		//new auto synchro on lat inserted stock item values for stock status.
+		//also works for multiple stock ids.
 		$sql="INSERT INTO `$css` SELECT csit.product_id,ws.website_id,cis.stock_id,csit.qty,? as stock_status
 				FROM `$csit` as csit 
 				JOIN ".$this->tablename("core_website")." as ws ON ws.website_id IN (".$this->arr2values($wsids).") 
