@@ -44,73 +44,61 @@
 	{
 		var target="pluginoptions:"+pclass;
 		$(target).toggle();
+		$("plugin_run:"+pclass).hide();
 	};
 </script>
 <div class="container_12">
-<div class="grid_12 col omega">
-<h3>Magmi Utilities</h3>
-<ul>
-<?php 
- $mmi=new Magmi_UtilityEngine();
- $mmi->initialize();
- $mmi->initPlugins();
- 
- $mmi->createPlugins("__utilities__",null);
- $plist=$mmi->getPluginInstances("utilities");
- ?>
-<?php foreach($plist as $pinst)
-{
-	$pclass=$pinst->getPluginClass();
-	$pinfo=$pinst->getPluginInfo();
-	?>
-	<li class="utility" >
-	<div class="pluginselect">
-	<span class="pluginname"><?php echo $pinfo["name"]." v".$pinfo["version"];?></span>
+	<div class="grid_12  omega subtitle">
+		<h3>Magmi Utilities</h3>
 	</div>
 	<?php 
-	  $info=$pinst->getShortDescription();
+ 		$mmi=new Magmi_UtilityEngine();
+ 		$mmi->initialize();
+ 		$mmi->initPlugins();
+		$mmi->createPlugins("__utilities__",null);
+ 		$plist=$mmi->getPluginInstances("utilities");
+	 ?>
+	<?php foreach($plist as $pinst)
+	{
+		$pclass=$pinst->getPluginClass();
+		$pinfo=$pinst->getPluginInfo();
+	    $info=$pinst->getShortDescription();
 	?>
-	<div class="plugininfo">
-	<?php if($info!==null){?>
-		<span>info</span>
-		<div class="plugininfohover">
-			<?php echo $info?>
+	<div class="grid_12 col utility" >
+		<h3 class="pluginname"><?php echo $pinfo["name"]." v".$pinfo["version"];?></h3>
+		<?php 
+		?>
+		<div>
+		<div class="plugindescription">
+			<?php if($info!==null){?>
+				<?php echo $info?>
+			<?php }?>
 		</div>		
-	<?php }?>
-	</div>
-	<div class="plugininfo">
-		<a href="javascript:togglePanel('<?php echo $pclass?>')">Options</a>
-	</div>
-	
-	<div class="utility_run">
-		<span><a id="plrun_<?php echo $pclass?>" href="javascript:runUtility('<?php echo $pclass?>')" class="actionbutton " >Run Utility</a></span>
-	</div>
-		<form id="<?php echo $pclass?>_params">
-
-	<div class="pluginoptionpanel" id="pluginoptions:<?php echo $pclass?>" style="display:none">
-		<?php echo $pinst->getOptionsPanel()->getHtml()?>
-	</div>
-	</form>
-
-	</li>
-<?php }?>	
-</ul>
-</div>
-<div class="grid_12">
-<?php foreach($plist as $pinst)
-{
-	$pclass=$pinst->getPluginClass();
-	$pinfo=$pinst->getPluginInfo();?>
-	
+		<div class="plugininfo" style="float:right">
+			<a href="javascript:togglePanel('<?php echo $pclass?>')">Options</a>
+		</div>
+		</div>
+		
+		<div class="pluginoptionpanel" id="pluginoptions:<?php echo $pclass?>" style="display:none; clear:both;">
+				
+			<form id="<?php echo $pclass?>_params">
+				<?php echo $pinst->getOptionsPanel()->getHtml()?>
+			</form>
+		</div>
+		
 		<div id="plugin_run:<?php echo $pclass?>" class="pluginrun_results" style="display:none">
-	<h3><?php echo $pinfo["name"]." v".$pinfo["version"];?> Results</h3>
-	<div id="plugin_run:<?php echo $pclass?>_res">
+			<h3><?php echo $pinfo["name"]." v".$pinfo["version"];?> Results</h3>
+			<div id="plugin_run:<?php echo $pclass?>_res"></div>
+		</div>
+		
+		<div class="separator"></div>
+		<div class="utility_run actionbutton" >
+			<a id="plrun_<?php echo $pclass?>" href="javascript:runUtility('<?php echo $pclass?>')">Run Utility</a>
+		</div>
 	</div>
-	</div>
-	
-<?php }?>
+	<?php }?>
 </div>
-</div>
+
 <div class="container_12">
 <div class="grid_12">
 <a href="magmi.php">
