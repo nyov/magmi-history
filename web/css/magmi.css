@@ -621,9 +621,16 @@ li.utility
 .utility .pluginoptionpanel
 {
 	clear:both;
-	border:1px solid #000000;
 }
 
+.separator
+{
+width:100%;
+border:0px;
+border-top:1px solid #cccccc;
+margin-bottom:5px;
+clear:both;
+}
 .pluginrun_results 
 {
 	border:1px solid #0000cc;
