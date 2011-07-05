@@ -1,48 +1,18 @@
-<?php
-$stats=$this->getStatistics();
-?>
-<div class="col">
-<h3>Current EAV Status</h3>
+<div class="plugin_description">
+ This plugins checks &amp; deletes unnecessary values in the magento EAV tables.
 </div>
-<div>
-	<table width="100%">
-	<thead>
-		<tr>
-			<td></td>
-			<td>EAV table</td>
-			<td>NULL values</td>
-			<td>Total values</td>
-			<td>% NULL</td>
-		</tr>
-	</thead>
-	<tbody>
-<?php 
-foreach($stats as $type=>$data)
-{?>
-	<?php $style="";
-		if($data["pc"]==0)
-		{
-			$style="background-color:#88ff88";
-		}
-		else
-		if($data["pc"]<15)
-		{
-			$style="background-color:#ffff88";
-		}
-		else
-		{
-			$style="background-color:#ff8888";
-		}
-	?>
-	<tr>
-		<td style="<?php echo $style?>">&nbsp;</td>
-		<td><?php echo $type?></td>
-		<td><?php echo $data["empty"]?></td>
-		<td><?php echo $data["total"]?></td>
-		<td><?php echo $data["pc"]?></td>
-	</tr>	
-<?php 
-}?>
-</tbody>
-</table>
+<div class="actionbutton"><a href="javascript:checkValues()">Check values</a></div>
+<div id="stats">
+No check done yet.
 </div>
+<script type="text/javascript">
+checkValues=function()
+{
+	new Ajax.Updater('stats','ajax_pluginconf.php',{
+	parameters:{file:'stats_panel.php',
+						plugintype:'utilities',
+					    pluginclass:'<?php echo get_class($this->_plugin)?>',
+					    profile:'<?php echo $this->getConfig()->getProfile()?>',
+					    engine:'magmi_utilityengine:Magmi_UtilityEngine'}});
+}
+</script> 
