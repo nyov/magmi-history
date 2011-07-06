@@ -13,7 +13,7 @@ Force simples visibility
 </li>
 <li class="value">
 <?php $v=$this->getParam("CFGR:updsimplevis",0)?>
-<select name=CFGR:updsimplevis">
+<select name="CFGR:updsimplevis">
 	<option value="0" <?php if($v==0){?>selected="selected"<?php }?>>No</option>
 	<option value="1" <?php if($v==1){?>selected="selected"<?php }?>>Not Visible Individually</option>
 	<option value="2" <?php if($v==2){?>selected="selected"<?php }?>>Catalog</option>
