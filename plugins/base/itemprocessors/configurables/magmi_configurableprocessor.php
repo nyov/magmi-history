@@ -18,7 +18,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.3.2a",
+            "version" => "1.3.3",
 			"url"=> "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Configurable_Item_processor"
             );
 	}
@@ -88,28 +88,18 @@ public function getConfigurableOptsFromAsId($asid)
 		$this->dolink($pid,"LIKE CONCAT(cpec.sku,'%')");
 	}
 	
-	public function updSimpleVisibility($pid,$targets)
+	public function updSimpleVisibility($pid)
 	{
 		$vis=$this->getParam("CFGR:updsimplevis",0);
 		if($vis!=0)
 		{
-			if($targets=="__auto__")
-			{
-				$cond="LIKE CONCAT(cpec.sku,'%')";
-				$conddata=array();
-			}
-			else
-			{
-				$arrin=csl2arr($targets);
-				$cond="IN (".$this->arr2values($arrin).")";
-				$conddata=$arrin;
-			}
 			$attinfo=$this->getAttrInfo("visibility");
 			$sql="UPDATE ".$this->tablename("catalog_product_entity_int")." as cpei
-			JOIN ".$this->tablename("catalog_product_entity")." as cpe ON cpe.sku $cond
+			JOIN ".$this->tablename("catalog_product_super_link"). " as cpsl ON cpsl.parent_id=?
+			JOIN ".$this->tablename("catalog_product_entity")." as cpe ON cpe.entity_id=cpsl.product_id 
 			SET cpei.value=?
 			WHERE cpei.entity_id=cpe.entity_id AND attribute_id=?";
-			$this->update($sql,array_merge($conddata,array($vis,$attinfo["attribute_id"])));
+			$this->update($sql,array($pid,$vis,$attinfo["attribute_id"]));
 		}
 	}
 	
@@ -208,6 +198,7 @@ public function getConfigurableOptsFromAsId($asid)
 		//if no configurable attributes, nothing to do
 		if(count($confopts)==0)
 		{
+			$this->log("No configurable attributes found for configurable sku: ".$item["sku"]." cannot link simples.","warning");
 			return true;
 		}
 		//set product to have options & required
@@ -317,18 +308,18 @@ public function getConfigurableOptsFromAsId($asid)
 			case "auto":
 				//destroy old associations
 				$this->autoLink($pid);
-				$this->updSimpleVisibility($pid,"__auto__");
+				$this->updSimpleVisibility($pid);
 				break;
 			case "cursimples":
 				$this->fixedLink($pid,$this->_currentsimples);
-				$this->updSimpleVisibility($pid,implode(",",$this->_currentsimples));
+				$this->updSimpleVisibility($pid);
 				
 				break;
 			case "fixed":
 				$sskus=explode(",",$item["simples_skus"]);
 				trimarray($sskus);
 				$this->fixedLink($pid,$sskus);
-				$this->updSimpleVisibility($pid,implode(",",$sskus));
+				$this->updSimpleVisibility($pid);
 				unset($item["simples_skus"]);
 				break;
 			default:
