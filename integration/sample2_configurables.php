@@ -33,7 +33,7 @@
   * ON THE FLY INDEXER IS RECOMMENDED (better endimport performance)
   * Reindexer needed also to have products show up on front : select all but "catalog_category_product" & "url_rewrite" (both are handled by on the fly indexer)
   */
- $dp->beginImportSession("testconf","create",new TestLogger());
+ $dp->beginImportSession("default","create",new TestLogger());
  
  /* Create 5000 items , with  every 100 :
   * 
@@ -44,24 +44,9 @@
   *     categories named catX/even or catX/odd with X is thousand of item (using categories plugin) */
  for($sku=0;$sku<=200;$sku++)
  {
- 	//create item category path array
- 	//catX/even or catX/odd, X being the 1000's of the item
- 	$cats=array("cat".strval(intval($sku/1000)));
- 	if($sku%2==0)
- 	{
- 		$cats[]="even";
- 	}
- 	else
- 	{
- 		$cats[]="odd";
- 	}
- 	//create item to import
- 	// sku :  XXXXX , 5 numbers , padded left with current loop counter as sku
- 	// name : itemXXXXX 
- 	// description : testXXXXX
  	// price : random between $1 & $500
- 	// categories : the ones built above
- 	$item=array("type"=>"simple","sku"=>str_pad($sku,5,"0",STR_PAD_LEFT),"name"=>"item".$sku,"description"=>"test".$sku,"price"=>rand(1,500),"categories"=>implode("/",$cats));
+ 	$item=array("type"=>"simple","sku"=>str_pad($sku,5,"0",STR_PAD_LEFT),"name"=>"item".$sku,"description"=>"test".$sku,"price"=>rand(1,500),"category_ids"=>"-4,2","category_reset"=>0,"min_qty"=>3,"qty"=>"+7");
+ 	//color : radom c0/c10
  	$item["color"]="c".strval(rand(0, 10));
  	//now some fun, every 100 items, create some relations
  	if($sku>99 && $sku%100==0)
@@ -76,7 +61,10 @@
 		$item["simples_skus"]=implode(",",$subskus);
 		$item["type"]="configurable";
 		$item["configurable_attributes"]="color";
+ 		
  	}
+ 	/* no store, this will trigger admin one */
+ 	$item["store"]="";
  	/* import current item */
  	$dp->ingest($item);
  }
