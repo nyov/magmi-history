@@ -64,7 +64,7 @@
  		
  	}
  	/* no store, this will trigger admin one */
- 	$item["store"]="";
+ 	$item["store"]="toto";
  	/* import current item */
  	$dp->ingest($item);
  }
