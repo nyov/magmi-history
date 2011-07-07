@@ -6,12 +6,12 @@ You should put sql files in the <b><?php echo $this->getPluginDir()."/requests"?
 <?php $dbtype=$this->getParam("SQL:dbtype");?>
 <li class="label">Input DB Type</li>
 <li><select name="SQL:dbtype" id="SQL:dbtype">
-	<option value="mysql" <?if ($dbtype=="mysql"){?>selected="selected"<?php }?>>MySQL</option>
-	<option value="other" <?if ($dbtype=="other"){?>selected="selected"<?php }?>>Other</option>
+	<option value="mysql" <?php if ($dbtype=="mysql"){?>selected="selected"<?php }?>>MySQL</option>
+	<option value="other" <?php if ($dbtype=="other"){?>selected="selected"<?php }?>>Other</option>
 </select></li>
 </ul>
 <div id="options_container">
-<? echo $this->getOptionsPanel("$dbtype"."_options.php")->getHtml();?>
+<?php echo $this->getOptionsPanel("$dbtype"."_options.php")->getHtml();?>
 </div>
 <ul class="formline">
 <li class="label">SQL file</li>
