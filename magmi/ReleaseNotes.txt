@@ -22,7 +22,9 @@
 - added support for no store column, defaulting to "admin"
 - getAttrInfo can now perform DB lookup if not cached instead of returning empty
 - added support for explicit relative values in qty column for stock updates
-- added utility functions trimarray & getRelative in magmi_utils.php
+
+* Magmi_utils
+- added utility functions trimarray & getRelative
 
 ############
 # UI
@@ -56,6 +58,8 @@ Base:
 - fixed compatibility bug with custom options that was also manipulating options_container value 
 - Added warning if no configurable attributes are defined on the configurable line or could not be deduced from attribute set
 
+* Product Deleter:
+- new plugin that enable to delete products, just add a magmi:delete column & put 1 on each product line to delete
 
 * Product relater & cross/upsell:
 - autoclean double relations that might have cause related to not show up.
