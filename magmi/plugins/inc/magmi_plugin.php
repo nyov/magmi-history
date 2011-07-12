@@ -232,7 +232,24 @@ abstract class Magmi_Plugin
 		}
 	}
 	
-	
+
+	public function getPluginParamsNoCurrent($params)
+	{
+		$arr=array();
+		$paramkeys=$this->getPluginParamNames();
+		foreach($paramkeys as $pk)
+		{
+			if(isset($params[$pk]))
+			{
+				$arr[$pk]=$params[$pk];
+			}
+			else
+			{
+				$arr[$pk]=0;
+			}	
+		}
+		return $arr;
+	}
 	public function getPluginParams($params)
 	{
 		$arr=array();
@@ -247,7 +264,7 @@ abstract class Magmi_Plugin
 			{
 				if(isset($this->_params[$pk]))
 				{
-					$arr[$pk]=$this->_params[$pk];
+						$arr[$pk]=$this->_params[$pk];
 				}
 			}	
 		}
