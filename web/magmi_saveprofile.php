@@ -48,7 +48,7 @@ foreach($pflist as $pclass=>$pfamily)
 	{
 		$plinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pfamily,$pclass,$_REQUEST);
 		$paramlist=$plinst->getPluginParamNames();
-		$parr=$plinst->getPluginParams($_REQUEST);
+		$parr=$plinst->getPluginParamsNoCurrent($_REQUEST);
 		foreach($paramlist as $pname)
 		{
 			if(!isset($parr[$pname]))
