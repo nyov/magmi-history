@@ -46,8 +46,17 @@ foreach($pflist as $pclass=>$pfamily)
 {
 	if($pclass!="")
 	{
-		$plinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pfamily,$pclass,$_REQUEST);		
-		if(!$plinst->persistParams($plinst->getPluginParams($_REQUEST)))
+		$plinst=Magmi_PluginHelper::getInstance($profile)->createInstance($pfamily,$pclass,$_REQUEST);
+		$paramlist=$plinst->getPluginParamNames();
+		$parr=$plinst->getPluginParams($_REQUEST);
+		foreach($paramlist as $pname)
+		{
+			if(!isset($parr[$pname]))
+			{
+				$parr[$pname]=0;
+			}
+		}
+		if(!$plinst->persistParams($parr))
 		{
 				$lasterr=error_get_last();
 			echo "<div class='error'>".print_r($lasterr)."</div>";
