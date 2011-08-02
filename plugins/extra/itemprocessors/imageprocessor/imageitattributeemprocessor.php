@@ -598,7 +598,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		if(isset($item["media_gallery"]))
 		{
 			$gattrdesc=$this->getAttrInfo("media_gallery");
-			$sids=$this->getItemStoreIds($item,$gattdesc["is_global"]);
+			$sids=$this->getItemStoreIds($item,$gattrdesc["is_global"]);
 			foreach($sids as $sid)
 			{
 				$this->resetGallery($pid,$sid,$gattrdesc["attribute_id"]);
