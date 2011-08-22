@@ -327,12 +327,17 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		if($attrinf==null && $lookup)
 		{
 			$this->initAttrInfos(array($attcode));
+	
 		}
 		if(count($this->attrinfo[$attcode])==0)
 		{
 
 			$attrinf=null;
 			unset($this->attrinfo[$attcode]);
+		}
+		else
+		{
+			$attrinf=$this->attrinfo[$attcode];
 		}
 		return $attrinf;
 	}
