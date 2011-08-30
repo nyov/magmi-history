@@ -400,7 +400,7 @@ abstract class Magmi_Engine extends DbHelper
 	 */
 	public function tablename($magname)
 	{
-		return $this->tprefix!=""?$this->tprefix."_$magname":$magname;
+		return $this->tprefix!=""?$this->tprefix."$magname":$magname;
 	}
 	
 	
