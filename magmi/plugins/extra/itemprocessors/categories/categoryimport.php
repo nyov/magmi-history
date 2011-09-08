@@ -81,7 +81,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.1.6",
+            "version" => "0.1.6b",
 			"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_category_creator/importer"
             );
 	}
@@ -201,8 +201,8 @@ class CategoryImporter extends Magmi_ItemProcessor
 			$lastcached=array();
 			//get cat tree branches names
 			$catparts=explode($this->_tsep,$catdef);
-			//path as array
-			$basearr=explode($this->_tsep,$basepath);
+			//path as array , basepath is always "/" separated
+			$basearr=explode("/",$basepath);
 			//for each cat tree branch		
 			$pdef=array();	
 			foreach($catparts as $catpart)
