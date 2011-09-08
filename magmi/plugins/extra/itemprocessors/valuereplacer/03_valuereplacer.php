@@ -15,7 +15,7 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
         return array(
             "name" => "Value Replacer",
             "author" => "Dweeves",
-            "version" => "0.0.5",
+            "version" => "0.0.6",
 					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Value_Replacer"
         );
     }
@@ -76,11 +76,16 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 				{
 					$code=trim($match);
 					$rep=eval("return ($code);");
+					//escape potential "{{xxx}}" values in interpreted target
+					//so that they won't be reparsed in next round
+					$rep=preg_replace("|\{\{\s*(.*?)\s*\}\}|", "____$1____", $rep);
 					$pvalue=str_replace($matches[0],$rep,$pvalue);							
 				}				
 			}
 		}
 		
+		//unsecape matches
+		$pvalue=preg_replace("|____(.*?)____|",'{{$1}}',$pvalue);
 		//replacing single values not in complex values
 		while(preg_match('|\$item\["(.*?)"\]|',$pvalue,$matches))
 		{
