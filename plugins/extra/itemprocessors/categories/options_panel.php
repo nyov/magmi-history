@@ -25,7 +25,7 @@ multiple categories supported :)
 </div>
 <div class="formline">
 <span class="label">Tree level separator:</span>
-<span class="value"><input type="text" maxlength=3 size=3" value="<?php echo $this->getParam("CAT:treesep","/")?>"></input></span>
+<span class="value"><input type="text" name="CAT:treesep" maxlength=3 size=3" value="<?php echo $this->getParam("CAT:treesep","/")?>"></input></span>
 </div>
 <div class="formline">
 <span>base category tree:</span><input type="text"  name="CAT:baseroot" size="80" value="<?php echo $this->getParam("CAT:baseroot","")?>"></input>
