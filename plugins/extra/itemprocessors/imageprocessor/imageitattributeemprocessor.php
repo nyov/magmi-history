@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.17a",
+            "version" => "1.0.18",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Image_attributes_processor"
             );
 	}
@@ -386,7 +386,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		//optimized lookup through curl
 		if($context!==false)
 		{
-			
+			/* head */
 			curl_setopt($context,  CURLOPT_HEADER, TRUE);
 			curl_setopt( $context, CURLOPT_RETURNTRANSFER, true ); 
 			curl_setopt( $context, CURLOPT_CUSTOMREQUEST, 'HEAD' ); 
@@ -398,6 +398,15 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			/* Check for 404 (file not found). */
 			$httpCode = curl_getinfo($context, CURLINFO_HTTP_CODE);
 			$exists = ($httpCode==200);
+			/* retry on error */
+			
+			if($httpCode==503 or $httpCode==403)
+			{
+				/* wait for a half second */
+				usleep(500000);
+				$response = curl_exec($context);
+				$exists = ($httpCode==200);
+			}
 		}
 		else
 		{
@@ -433,8 +442,10 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				curl_setopt( $context, CURLOPT_NOBODY, false);
 				curl_setopt($context, CURLOPT_FILE, $fp);
 				curl_setopt($context, CURLOPT_HEADER, 0);
-				curl_setopt($context, CURLOPT_FOLLOWLOCATION, 1);
-				
+				if(!ini_get('safe_mode'))
+				{
+					curl_setopt($context, CURLOPT_FOLLOWLOCATION, 1);
+				}
 				curl_exec($context);
 				@fclose($fp);
 				return true;
@@ -612,7 +623,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		//automatically add modified attributes if not found in datasource
 		
 		//automatically add media_gallery for attributes to handle		
-		$imgattrs=array_intersect($this->_img_baseattrs,$cols);
+		$imgattrs=array_intersect(array_merge($this->_img_baseattrs,'media_gallery'),$cols);
 		if(count($imgattrs)>0)
 		{
 			$this->_active=true;
