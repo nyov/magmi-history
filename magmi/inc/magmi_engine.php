@@ -234,15 +234,18 @@ abstract class Magmi_Engine extends DbHelper
 	 * @param string $data : string to log
 	 * @param string $type : log type
 	 */
+	public function microDateTime()
+	{
+		  list($microSec, $timeStamp) = explode(" ", microtime());
+ 		  return date('Y-m-d h:i:', $timeStamp) . (date('s', $timeStamp) + $microSec);
+	}
+		
 	public function log($data,$type="default",$logger=null)
 	{
-		if($logger==null)
+		$usedlogger=($logger==null?$this->logger:$logger);
+		if(isset($usedlogger))
 		{
-			$logger=$this->logger;
-		}
-		if(isset($logger))
-		{
-			$this->logger->log($data,$type);
+			$usedlogger->log($data,$type);
 		}
 	}
 	
