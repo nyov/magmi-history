@@ -1272,6 +1272,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		return $this->_current_row;
 	}
 
+	public function setCurrentRow($cnum)
+	{
+		$this->_current_row=$cnum;
+	}
 
 	public function isLastItem($item)
 	{
