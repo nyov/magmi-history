@@ -45,7 +45,7 @@
  for($sku=0;$sku<=200;$sku++)
  {
  	// price : random between $1 & $500
- 	$item=array("type"=>"simple","sku"=>str_pad($sku,5,"0",STR_PAD_LEFT),"name"=>"item".$sku,"description"=>"test".$sku,"price"=>rand(1,500),"category_ids"=>"-4,2","category_reset"=>0,"min_qty"=>3,"qty"=>"+7");
+ 	$item=array("type"=>"simple","sku"=>str_pad($sku,5,"0",STR_PAD_LEFT),"name"=>"item".$sku,"description"=>"test".$sku,"price"=>rand(1,500),"min_qty"=>3,"qty"=>"+7");
  	//color : radom c0/c10
  	$item["color"]="c".strval(rand(0, 10));
  	//now some fun, every 100 items, create some relations
@@ -63,8 +63,8 @@
 		$item["configurable_attributes"]="color";
  		
  	}
- 	/* no store, this will trigger admin one */
- 	$item["store"]="toto";
+ 	/* no store, will trigger admin one*/
+ 	$item["store"]="";
  	/* import current item */
  	$dp->ingest($item);
  }
