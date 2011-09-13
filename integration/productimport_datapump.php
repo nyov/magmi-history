@@ -61,8 +61,20 @@ class Magmi_ProductImport_DataPump
 			$this->_engine->callPlugins("itemprocessors","processColumnList",$this->_importcolumns);
 			$this->_engine->initAttrInfos($this->_importcolumns);			
 		}
-		$this->_engine->importItem($item);
 		$this->crow++;
+		$this->_engine->setCurrentRow($this->crow);
+		
+		$this->_engine->beginTransaction();
+		$importedok=$this->_engine->importItem($item);
+		if($importedok)
+		{
+			$this->_engine->commitTransaction();
+		}
+		else
+		{
+			$this->_engine->rollbackTransaction();
+		}
+	
 		if($this->crow%$this->_rstep==0)
 		{
 			$this->_engine->reportStats($this->crow,$this->_stats["tstart"],$this->_stats["tdiff"],$this->_stats["lastdbtime"],$this->_stats["lastrec"]);
