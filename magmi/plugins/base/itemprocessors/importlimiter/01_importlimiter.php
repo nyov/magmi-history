@@ -9,7 +9,7 @@ class ImportLimiter extends Magmi_ItemProcessor
 	{
 		return array("name"=>"Magmi Import Limiter",
 					 "author"=>"Dweeves",
-					 "version"=>"0.0.4a",
+					 "version"=>"0.0.5",
 					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Magmi_Import_Limiter");
 	}
 	
@@ -43,12 +43,13 @@ class ImportLimiter extends Magmi_ItemProcessor
 	public function processItemBeforeId(&$item,$params=null)
 	{
 		$crow=$this->getCurrentRow();
-		$ok=count($this->_recranges)==0;
+		$ok=(count($this->_recranges)==0);
+		
 		if(!$ok)
 		{
 			if($this->_rmax>-1 && $crow==$this->_rmax)
 			{
-				$this->setLastItem($item);		
+				$this->setLastItem($item);	
 			}
 			foreach($this->_recranges as $rr)
 			{
@@ -59,7 +60,8 @@ class ImportLimiter extends Magmi_ItemProcessor
 				}
 			}
 		}
-
+	
+		
 		if($ok)
 		{
 			foreach($this->_filters as $fltdef)
@@ -71,6 +73,10 @@ class ImportLimiter extends Magmi_ItemProcessor
 					break;
 				}
 			}
+		}
+		else
+		{
+			$this->log("Filtered row $crow not in range ".$this->getParam("LIMITER:ranges",""));
 		}
 		return $ok;
 	}
