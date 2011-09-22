@@ -69,7 +69,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.4","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.4.1","author"=>"dweeves");
 	}
 
 	/**
@@ -1249,13 +1249,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function updateProduct($item,$pid)
 	{
-	 	//force item type if not exists
-		if(!isset($item["type"]))
-		{
-			$item["type"]="simple";
-		}
-		$tname=$this->tablename('catalog_product_entity');
-		$item['type_id']=$item['type'];
+	 	$tname=$this->tablename('catalog_product_entity');
+	    if(isset($item[$item['type']]))
+	    {
+			$item['type_id']=$item['type'];
+	    }
 		$item['entity_type_id']=$this->prod_etype;
 		$item['updated_at']=strftime("%Y-%m-%d %H:%M:%S");
 		$columns=array_intersect(array_keys($item), $this->getProdCols());
