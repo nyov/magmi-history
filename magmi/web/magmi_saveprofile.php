@@ -59,10 +59,10 @@ foreach($pflist as $pclass=>$pfamily)
 			}
 		}
 		$farr=array_merge($sarr,$parr);
-		if(!$plinst->persistParams($farr));
+		if(!$plinst->persistParams($farr))
 		{
-				$lasterr=error_get_last();
-			echo "<div class='error'>".print_r($lasterr)."</div>";
+			$lasterr=error_get_last();
+			echo "<div class='error'>".$lasterr['message']."</div>";
 		}
 	}
 }
