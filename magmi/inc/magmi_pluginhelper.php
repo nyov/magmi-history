@@ -59,7 +59,11 @@ class Magmi_PluginHelper
 				require_once($pcfile);				
 				foreach($matches as $match)
 				{
-					$pluginclasses[]=array("class"=>$match[1],"dir"=>dirname(substr($pcfile,strlen($this->plugin_dir))));
+					$dirname=dirname(substr($pcfile,strlen($this->plugin_dir)));
+					if(substr(basename($dirname),0,2)!='__')
+					{
+						$pluginclasses[]=array("class"=>$match[1],"dir"=>$dirname);
+					}
 				}
 			}
 		}
