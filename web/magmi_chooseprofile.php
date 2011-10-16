@@ -12,7 +12,7 @@ if($newprofile!="")
 	$bcfg=new EnabledPlugins_Config($currentprofile);
 	$confdir=Magmi_Config::getInstance()->getConfDir();
 	$npdir=$confdir.DS.$newprofile;
-	mkdir($npdir,0775);
+	mkdir($npdir,Magmi_Config::getInstance()->getDirMask());
 	$cpdir=$bcfg->getProfileDir();
 	$filelist=scandir($cpdir);
 	foreach($filelist as $fname)
