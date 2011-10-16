@@ -109,6 +109,7 @@ abstract class Magmi_Plugin
 	protected $_plugintype;
 	protected $_plugindir;
 	protected $_config;
+	protected $_magmiconfig;
 	
 	public function __construct()
 	{
@@ -208,6 +209,10 @@ abstract class Magmi_Plugin
 		return $this->_config;
 	}
 	
+	public function getMagmiConfig()
+	{
+		return $this->_magmiconfig;
+	}
 	public final function setMmiRef($mmi)
 	{
 		$this->_mmi=$mmi;
@@ -219,6 +224,8 @@ abstract class Magmi_Plugin
 		$this->_class=get_class($this);
 		$this->_config=new Magmi_PluginConfig(get_class($this),$profile);	
 		$this->_config->load();
+		$this->_magmiconfig=Magmi_Config::getInstance();
+		
 		$this->_params=($params!=null?array_merge($this->_config->getConfig(),$params):$this->_config->getConfig());
 
 		if(isset($mmi))
