@@ -51,7 +51,7 @@ class DirbasedConfig extends Properties
 	{
 		if(!file_exists($newdir))
 		{
-			mkdir($newdir,0775);
+			mkdir($newdir,Magmi_Config::getInstance()->getDirMask());
 		}	
 		$val=parent::save($newdir.DS.basename($this->_confname));
 		$this->_basedir=$newdir;
