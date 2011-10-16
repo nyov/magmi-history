@@ -108,6 +108,19 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 			
 		}
 		$this->fillPrefixedParameters($sql,$rparams);
-		$this->multipleParamRequests($sql,$rparams);
+		$results=$this->multipleParamRequests($sql,$rparams,true);
+		foreach($results as $rq=>$res)
+		{
+			for($i=0;$i<count($res);$i++)
+			{
+				$str="";
+				foreach($res[$i] as $k=>$v)
+				{
+					$str.="$k=$v;";
+				}				
+				$this->log($str,"info");
+			}
+		}
+		$this->disconnectFromMagento();
 	}
 }
