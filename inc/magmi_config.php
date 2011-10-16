@@ -76,7 +76,7 @@ class ProfileBasedConfig extends DirbasedConfig
 		$confdir=dirname(dirname(self::$_script)).DS."conf$subdir";
 		if(!file_exists($confdir))
 		{
-			@mkdir($confdir,0777);
+			@mkdir($confdir,Magmi_Config::getInstance()->getDirMask());
 		}
 		return realpath($confdir);
 	}
@@ -115,6 +115,16 @@ class Magmi_Config extends DirbasedConfig
 		
 	}
 	
+	public function getDirMask()
+	{
+		return octdec($this->get("dirmask","GLOBAL","755"));
+	}
+	
+	public function getFileMask()
+	{
+		return octdec($this->get("filemask","GLOBAL","644"));
+		
+	}
 	
 	
 	public static function getInstance()
