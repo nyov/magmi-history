@@ -544,7 +544,7 @@ class DBHelper
 	 * @param string $sql multiple statements
 	 * @param array $params values to use for parameter placeholder, in case of named parameters,array has to have array keys aligned with parameter names
 	 */
-	public function multipleParamRequests($sql,$params)
+	public function multipleParamRequests($sql,$params,$return=false)
 	{
 		//ensure windows/mac compatibility for user made requests
 		$sql=str_replace("\r\n","\n",$sql);
@@ -564,11 +564,24 @@ class DBHelper
  				}
  			}	
  		}
+ 		$results=array();
  		foreach($stmts as $stmt)
  		{
  			$this->replaceParams($stmt,$params);
+ 			if($return)
+ 			{
+ 				if(preg_match("|\s*SELECT.*?|", $stmt))
+ 				{
+ 					$results[$stmt]=$this->selectAll($stmt,$params);
+ 					continue;
+ 				}
+ 			}
  			$this->exec_stmt($stmt,$params);
  		}	
+ 		if($return)
+ 		{
+ 			return $results;
+ 		}
 	}
 	
 	
