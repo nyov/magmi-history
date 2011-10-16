@@ -1,6 +1,16 @@
 <div class="plugin_description">
 This plugins handles configurable import
 </div>
+
+<ul class="formline">
+	<li class="label" style="width:360px">Perform simples/configurable link</li>
+	<li class="value">
+	<select name="CFGR:nolink">
+	<option value="0" <?php if ($this->getParam("CFGR:nolink",0)==0){?>selected="selected"<?php }?>>Yes</option>
+	<option value="1" <?php if ($this->getParam("CFGR:nolink",0)==1){?>selected="selected"<?php }?>>No</option>
+	</select>
+	</li>
+</ul>
 <ul class="formline">
 	<li class="label" style="width:360px">auto match simples skus before configurable</li>
 	<li class="value"><select name="CFGR:simplesbeforeconf">
