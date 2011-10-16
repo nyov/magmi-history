@@ -214,7 +214,16 @@ $cansock=true;
 		<li class="label">Multiselect value separator:</li>
 		<li class="value"><input type="text" name="GLOBAL:multiselect_sep" size="3" value="<?php echo $conf->get("GLOBAL","multiselect_sep",",")?>"></input></li>
 	</ul>
-	
+	<h3>Dir & File permissions</h3>
+	<ul class="formline" id="dirperms">
+		<li class="label">Directory permissions:</li>
+		<li class="value"><input type="text" name="GLOBAL:dirmask" size="3" value="<?php echo $conf->get("GLOBAL","dirmask","755")?>"></input></li>
+	</ul>
+	<ul class="formline" id="fileperms">
+		<li class="label">File permissions:</li>
+		<li class="value"><input type="text" name="GLOBAL:dirmask" size="3" value="<?php echo $conf->get("GLOBAL","filemask","644")?>"></input></li>
+	</ul>
+
 	</div>
 <div class="clear"></div>
 
