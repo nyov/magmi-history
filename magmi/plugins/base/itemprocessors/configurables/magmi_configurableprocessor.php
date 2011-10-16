@@ -18,7 +18,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.3.3",
+            "version" => "1.3.4",
 			"url"=> "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Configurable_Item_processor"
             );
 	}
@@ -148,13 +148,21 @@ public function getConfigurableOptsFromAsId($asid)
 	public function getMatchMode($item)
 	{
 		$matchmode="auto";
-		if($this->getParam("CFGR:simplesbeforeconf")==1)
+		if($this->getParam('CFGR:nolink',0))
 		{
-			$matchmode="cursimples";
+			$matchmode="none";
+			
 		}
-		if(isset($item["simples_skus"]) && trim($item["simples_skus"])!="")
+		else
 		{
-			$matchmode="fixed";
+			if($this->getParam("CFGR:simplesbeforeconf")==1)
+			{
+				$matchmode="cursimples";
+			}
+			if(isset($item["simples_skus"]) && trim($item["simples_skus"])!="")
+			{
+				$matchmode="fixed";
+			}
 		}
 		return $matchmode;
 	}
@@ -347,7 +355,7 @@ public function getConfigurableOptsFromAsId($asid)
 	
 	public function getPluginParamNames()
 	{
-		return array("CFGR:simplesbeforeconf","CFGR:updsimplevis");
+		return array("CFGR:simplesbeforeconf","CFGR:updsimplevis","CFGR:nolink");
 	}
 	
 	static public function getCategory()
