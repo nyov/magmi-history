@@ -32,7 +32,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	public $mode="update";
 	private $_attributehandlers;
 	private $_current_row;
-	private $_nsku;
 	private $_optidcache=null;
 	private $_curitemids=array("sku"=>null);
 	private $_dstore=array();
@@ -46,7 +45,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	private $_sid_sscope=array();
 	private $_prodcols=array();
 	private $_stockcols=array();
-
+	private $_skustats=array();
 
 	public function addExtraAttribute($attr)
 	{
@@ -61,6 +60,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	public function __construct()
 	{
 		$this->setBuiltinPluginClasses("itemprocessors",dirname(dirname(__FILE__))."/plugins/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor");
+	}
+
+
+	public function getSkuStats()
+	{
+		return $this->_skustats;
 	}
 
 	/**
@@ -218,7 +223,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		return $this->_prodcols;
 	}
-	
+
 	public function getStockCols()
 	{
 		if(count($this->_stockcols)==0)
@@ -355,7 +360,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		if($attrinf==null && $lookup)
 		{
 			$this->initAttrInfos(array($attcode));
-	
+
 		}
 		if(count($this->attrinfo[$attcode])==0)
 		{
@@ -488,13 +493,29 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	function getOptionIds($attid,$storeid,$values)
 	{
 		$optids=array();
-		$existing=$this->getOptionsFromValues($attid,$storeid,$values);
+		$svalues=array();
+		$avalues=array();
+		//Matching refstore value
+		foreach($values as $val)
+		{
+			if(preg_match("|^(.*)::\[(.*)\]$|",$val,$matches))
+			{
+				$svalues[]=$matches[2];
+				$avalues[]=$matches[1];
+			}
+			else
+			{
+				$svalues[]=$val;
+				$avalues[]=$val;
+			}
+		}
+		$existing=$this->getOptionsFromValues($attid,0,$avalues);
 		$exvals=array();
 		foreach($existing as $optdesc)
 		{
 			$exvals[]=$optdesc["value"];
 		}
-		$new=array_merge(array_diff($values,$exvals));
+		$new=array_merge(array_diff($avalues,$exvals));
 		if($storeid==0)
 		{
 			foreach($new as $nval)
@@ -562,8 +583,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 
 	/**
-	 * 
-	 * Return affected store ids for a given item given an attribute scope 
+	 *
+	 * Return affected store ids for a given item given an attribute scope
 	 * @param array $item : item to get store for scope
 	 * @param string $scope : scope to get stores from.
 	 */
@@ -772,7 +793,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function updateStock($pid,$item,$isnew)
 	{
-	
+
 		$scols=$this->getStockCols();
 		#take only stock columns that are in item
 		$itstockcols=array_intersect(array_keys($item),$scols);
@@ -914,7 +935,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		if(count($inserts)>0)
 		{
 			$sql="INSERT IGNORE INTO $ccpt (`category_id`,`product_id`)
-				 VALUES ";
+				 VALUES	 ";
 			$sql.=implode(",",$inserts);
 			$this->insert($sql,$data);
 			unset($data);
@@ -989,7 +1010,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$this->_dstore=array();
 		}
 		$this->_same=false;
-		$this->_nsku++;
 	}
 
 	public function onSameSku($sku)
@@ -1050,14 +1070,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		return implode(",",$scodes);
 	}
-	
+
 	public function checkItemStores($scodes)
 	{
 		if($scodes=="admin")
 		{
 			return $scodes;
 		}
-		
+
 		$scarr=explode(",",$scodes);
 		trimarray($scarr);
 		$rscode=array();
@@ -1082,10 +1102,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			}
 			$this->log($out,"warning");
 		}
-		
+
 		return implode(",",$rscodes);
 	}
-	
+
 	public function checkstore(&$item,$pid,$isnew)
 	{
 		//we have store column set , just check
@@ -1099,7 +1119,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		if($scodes=="")
 		{
-			return false;	
+			return false;
 		}
 		$item["store"]=$scodes;
 		return true;
@@ -1249,20 +1269,20 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function updateProduct($item,$pid)
 	{
-	 	$tname=$this->tablename('catalog_product_entity');
-	    if(isset($item[$item['type']]))
-	    {
+		$tname=$this->tablename('catalog_product_entity');
+		if(isset($item[$item['type']]))
+		{
 			$item['type_id']=$item['type'];
-	    }
+		}
 		$item['entity_type_id']=$this->prod_etype;
 		$item['updated_at']=strftime("%Y-%m-%d %H:%M:%S");
 		$columns=array_intersect(array_keys($item), $this->getProdCols());
 		$values=$this->filterkvarr($item, $columns);
-		
+
 		$sql="UPDATE  `$tname` SET ".$this->arr2update($values). " WHERE entity_id=?";
-		
+
 		$this->update($sql,array_merge(array_values($values),array($pid)));
-		
+
 	}
 
 	public function getCurrentRow()
@@ -1319,6 +1339,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$this->initProdType();
 			$this->createPlugins($this->_profile,$params);
 			$this->callPlugins("datasources,itemprocessors","startImport");
+			$this->resetSkuStats();
 		}
 		catch(Exception $e)
 		{
@@ -1333,12 +1354,87 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$this->disconnectFromMagento();
 	}
 
+	public function updateSkuStats($res)
+	{
+		if(!$this->_same)
+		{
+			$this->_skustats["nsku"]++;
+			if($res["ok"])
+			{
+				$this->_skustats["ok"]++;	
+			}
+			else
+			{
+				$this->_skustats["ko"]++;
+			}
+		}
+	}
 	public function getDataSource()
 	{
 		return $this->getPluginInstance("datasources");
 
 	}
 
+	public function processDataSourceLine($item,$rstep)
+	{
+		//counter
+		$res=array("ok"=>0,"last"=>0);
+		$this->_current_row++;
+		if($this->_current_row%$rstep==0)
+		{
+			$this->reportStats($this->_current_row,$tstart,$tdiff,$lastdbtime,$lastrec);
+		}
+		try
+		{
+			if(is_array($item) && count($item)>0)
+			{
+				//import item
+				$this->beginTransaction();
+				$importedok=$this->importItem($item);
+				if($importedok)
+				{
+					$res["ok"]=true;
+					$this->commitTransaction();
+				}
+				else
+				{
+					$res["ok"]=false;
+					$this->rollbackTransaction();
+
+				}
+			}
+			else
+			{
+				$this->log("ERROR - RECORD #$this->_current_row - INVALID RECORD","error");
+			}
+			//intermediary measurement
+
+		}
+		catch(Exception $e)
+		{
+			$this->rollbackTransaction();
+			$res["ok"]=false;
+			$this->logException($e,"ERROR ON RECORD #$this->_current_row");
+		}
+		if($this->isLastItem($item))
+		{
+			unset($item);
+			$res["last"]=1;
+		}
+		
+		unset($item);
+		$this->updateSkuStats($res);
+		
+		return $res;
+
+	}
+
+	public function resetSkuStats()
+	{
+		 $this->_skustats=array("nsku"=>0,"ok"=>0,"ko"=>0);
+	}
+	
+	
 	public function engineRun($params,$forcebuiltin=array())
 	{
 		$this->log("Import Mode:$this->mode","startup");
@@ -1352,6 +1448,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		//if some rows found
 		if($nitems>0)
 		{
+			$this->resetSkuStats();
 			//intialize store id cache
 			$this->initWebsites();
 			$this->callPlugins("datasources,itemprocessors","startImport");
@@ -1382,56 +1479,27 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$lastdbtime=0;
 			while(($item=$this->datasource->getNextRecord())!==false)
 			{
-				//counter
-				$this->_current_row++;
-				if($this->_current_row%$rstep==0)
-				{
-					$this->reportStats($this->_current_row,$tstart,$tdiff,$lastdbtime,$lastrec);
-				}
-				try
-				{
-					if(is_array($item) && count($item)>0)
-					{
-						//import item
-						$this->beginTransaction();
-						$importedok=$this->importItem($item);
-						if($importedok)
-						{
-							$this->commitTransaction();
-						}
-						else
-						{
-							$this->rollbackTransaction();
-
-						}
-					}
-					else
-					{
-						$this->log("ERROR - RECORD #$this->_current_row - INVALID RECORD","error");
-					}
-					//intermediary measurement
-
-				}
-				catch(Exception $e)
-				{
-					$this->rollbackTransaction();
-					$this->logException($e,"ERROR ON RECORD #$this->_current_row");
-				}
-				if($this->isLastItem($item))
-				{
-					unset($item);
-					break;
-				}
-				unset($item);
+				 $res=$this->processDataSourceLine($item, $rstep);
+				 //break on "forced" last
+				 if($res["last"])
+				 {
+				 	break;
+				 }
 			}
 			$this->callPlugins("datasources,general,itemprocessors","endImport");
 			$this->reportStats($this->_current_row,$tstart,$tdiff,$lastdbtime,$lastrec);
+			$this->log("Skus imported OK:".$this->_skustats["ok"]."/".$this->_skustats["nsku"],"info");
+			if($this->_skustats["ko"]>0)
+			{
+				$this->log("Skus imported KO:".$this->_skustats["ko"]."/".$this->_skustats["nsku"],"warning");
+			}
 		}
 		else
 		{
 			$this->log("No Records returned by datasource","warning");
 		}
 		$this->callPlugins("datasources,general,itemprocessors","afterImport");
+		
 		$this->log("Import Ended","end");
 		Magmi_StateManager::setState("idle");
 	}
