@@ -31,13 +31,18 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$t=$this->tablename("catalog_category_entity");
 		$csg=$this->tablename("core_store_group");
 		$cs=$this->tablename("core_store");
-		$result=$this->selectAll("SELECT cs.store_id,csg.website_id,cce.entity_type_id,cce.path 
-								  FROM $cs as cs 
-								  JOIN $csg as csg on csg.group_id=cs.group_id
- 								  JOIN $t as cce ON cce.entity_id=csg.root_category_id ");
+		$ccev=$t."_varchar";
+		$ea=$this->tablename("eav_attribute");
+		$result=$this->selectAll("SELECT cs.store_id,csg.website_id,cce.entity_type_id,cce.path,ccev.value as name
+								FROM $cs as cs 
+								JOIN $csg as csg on csg.group_id=cs.group_id
+								JOIN $t as cce ON cce.entity_id=csg.root_category_id
+								JOIN $ea as ea ON ea.attribute_code='name' AND ea.entity_type_id=cce.entity_type_id
+								JOIN $ccev as ccev ON ccev.attribute_id=ea.attribute_id AND ccev.entity_id=cce.entity_id
+		 ");
 		foreach($result as $row)
 		{
-			$rootinfo=array("path"=>$row["path"],"etid"=>$row["entity_type_id"],"rootarr"=>explode("/",$row["path"]));
+			$rootinfo=array("path"=>$row["path"],"etid"=>$row["entity_type_id"],"name"=>$row["name"],"rootarr"=>explode("/",$row["path"]));
 			$this->_catroots[$row["store_id"]]=$rootinfo;
 			$this->_catrootw[$row["website_id"]][]=$row["store_id"];
 			if($this->_cat_eid==null)
@@ -255,10 +260,11 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return true;
 	}
 	
-	public function getStoreRootPaths($item)
+	public function getStoreRootPaths(&$item)
 	{
 		$rootpaths=array();
 		$sids=$this->getItemStoreIds($item,2);
+		$trimroot="";
 		//remove admin from store ids (no category root on it)
 		if($sids[0]==0)
 		{
@@ -276,7 +282,24 @@ class CategoryImporter extends Magmi_ItemProcessor
 		foreach($sids as $sid)
 		{
 			$srp=$this->_catroots[$sid];
-			$rootpaths[$srp["path"]]=$srp["rootarr"];
+			$cmatch=true;
+			//If using explicit root assignment , identify which root it is
+			if(preg_match("|^\[(.*)?\].*$|",$item["categories"],$matches))
+			{
+				$cmatch=(trim($matches[1])==$srp["name"]);
+				if($cmatch)
+				{
+					$trimroot=$matches[1];
+				}
+			}
+			if($cmatch)
+			{
+				$rootpaths[$srp["path"]]=$srp["rootarr"];
+			}
+		}
+		if($trimroot!="")
+		{
+			$item["categories"]=substr($item["categories"],strlen($trimroot)+3);
 		}
 		return $rootpaths;
 	}
@@ -285,9 +308,18 @@ class CategoryImporter extends Magmi_ItemProcessor
 	{
 		if(isset($item["categories"]))
 		{
+			
+			$rootpaths=$this->getStoreRootPaths($item);
+			if(count($rootpaths)==0)
+			{
+				if(preg_match("|^\[(.*)?\].*$|",$item["categories"],$matches))
+				{
+					$this->log("Cannot find site root with name : ".$matches[1],"error");
+					return false;
+				}
+			}
 			$catlist=explode(";;",$item["categories"]);
 			$catids=array();
-			$rootpaths=$this->getStoreRootPaths($item);
 			foreach($catlist as $catdef)
 			{
 				if($catdef!="")
