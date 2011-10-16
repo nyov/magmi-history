@@ -86,7 +86,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.1.6b",
+            "version" => "0.1.7",
 			"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_category_creator/importer"
             );
 	}
@@ -299,7 +299,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		}
 		if($trimroot!="")
 		{
-			$item["categories"]=substr($item["categories"],strlen($trimroot)+3);
+			$item["categories"]=substr($item["categories"],strlen($trimroot)+2+strlen($this->_tsep));
 		}
 		return $rootpaths;
 	}
