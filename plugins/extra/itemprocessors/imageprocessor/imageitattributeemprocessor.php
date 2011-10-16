@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.18a",
+            "version" => "1.0.19",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Image_attributes_processor"
             );
 	}
@@ -530,7 +530,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				/* test if 1st level product media dir exists , create it if not */
 				if(!file_exists("$l1d"))
 				{
-					$tst=@mkdir($l1d,0777);
+					$tst=@mkdir($l1d,Magmi_Config::getInstance()->getDirMask());
 					if(!$tst)
 					{
 						$errors= error_get_last();
@@ -543,7 +543,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				/* test if 2nd level product media dir exists , create it if not */
 				if(!file_exists("$l2d"))
 				{
-					$tst=@mkdir($l2d,0777);
+					$tst=@mkdir($l2d,Magmi_Config::getInstance()->getDirMask());
 					if(!$tst)
 					{
 						$errors= error_get_last();
@@ -564,7 +564,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 					return false;
 				}
 				$this->destroyUrlContext($curlh);
-				@chmod("$l2d/$bimgfile",0664);
+				@chmod("$l2d/$bimgfile",Magmi_Config::getInstance()->getFileMask());
 			}			
 		}
 		$this->_lastimage=$result;
