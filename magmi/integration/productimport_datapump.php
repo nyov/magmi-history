@@ -41,6 +41,7 @@ class Magmi_ProductImport_DataPump
 		$this->_stats["lastrec"]=0;
 		$this->_stats["lastdbtime"]=0;
 		$this->crow=0;
+	
 	}
 	
 	
@@ -61,30 +62,22 @@ class Magmi_ProductImport_DataPump
 			$this->_engine->callPlugins("itemprocessors","processColumnList",$this->_importcolumns);
 			$this->_engine->initAttrInfos($this->_importcolumns);			
 		}
-		$this->crow++;
-		$this->_engine->setCurrentRow($this->crow);
 		
-		$this->_engine->beginTransaction();
-		$importedok=$this->_engine->importItem($item);
-		if($importedok)
-		{
-			$this->_engine->commitTransaction();
-		}
-		else
-		{
-			$this->_engine->rollbackTransaction();
-		}
-	
-		if($this->crow%$this->_rstep==0)
-		{
-			$this->_engine->reportStats($this->crow,$this->_stats["tstart"],$this->_stats["tdiff"],$this->_stats["lastdbtime"],$this->_stats["lastrec"]);
-		}
+	 	$res=$this->_engine->processDataSourceLine($item, $this->_rstep);
+			
 	}
  
 	public function endImportSession()
 	{
-		$this->_engine->reportStats($this->crow,$this->_stats["tstart"],$this->_stats["tdiff"],$this->_stats["lastdbtime"],$_this->stats["lastrec"]);
- 		$this->_engine->exitImport();
+		$this->_engine->reportStats($this->_engine->getCurrentRow(),$this->_stats["tstart"],$this->_stats["tdiff"],$this->_stats["lastdbtime"],$_this->stats["lastrec"]);
+ 		$skustats=$this->_engine->getSkuStats();
+		$this->_engine->log("Skus imported OK:".$skustats["ok"]."/".$skustats["nsku"],"info");
+		if($skustats["ko"]>0)
+		{
+			$this->_engine->log("Skus imported KO:".$skustats["ko"]."/".$skustats["nsku"],"warning");
+		}
+		
+		$this->_engine->exitImport();
 	}
 	
 }
