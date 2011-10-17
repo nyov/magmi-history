@@ -9,7 +9,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 	{
 		return array("name"=>"Custom Magento SQL Utility",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.1");
+					 "version"=>"1.0.1a");
 	}
 	
 	public function getShortDescription()
