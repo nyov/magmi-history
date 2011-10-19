@@ -221,7 +221,7 @@ $cansock=true;
 	</ul>
 	<ul class="formline" id="fileperms">
 		<li class="label">File permissions:</li>
-		<li class="value"><input type="text" name="GLOBAL:dirmask" size="3" value="<?php echo $conf->get("GLOBAL","filemask","644")?>"></input></li>
+		<li class="value"><input type="text" name="GLOBAL:filemask" size="3" value="<?php echo $conf->get("GLOBAL","filemask","644")?>"></input></li>
 	</ul>
 
 	</div>
