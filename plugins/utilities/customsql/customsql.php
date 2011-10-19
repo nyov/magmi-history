@@ -9,7 +9,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 	{
 		return array("name"=>"Custom Magento SQL Utility",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.1a");
+					 "version"=>"1.0.2");
 	}
 	
 	public function getShortDescription()
@@ -111,6 +111,12 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 		$results=$this->multipleParamRequests($sql,$rparams,true);
 		foreach($results as $rq=>$res)
 		{
+			if(count($res)==0)
+			{
+				$this->log("No records found","info");
+			}
+			else
+			{
 			for($i=0;$i<count($res);$i++)
 			{
 				$str="";
@@ -119,6 +125,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 					$str.="$k=$v;";
 				}				
 				$this->log($str,"info");
+			}
 			}
 		}
 		$this->disconnectFromMagento();
