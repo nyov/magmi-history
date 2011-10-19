@@ -570,7 +570,7 @@ class DBHelper
  			$this->replaceParams($stmt,$params);
  			if($return)
  			{
- 				if(preg_match("|\s*SELECT.*?|", $stmt))
+ 				if(substr(trim($stmt),0,6)=="SELECT")
  				{
  					$results[$stmt]=$this->selectAll($stmt,$params);
  					continue;
