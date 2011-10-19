@@ -74,7 +74,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.4.1","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.4.2","author"=>"dweeves");
 	}
 
 	/**
@@ -538,6 +538,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			for($i=0;$i<count($new);$i++)
 			{
 				$row=$brows[$i];
+				if(!isset($row["opvs"]))
+				{
+					$row["opvs"]=$this->createOption($attid);
+					$this->createOptionValue($row["opvs"],0,$new[$i]);
+				}
 				$this->createOptionValue($row["opvs"],$storeid,$new[$i]);
 				$existing[]=$row;
 			}
