@@ -194,7 +194,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 				return "__MAGMI_DELETE__";
 			}
 			//magento uses "," as separator for different multiselect values
-			$sep=Magmi_Config::getInstance()->get("GLOBAL","mutiselect_sep",",");
+			$sep=Magmi_Config::getInstance()->get("GLOBAL","multiselect_sep",",");
 			$multiselectvalues=explode($sep,$ivalue);
 			$oids=$this->getOptionIds($attid,$storeid,$multiselectvalues);
 			$ovalue=implode(",",$oids);
