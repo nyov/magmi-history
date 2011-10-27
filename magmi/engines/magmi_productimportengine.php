@@ -74,7 +74,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.4.2","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.5","author"=>"dweeves");
 	}
 
 	/**
@@ -1001,12 +1001,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$this->_optidcache=array();
 	}
 
-	public function onNewSku($sku)
+	public function onNewSku($sku,$existing)
 	{
 		$this->clearOptCache();
 		//only assign values to store 0 by default in create mode for new sku
 		//for store related options
-		if($this->mode!="update")
+		if(!$existing)
 		{
 			$this->_dstore=array(0);
 		}
@@ -1041,8 +1041,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				//only sku & attribute set id from datasource otherwise.
 				$this->_curitemids=array("pid"=>null,"sku"=>$sku,"asid"=>isset($item["attribute_set"])?$this->getAttributeSetId($item["attribute_set"]):null);
 			}
+			//do not reset values for existing if non admin	
+			$this->onNewSku($sku,($cids===false));
 			unset($cids);
-			$this->onNewSku($sku);
 		}
 		else
 		{
