@@ -135,6 +135,12 @@ class Magmi_PluginHelper
 		return $plinst;
 	}
 	
+	public function getPluginDir($pinst)
+	{
+		$mt=$this->getPluginMeta($pinst);
+		return $mt["dir"];	
+	}
+	
 	public function getPluginMeta($pinst)
 	{
 		if(self::$_plugins_cache==null)
