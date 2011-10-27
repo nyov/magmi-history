@@ -14,7 +14,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Tier price importer",
             "author" => "Dweeves",
-            "version" => "0.0.7",
+            "version" => "0.0.7a",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Tier_price_importer"
             );
 	}
@@ -150,7 +150,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		return true;
 	}
 
-	public function processColumnList(&$cols)
+	public function processColumnList(&$cols,$params=null)
 	{
 		//inspect column list for getting tier price columns info
 		foreach($cols as $col)
