@@ -43,9 +43,12 @@ if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 	<div class="grid_12 col"><h3>Update Magmi Release</h3>
 		<input type="file" name="magmi_package"></input>
 		<input type="submit" value="Upload Magmi Release"></input>
-		<?php if(isset($_SESSION["magmi_install_error"])){?>
-		<div class="plupload_error">
-				<?php echo $_SESSION["magmi_install_error"];?>
+		<?php if(isset($_SESSION["magmi_install"])){
+		$type=$_SESSION["magmi_install"][0];
+		$msg=$_SESSION["magmi_install"][1];
+		?>	
+		<div class="plupload_$type">
+				<?php echo $msg;?>
 		</div>
 		<?php }?>
 	</div>
@@ -58,9 +61,12 @@ if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 	<div class="grid_12 col"><h3>Upload New Plugins</h3>
 		<input type="file" name="plugin_package"></input>
 		<input type="submit" value="Upload Plugins"></input>
-<?php if(isset($_SESSION["plugin_install_error"])){?>
-<div class="plupload_error">
-<?php echo $_SESSION["plugin_install_error"];?>
+<?php if(isset($_SESSION["plugin_install"])){
+		$type=$_SESSION["plugin_install"][0];
+		$msg=$_SESSION["plugin_install"][1];
+	?>
+<div class="plupload_$type">
+<?php echo $msg;?>
 </div>
 <?php }?>
 </div>
