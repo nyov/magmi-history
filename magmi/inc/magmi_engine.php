@@ -130,6 +130,21 @@ abstract class Magmi_Engine extends DbHelper
 		$this->_builtinplugins[$pfamily]=$pclasses;
 	}
 	
+	public function sortPlugins($p1,$p2)
+	{
+		
+		$m1=$p1->getPluginMeta();
+		if($m1==null)
+		{
+			return 1;
+		}
+		$m2=$p2->getPluginMeta();
+		if($m2==null)
+		{
+			return -1;	
+		}
+		return strcmp($m1["file"],$m2["file"]);
+	}
 	public function createPlugins($profile,$params)
 	{
 		$plhelper=Magmi_PluginHelper::getInstance($profile);
@@ -151,7 +166,9 @@ abstract class Magmi_Engine extends DbHelper
 			foreach($pclasses as $pclass)
 			{
 				$this->_activeplugins[$pfamily][]=$plhelper->createInstance($pfamily,$pclass,$params,$this);
+				
 			}
+			usort($this->_activeplugins[$pfamily],array(&$this,"sortPlugins"));
 		}
 		
 	}

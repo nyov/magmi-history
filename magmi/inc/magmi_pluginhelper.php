@@ -62,7 +62,7 @@ class Magmi_PluginHelper
 					$dirname=dirname(substr($pcfile,strlen($this->plugin_dir)));
 					if(substr(basename($dirname),0,2)!='__')
 					{
-						$pluginclasses[]=array("class"=>$match[1],"dir"=>$dirname);
+						$pluginclasses[]=array("class"=>$match[1],"dir"=>$dirname,"file"=>basename($pcfile));
 					}
 				}
 			}
@@ -130,11 +130,12 @@ class Magmi_PluginHelper
 			self::scanPlugins($ptype);
 		}
 		$plinst=new $pclass();
-		$plinst->pluginInit($mmi,$this->getPluginDir($plinst),$params,($mmi!=null),$this->_profile);
+		
+		$plinst->pluginInit($mmi,$this->getPluginMeta($plinst),$params,($mmi!=null),$this->_profile);
 		return $plinst;
 	}
 	
-	public function getPluginDir($pinst)
+	public function getPluginMeta($pinst)
 	{
 		if(self::$_plugins_cache==null)
 		{
@@ -147,7 +148,9 @@ class Magmi_PluginHelper
 			{
 				if($pdesc["class"]==get_class($pinst))
 				{
-					return "$this->plugin_dir"."{$pdesc["dir"]}";
+					$out=$pdesc;
+					$out["dir"]=$this->plugin_dir.$pdesc["dir"];
+					return $out;
 				}
 			}
 		}
