@@ -13,7 +13,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly indexer",
             "author" => "Dweeves",
-            "version" => "0.1.3",
+            "version" => "0.1.4",
             "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_indexer"
             );
 	}
@@ -142,6 +142,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 			$data=array();
 			$vstr=array();
 			//now we have catpaths per store
+				$cnames=array();
 			foreach($catpathlist as $storeid=>$paths)
 			{
 				$catids=array();
@@ -163,7 +164,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 			  	WHERE cce.entity_id IN ($catin)
 			  	GROUP BY cce.entity_id";
 				$result=$this->selectAll($sql,array_merge(array($storeid),$catids));
-				$cnames=array();
+			
 				//iterate on all names
 				foreach($result as $row)
 				{
