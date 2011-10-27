@@ -110,7 +110,7 @@ abstract class Magmi_Plugin
 	protected $_plugindir;
 	protected $_config;
 	protected $_magmiconfig;
-	
+	protected $_pluginmeta;
 	public function __construct()
 	{
 	}
@@ -217,10 +217,10 @@ abstract class Magmi_Plugin
 	{
 		$this->_mmi=$mmi;
 	}
-	public final function pluginInit($mmi,$dir,$params=null,$doinit=true,$profile=null)
+	public final function pluginInit($mmi,$meta,$params=null,$doinit=true,$profile=null)
 	{		
 		$this->setMmiRef($mmi);
-		$this->_plugindir=$dir;
+		$this->_pluginmeta=$meta;
 		$this->_class=get_class($this);
 		$this->_config=new Magmi_PluginConfig(get_class($this),$profile);	
 		$this->_config->load();
@@ -323,7 +323,12 @@ abstract class Magmi_Plugin
 	
 	public function getPluginDir()
 	{
-		return $this->_plugindir;
+		return $this->_pluginmeta["dir"];
+	}
+	
+	public function getPluginMeta()
+	{
+		return $this->_pluginmeta;
 	}
 	
 	public function getPluginClass()
