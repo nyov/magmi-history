@@ -1,23 +1,32 @@
 <?php
 session_start();
+
+function extractZipDir($zip,$bdir,$zdir)
+{
+	$files=array();
+	for($i = 0; $i < $zip->numFiles; $i++) {
+        $entry = $zip->getNameIndex($i);
+		if (strpos($entry, "/$zdir/")) {
+          //Add the entry to our array if it in in our desired directory
+          $files[] = $entry;
+	 }
+	}
+	$zip->extractTo($bdir,$files);
+}
+
 unset($_SESSION["magmi_install_error"]);
 $zip = new ZipArchive();
 $res = $zip->open($_FILES["magmi_package"]["tmp_name"]);
 try
 {
 	$info=$zip->statName('magmi/conf/magmi.ini.default');
-	$mode="full";
-	if($info==false)
-	{
-		$info=$zip->statName('conf/magmi.ini.default');
-		$mode=$info==false?"":"updpack";
-	}	
-	if ($res === TRUE && mode!="") 
+	
+	if ($res === TRUE && $info!==FALSE) 
     {
-         $zip->extractTo("..");
+         extractZipDir($zip, "..", "magmi");
          $zip->close();
          $_SESSION["magmi_install"]="OK";
-         $_SESSION["magmi_install"]=array("info",$mode=="updpack"?"Magmi Update Version installed":"Magmi Release installed");
+         $_SESSION["magmi_install"]=array("info","Magmi updated");
     } 
     else 
     {
