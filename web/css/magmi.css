@@ -198,7 +198,7 @@ span.version
 	padding-right: 10px;
 }
 
-.log_error
+.log_error,.mgupload_error
 {
 	border:1px solid #cc0000;
 	background: #ff8888;
@@ -281,7 +281,7 @@ span.version
 	padding-right:5px;
 }
 
-.log_info
+.log_info,.mgupload_info
 {
 	border:1px solid #00cc44;
 	background: #88ffcc;
