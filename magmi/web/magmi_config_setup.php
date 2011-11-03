@@ -47,10 +47,12 @@ if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 		$type=$_SESSION["magmi_install"][0];
 		$msg=$_SESSION["magmi_install"][1];
 		?>	
-		<div class="plupload_$type">
+		<div class="mgupload_<?php echo $type?>">
 				<?php echo $msg;?>
 		</div>
-		<?php }?>
+		<?php 
+			unset($_SESSION["magmi_install"]);
+		}?>
 	</div>
 </form>
 </div>
@@ -68,7 +70,7 @@ if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 <div class="plupload_$type">
 <?php echo $msg;?>
 </div>
-<?php }?>
+<?php unset($_SESSION["magmi_install"]); }?>
 </div>
 </form>
 <?php } else {?>
@@ -86,8 +88,7 @@ Zip library not available, Upgrade/Upload function are not enabled
 <?php }?>
 </div>
 </div>
-<?php if($conf_ok){?>
-<form method="POST" id="runmagmi" action="magmi.php">
+<form method="POST" id="runmagmi" action="magmi.php" <?php if(!$conf_ok){?>style="display:none"<?php }?>>
 	<input type="hidden" name="run" value="import"></input>
 	<input type="hidden" name="logfile" value="<?php echo Magmi_StateManager::getProgressFile()?>"></input>
 	<div class="container_12">
@@ -114,7 +115,6 @@ Zip library not available, Upgrade/Upload function are not enabled
 		</div>
 		</div>
 </form>
-<?php }?>
 <div class="container_12">
 <div class="grid_12">
 <a href="magmi_utilities.php">Advanced Utilities</a>
