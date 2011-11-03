@@ -1381,7 +1381,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	}
 
-	public function processDataSourceLine($item,$rstep)
+	public function processDataSourceLine($item,$rstep,&$tstart,&$tdiff,&$lastdbtime,&$lastrec)
 	{
 		//counter
 		$res=array("ok"=>0,"last"=>0);
@@ -1485,7 +1485,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$lastdbtime=0;
 			while(($item=$this->datasource->getNextRecord())!==false)
 			{
-				 $res=$this->processDataSourceLine($item, $rstep);
+				 $res=$this->processDataSourceLine($item, $rstep,$tstart,$tdiff,$lastdbtime,$lastrec);
 				 //break on "forced" last
 				 if($res["last"])
 				 {
