@@ -1042,7 +1042,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				$this->_curitemids=array("pid"=>null,"sku"=>$sku,"asid"=>isset($item["attribute_set"])?$this->getAttributeSetId($item["attribute_set"]):null);
 			}
 			//do not reset values for existing if non admin	
-			$this->onNewSku($sku,($cids===false));
+			$this->onNewSku($sku,($cids!==false));
 			unset($cids);
 		}
 		else
