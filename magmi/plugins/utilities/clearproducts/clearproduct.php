@@ -48,7 +48,7 @@ class ClearProductUtility extends Magmi_UtilityPlugin
 					  "cataloginventory_stock_status");
 		
 		//Bugfix , add catalog product flat tables to clear products
-		$sql="SELECT store_id FROM core_store WHERE store_id!=0";
+		$sql="SELECT store_id FROM ".$this->tablename("core_store")." WHERE store_id!=0";
 		$result=$this->selectAll($sql);
 		foreach($result as $sids)
 		{
