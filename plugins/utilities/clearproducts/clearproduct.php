@@ -5,7 +5,7 @@ class ClearProductUtility extends Magmi_UtilityPlugin
 	{
 		return array("name"=>"Clear Catalog",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.1");
+					 "version"=>"1.0.2");
 	}
 	
 	public function runUtility()
