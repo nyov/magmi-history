@@ -11,6 +11,7 @@ class Magmi_ProductImport_DataPump
 	protected $_stats;
 	protected $_crow;
 	protected $_rstep=100;
+
 	
 	
 	public function __construct()
@@ -62,8 +63,7 @@ class Magmi_ProductImport_DataPump
 			$this->_engine->callPlugins("itemprocessors","processColumnList",$this->_importcolumns);
 			$this->_engine->initAttrInfos($this->_importcolumns);			
 		}
-		
-	 	$res=$this->_engine->processDataSourceLine($item, $this->_rstep);
+	 	$res=$this->_engine->processDataSourceLine($item, $this->_rstep,$this->_stats["tstart"],$this->_stats["tdiff"],$this->_stats["lastdbtime"],$_this->stats["lastrec"]);
 			
 	}
  
