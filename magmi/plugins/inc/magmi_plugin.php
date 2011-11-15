@@ -1,5 +1,5 @@
 <?php
-require_once("../inc/magmi_config.php");
+require_once("magmi_config.php");
 
 class Magmi_PluginConfig extends ProfileBasedConfig
 {
