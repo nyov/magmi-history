@@ -9,10 +9,11 @@
  * 
  */
 
-require_once("../engines/magmi_productimportengine.php");
+require_once("../inc/magmi_defs.php");
 
 $script=array_shift($argv);
 $options=array();
+
 foreach($argv as $option)
 {
 	$isopt=$option[0]=="-";
@@ -40,7 +41,34 @@ class CLILogger
 		echo("$type:$data\n");
 	}	
 }
-$importer=new Magmi_ProductImportEngine();
+
+function getEngineInstance($options)
+{
+	if(!isset($options["engine"]))
+	{
+		$options["engine"]="magmi_productimportengine:Magmi_ProductImportEngine";
+	}
+
+	$optname=$options["engine"];
+	$engdef=explode(":",$optname);
+	$engine_name=$engdef[0];
+	$engine_class=$engdef[1];
+	$enginst=null;
+	if(file_exists("../engines/$engine_name.php"))
+	{
+		require_once("../engines/$engine_name.php");
+		if(class_exists($engine_class))
+		{
+			$enginst=new $engine_class();				
+		}
+	}
+	if($enginst==null)
+	{
+	 die("Invalid engine definition : ".$optname);
+	}
+	return $enginst;
+}
+$importer=getEngineInstance($options);
 $importer->setLogger(new CLILogger());
 $importer->run($options);
 ?>
