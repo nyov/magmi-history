@@ -1,7 +1,7 @@
-<select name="CSV:filename" id="csvfile">
-	<?php 
+<?php 
 	$files=$this->getCSVList();
-	?>
+if($files!==false){?>
+<select name="CSV:filename" id="csvfile">
 	<?php foreach($files as $fname){ ?>	
 		<option <?php if($fname==$this->getParam("CSV:filename")){?>selected=selected<?php }?>><?php echo $fname?></option>
 	<?php }?>
@@ -11,4 +11,6 @@
  $('csvfile').observe('change',function(el){
  		$('csvdl').href="./download_file.php?file="+$('csvfile').value;}
 	);
-</script>
+</script><?php } else {?>
+<span> No csv files found in <?php echo $this->getParam("CSV:basedir")?></span>
+	<?php }?>
