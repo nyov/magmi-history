@@ -95,7 +95,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 	public function runUtility()
 	{
 		$this->connectToMagento();
-		$params=$this->getPluginParams($_REQUEST);
+		$params=$this->getPluginParams($this->_params);
 		$this->persistParams($params);
 		$rqfile=$params["UTCSQL:queryfile"];
 		unset($params["UTCSQL:queryfile"]);
