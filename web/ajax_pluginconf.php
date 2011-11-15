@@ -1,5 +1,6 @@
 <?php
-require_once("../inc/magmi_pluginhelper.php");
+require_once("../inc/magmi_defs.php");
+require_once("magmi_pluginhelper.php");
 require_once("magmi_web_utils.php");
 $pltype=$_REQUEST["plugintype"];
 $plclass=$_REQUEST["pluginclass"];
