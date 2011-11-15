@@ -1,5 +1,5 @@
 <?php
-require_once("../inc/properties.php");
+require_once("properties.php");
 
 class Magmi_DataPumpFactory
 {
