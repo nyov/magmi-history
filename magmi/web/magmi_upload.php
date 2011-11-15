@@ -43,9 +43,16 @@ try
     {
          $ok=extractZipDir($zip, "..", "magmi");
          $zip->close();
-         $_SESSION["magmi_install"]="OK";
-         $_SESSION["magmi_install"]=array("info","Magmi updated");
-    } 
+		 if(file_exists("../inc/magmi_postinstall.php"))
+		 {
+		 	require_once("../inc/magmi_postinstall.php");
+		 	if(function_exists("magmi_post_install"))
+		 	{
+		 		$result=magmi_post_install();
+		 	}
+		 }
+	    $_SESSION["magmi_install"]=array("info","Magmi updated<br>".$result["OK"]);
+	} 
     else
     {
     	$zip->close();
