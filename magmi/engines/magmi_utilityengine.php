@@ -34,7 +34,7 @@ class Magmi_UtilityEngine extends Magmi_Engine
 	
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Utilities Engine","version"=>"1.0","author"=>"dweeves");
+		return array("name"=>"Magmi Utilities Engine","version"=>"1.0.1","author"=>"dweeves");
 	}
 	
 	/**
