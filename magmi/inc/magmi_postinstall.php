@@ -1,0 +1,34 @@
+<?php
+require_once("magmi_version.php");
+
+function magmi_post_install()
+{
+	$out="";
+	if(Magmi_Version::$version<="0.7.17")
+	{
+		$delcds=array_merge(glob("../integration/inc/*.*"),glob("../integration/samples/*.*"));
+		$todelete=array();
+		foreach($delcds as $fname)
+		{
+			$todelete[]=basename($fname);
+		}
+		print_r($todelete);
+		$allfiles=glob("../integration/*.*");
+		foreach($allfiles as $fname)
+		{
+			if(in_array(basename($fname),$todelete))
+			{
+			    $out.="deleting $fname (new dir struct)<br>";
+				unlink($fname);
+			}
+			else 
+			{
+			    $out.="moving $fname to migrated (custom script)<br>";
+			    @mkdir("../integration/scripts/migrated/");
+				copy($fname,"../integration/scripts/migrated/".basename($fname));
+				unlink($fname);
+			}
+		}
+	}
+	return array("OK"=>$out);
+}
