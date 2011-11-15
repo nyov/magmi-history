@@ -10,7 +10,7 @@
  */
 
 /* use external file for db helper */
-require_once("../inc/magmi_engine.php");
+require_once("magmi_engine.php");
 
 /**
  *
