@@ -33,11 +33,6 @@ class Magmi_ProductImport_DataPump
 	{
 		$this->_engine->setLogger($logger);
 		$this->_engine->initialize();
-		if($this->_engine->magdir=="../.." && !$this->_mdpatched)
-		{
-			$this->_engine->magdir=dirname(MAGMI_BASEDIR);
-			$this->_mdpatched=true;
-		}
 		$this->_params=array("profile"=>$profile,"mode"=>$mode);
  		$this->_engine->engineInit($this->_params);
 		$this->_engine->initImport($this->_params);
