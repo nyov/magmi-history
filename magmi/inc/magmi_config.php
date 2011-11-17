@@ -117,15 +117,21 @@ class Magmi_Config extends DirbasedConfig
 	
 	public function getDirMask()
 	{
-		return octdec($this->get("dirmask","GLOBAL","755"));
+		return octdec($this->get("GLOBAL","dirmask","755"));
 	}
 	
 	public function getFileMask()
 	{
-		return octdec($this->get("filemask","GLOBAL","644"));
+		return octdec($this->get("GLOBAL","filemask","644"));
 		
 	}
 	
+	public function getMagentoDir()
+	{
+		$bd=$this->get("MAGENTO","basedir");
+		$dp=$bd[0]=="."?dirname(__FILE__)."/".$bd:$bd;
+		return realpath($dp);
+	}
 	
 	public static function getInstance()
 	{
