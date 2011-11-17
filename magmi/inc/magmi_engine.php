@@ -19,7 +19,6 @@ abstract class Magmi_Engine extends DbHelper
 	protected $_initialized=false;
 	protected $_exceptions=array();
 	public $magversion;
-	public $magdir;
 	public $tprefix;
 	protected $_connected;
 	protected $_activeplugins;
