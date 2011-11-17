@@ -1,5 +1,6 @@
 <?php
- require_once("../magmi_datapump.php");
+require_once("../../inc/magmi_defs.php");
+ require_once("../inc/magmi_datapump.php");
  
  
  /** Define a logger class that will receive all magmi logs **/
