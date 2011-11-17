@@ -47,7 +47,6 @@ abstract class Magmi_Engine extends DbHelper
 			$this->_conf=Magmi_Config::getInstance();
 			$this->_conf->load();
 			$this->magversion=$this->_conf->get("MAGENTO","version");
-			$this->magdir=$this->_conf->get("MAGENTO","basedir");
 			$this->tprefix=$this->_conf->get("DATABASE","table_prefix");
 			$this->_excid=0;
 			$this->_initialized=true;
@@ -65,7 +64,7 @@ abstract class Magmi_Engine extends DbHelper
 	 */
 	public function getMagentoDir()
 	{
-		return $this->magdir;
+		return $this->_conf->getMagentoDir();
 	}
 	
 	public function getPluginFamilies()
