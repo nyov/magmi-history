@@ -36,7 +36,7 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		{
 			session_write_close();
 		}
-		$magdir=Magmi_Config::getInstance()->get("MAGENTO","basedir");
+		$magdir=Magmi_Config::getInstance()->getMagentoDir();
 		$cl=$this->getParam("REINDEX:phpcli")." $magdir/shell/indexer.php";
 		$idxlstr=$this->getParam("REINDEX:indexes","");
 		$idxlist=explode(",",$idxlstr);
