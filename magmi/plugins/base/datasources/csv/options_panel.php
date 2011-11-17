@@ -28,7 +28,7 @@ Allow truncated lines (bypasses data line structure correlation with headers)</d
 
 <?php $hdline=$this->getParam("CSV:headerline","");
 $malformed=($hdline!="" && $hdline!=1)?>
-<input type="checkbox" id="malformedcb" <?php if($malformed){?>checked="checked"<?php }?>>Malformed CSV (column list line not at top of file)</input>
+<input type="checkbox" id="malformedcb" <?php if($malformed){?>checked="checked"<?php }?>/>Malformed CSV (column list line not at top of file)
 <div id="malformed" <?php if(!$malformed){?>style="display:none"<?php }?>>
 <span class="">CSV Header at line:</span><input type="text" id="CSV:headerline" name="CSV:headerline"  maxlength="7" size="7" value="<?php echo $hdline?>"></input>
 </div>
