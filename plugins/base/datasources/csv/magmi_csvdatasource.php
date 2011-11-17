@@ -35,22 +35,20 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		
 	}
 	
-	public function getMagentoBaseDir()
-	{
-		$magmi_conf=Magmi_Config::getInstance();
-		$magmi_conf->load();
-		$mbd=$magmi_conf->get("MAGENTO","basedir");
-		unset($magmi_conf);
-		return $mbd;
-	}
 	
-	public function getCSVList()
+	public function getScanDir()
 	{
 		$scandir=$this->getParam("CSV:basedir","var/import");
 		if($scandir[0]!="/")
 		{
-			$scandir=$this->getMagentoBaseDir()."/".$scandir;
+			$scandir=Magmi_Config::getInstance()->getMagentoDir()."/".$scandir;
 		}
+		return $scandir;	
+	}
+	
+	public function getCSVList()
+	{
+		$scandir=$this->getScanDir();
 		$files=glob("$scandir/*.csv");
 		return $files;
 	}
