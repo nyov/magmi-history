@@ -7,14 +7,15 @@
  */
 class TierpriceProcessor extends Magmi_ItemProcessor
 {
-	protected $_tpcol;
-
+	protected $_tpcol=array();
+    protected $_singlestore=0;
+ 
 	public function getPluginInfo()
 	{
 		return array(
             "name" => "Tier price importer",
             "author" => "Dweeves",
-            "version" => "0.0.7a",
+            "version" => "0.0.8",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Tier_price_importer"
             );
 	}
@@ -29,22 +30,25 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 	 * 		false if you want to skip item import after your processing
 	 */
 
-
+    
 
 	public function processItemAfterId(&$item,$params=null)
 	{
+		
 		$pid=$params["product_id"];
+		
 		$tpn=$this->tablename("catalog_product_entity_tier_price");
 		$tpcol=array_intersect(array_keys($this->_tpcol),array_keys($item));
 		//do nothing if item has no tier price info or has not change
-		if(count($tpcol)==0 || $params["same"]==true )
+		if(count($tpcol)==0  )
 		{
 			return true;
 		}
 		else
 		{
+		
 			//clear all existing tier price info for existing customer groups in csv
-			$cgids=array();
+		   $cgids=array();
 			foreach($tpcol as $k)
 			{
 				$tpinf=$this->_tpcol[$k];
@@ -59,6 +63,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 				}
 			
 			}
+			
 			//if we have specific customer groups
 			if(count($cgids)>0)
 			{
@@ -79,6 +84,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		
 		foreach($tpcol as $k)
 		{
+		
 		//get tier price column info
 		  $tpinf=$this->_tpcol[$k];
 		  //now we've got a customer group id
@@ -88,9 +94,16 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 			(entity_id,all_groups,customer_group_id,qty,value,website_id) VALUES ";
 		  $inserts=array();
 		  $data=array();
-		  //it seems that magento cannot handle correctly "per website" tier price , so force it to "default"
-		  $wsids=$this->getItemWebsites($item);
-		  //$wsids=array(0);
+		  //it seems that magento does not handle "per website" tier price on single store deployments , so force it to "default"
+		  //so we test wether we have single store deployment or not.
+		  if($this->_singlestore==0)
+		  {
+		    $wsids=$this->getItemWebsites($item);
+		  }
+		  else
+		  {
+		    $wsids=array(0);
+		  }
 		  if($item[$k]=="")
 		  {
 		  	continue;
@@ -152,12 +165,13 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 
 	public function processColumnList(&$cols,$params=null)
 	{
-		//inspect column list for getting tier price columns info
+	   //inspect column list for getting tier price columns info
 		foreach($cols as $col)
 		{
 			if(preg_match("|tier_price:(.*)|",$col,$matches))
 			{
 				$tpinf=array("name"=>$matches[1],"id"=>null);
+				
 				//if specific tier price 
 		 		 if($tpinf["name"]!=="_all_")
 		 		 {
@@ -178,6 +192,12 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 
 	public function initialize($params)
 	{
+	 $sql="SELECT COUNT(store_id) as cnt FROM ".$this->tablename("core_store")." WHERE store_id!=0";
+	 $ns=$this->selectOne($sql,"cnt");
+	 if($ns==1)
+	 {
+	  $this->_singlestore=1;
+	 }
+	
 	}
 }
-
