@@ -1163,13 +1163,13 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		if(!isset($pid))
 		{
 
-			if(!isset($asid))
-			{
-				$this->log("cannot create product sku:{$item["sku"]}, no attribute_set defined","error");
-				return false;
-			}
 			if($this->mode!=='update')
 			{
+				if(!isset($asid))
+				{
+					$this->log("cannot create product sku:{$item["sku"]}, no attribute_set defined","error");
+					return false;
+				}
 				$pid=$this->createProduct($item,$asid);
 				$this->_curitemids["pid"]=$pid;
 				$isnew=true;
