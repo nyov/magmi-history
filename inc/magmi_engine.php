@@ -369,7 +369,10 @@ abstract class Magmi_Engine extends DbHelper
 	public function handleException($e)
 	{
 		$this->logException($e);
-		$this->onEngineException($e);
+		if(method_exists($this, "onEngineException"))
+		{
+			$this->onEngineException($e);
+		}
 	}
 	
 	/**
