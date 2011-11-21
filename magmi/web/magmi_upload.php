@@ -41,17 +41,10 @@ try
 	
 	if ($res === TRUE && $info!==FALSE) 
     {
-         $ok=extractZipDir($zip, "..", "magmi");
+         $ok=extractZipDir($zip, dirname(dirname(__FILE__)), "magmi");
          $zip->close();
-		 if(file_exists("../inc/magmi_postinstall.php"))
-		 {
-		 	require_once("../inc/magmi_postinstall.php");
-		 	if(function_exists("magmi_post_install"))
-		 	{
-		 		$result=magmi_post_install();
-		 	}
-		 }
-	    $_SESSION["magmi_install"]=array("info","Magmi updated<br>".$result["OK"]);
+		
+	    $_SESSION["magmi_install"]=array("info","Magmi updated");
 	} 
     else
     {
