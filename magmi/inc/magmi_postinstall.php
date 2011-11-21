@@ -4,7 +4,7 @@ require_once("magmi_version.php");
 function magmi_post_install()
 {
 	$out="";
-	if(Magmi_Version::$version<="0.7.17")
+	if(version_compare(Magmi_Version::$version,"0.7.17")<=0)
 	{
 		$delcds=array_merge(glob("../integration/inc/*.*"),glob("../integration/samples/*.*"));
 		$todelete=array();
@@ -12,7 +12,6 @@ function magmi_post_install()
 		{
 			$todelete[]=basename($fname);
 		}
-		print_r($todelete);
 		$allfiles=glob("../integration/*.*");
 		foreach($allfiles as $fname)
 		{
