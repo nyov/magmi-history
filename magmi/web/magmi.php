@@ -5,6 +5,27 @@
 	require_once("fshelper.php");
 	require_once("magmi_web_utils.php");
 	$badrights=array();
+	//checking post install procedure
+	
+	$postinst="../inc/magmi_postinstall.php";
+	if(file_exists($postinst))
+	{
+	 	require_once("$postinst");
+	 	if(function_exists("magmi_post_install"))
+	 	{
+	 		$result=magmi_post_install();
+	
+	if($result!=""){?>
+	<div class="container_12" >
+	<div class="grid_12 subtitle"><span>Post install procedure</span></div>
+	<div class="grid_12 col"><h3>Post install output</h3>
+	<div class="mgupload_info" style="margin-top:5px">
+	 <?php echo $result["OK"]?>
+	 </div></div></div>
+	 		<?php }
+		 	unlink($postinst);
+		}
+	}
 	foreach(array("../state","../conf","../plugins") as $dirname)
 	{
 		if(!FSHelper::isDirWritable($dirname))
