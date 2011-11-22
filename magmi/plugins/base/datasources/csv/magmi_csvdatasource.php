@@ -36,7 +36,14 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function getAbsPath($path)
 	{
-		return $this->getScanDir().preg_replace("|/+|","/",str_replace($this->getParam("CSV:basedir","var/import"),"",str_replace("..","",$path)));
+		if(strpos($path, $this->getScanDir())===FALSE)
+		{
+			return $this->getScanDir().preg_replace("|/+|","/",str_replace($this->getParam("CSV:basedir","var/import"),"",str_replace("..","",$path)));
+		}
+		else
+		{
+			return $path;
+		}
 	}
 	
 	public function getScanDir()
