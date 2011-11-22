@@ -19,7 +19,6 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	public function initialize($params)
 	{
-		$this->_basedir=$this->getParam("CSV:basedir","var/import");
 		$this->_filename=$this->getParam("CSV:filename");
 		$this->_csep=$this->getParam("CSV:separator",",");
 		$this->_dcsep=$this->_csep;
@@ -35,6 +34,10 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		
 	}
 	
+	public function getAbsPath($path)
+	{
+		return $this->getScanDir().preg_replace("|/+|","/",str_replace($this->getParam("CSV:basedir","var/import"),"",str_replace("..","",$path)));
+	}
 	
 	public function getScanDir()
 	{
