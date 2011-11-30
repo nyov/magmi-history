@@ -55,7 +55,7 @@ class MassOptionAttributeValImporter extends Magmi_UtilityPlugin
 		$this->_csvreader->getColumnNames();
 		while($item=$this->_csvreader->getNextRecord())
 		{
-			$attinfos=$this->getOptAttributeInfos($item["attribute code"]);
+			$attinfos=$this->getOptAttributeInfos($item["attribute_code"]);
 			if(count($attinfos)>0)
 			{
 				$attid=$attinfos["attribute_id"];
@@ -76,7 +76,7 @@ class MassOptionAttributeValImporter extends Magmi_UtilityPlugin
 			}
 			else
 			{
-				$this->log("no select/multiselect attribute found with code :".$item["attribute code"],"warning");
+				$this->log("no select/multiselect attribute found with code :".$item["attribute_code"],"warning");
 			}
 		}
 		$this->_csvreader->closeCSV();
