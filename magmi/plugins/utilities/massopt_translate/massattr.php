@@ -31,6 +31,7 @@ class MassOptionAttributeValImporter extends Magmi_UtilityPlugin
 			$attrinfos=$this->selectAll($sql,$attrcode);
 			if(count($attrinfos)==0)
 			{
+			    
 				$attrinfos=array();
 			}
 			else
@@ -43,19 +44,35 @@ class MassOptionAttributeValImporter extends Magmi_UtilityPlugin
 		return $this->_attrinfos[$attrcode];
 	}
 	
+	public function initOptIdSIdIndex()
+	{
+		$eaov=$this->tablename("eav_attribute_option_value");
+		$sql="CREATE UNIQUE INDEX 'MAGMI_OPTID_STOREID_IDX' ON $eaov (option_id,store_id)";
+		try {
+			$this->exec_stmt($sql);
+			$this->log("Created Unique Store id/Option id index","info");
+			 
+		}
+		catch(Exception $e)
+		{
+			$this->log("Unique Store id/Option id index already exists","info");
+		}
+	}
 	public function runUtility()
 	{
 		$params=$this->getPluginParams($this->_params);
 		$this->persistParams($params);
 		$this->_csvreader=new Magmi_CSVReader();
 		$this->_csvreader->bind($this);
+		$this->initOptIdSIdIndex();
 		$this->_csvreader->initialize();
 		$this->_csvreader->checkCSV();
 		$this->_csvreader->openCSV();
 		$this->_csvreader->getColumnNames();
 		while($item=$this->_csvreader->getNextRecord())
 		{
-			$attinfos=$this->getOptAttributeInfos($item["attribute_code"]);
+			$attinfos=$this->getOptAttributeInfos(trim($item["attribute_code"]));
+			
 			if(count($attinfos)>0)
 			{
 				$attid=$attinfos["attribute_id"];
@@ -72,7 +89,7 @@ class MassOptionAttributeValImporter extends Magmi_UtilityPlugin
 					$svk=array_keys($storevals);
 					$item["store:admin"]=$storevals[$svk[0]];
 				}
-				$this->setAttrOptionVal($attid, $item["store:admin"], $storevals);
+				$this->setAttrOptionVal($attid, $item["store:admin"], $storevals,$item["position"]);
 			}
 			else
 			{
@@ -135,9 +152,9 @@ class MassOptionAttributeValImporter extends Magmi_UtilityPlugin
 	{
 		$eao=$this->tablename("eav_attribute_option");
 		$eaov=$this->tablename("eav_attribute_option_value");
-		$sql="SELECT eaov.option_id FROM $eaov AS eaov JOIN $eao as eao ON eaov.option_id=eao.option_id 
+		$sql="SELECT eaov.option_id FROM $eaov AS eaov JOIN $eao as eao ON eaov.option_id=eao.option_id AND eao.attribute_id=?
 		WHERE eaov.store_id=0 AND eaov.value=?";
-		$optid=$this->selectOne($sql,array($valadm),"option_id");
+		$optid=$this->selectOne($sql,array($attid,$valadm),"option_id");
 		$new=false;
 		if(!isset($optid))
 		{
@@ -148,14 +165,13 @@ class MassOptionAttributeValImporter extends Magmi_UtilityPlugin
 		{
 			$this->updateOptionPos($optid,$pos);
 		}
-
+        
 		$values=array();
 		$ins=array();
-		if($new)
-		{
-			$values=array_merge($values,array($optid,0,$valadm));
-			$ins[]="(?,?,?)";
-		}
+		
+		$values=array_merge($values,array($optid,0,$valadm));
+		$ins[]="(?,?,?)";
+		
 		foreach($storevals as $store_code=>$sval)
 		{
 			$store_id=$this->getStoreId($store_code);
