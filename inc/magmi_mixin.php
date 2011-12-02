@@ -25,6 +25,10 @@ class Magmi_Mixin
 	
 	public function __call($data,$arg)
 	{
+		if(substr($data,0,8)=="_caller_")
+		{
+			$data=substr($data,8);
+		}
 		for($i=0;$i<count($this->_callers);$i++)
 		{
 			if(method_exists($this->_callers[$i],$data))
