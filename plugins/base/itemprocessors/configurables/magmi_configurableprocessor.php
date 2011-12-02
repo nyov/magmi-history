@@ -18,7 +18,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.3.4",
+            "version" => "1.3.5",
 			"url"=> "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Configurable_Item_processor"
             );
 	}
@@ -37,7 +37,7 @@ public function getConfigurableOptsFromAsId($asid)
 		JOIN $eas as eas ON eas.entity_type_id=eet.entity_type_id AND eas.attribute_set_id=?
 		JOIN $eea as eea ON eea.attribute_id=ea.attribute_id";
 		$cond="ea.is_user_defined=1";
-		if($this->_mmi->magversion!="1.3.x")
+		if($this->getMagentoVersion()!="1.3.x")
 		{
 			$cea=$this->tablename("catalog_eav_attribute");
 			$sql.=" JOIN $cea as cea ON cea.attribute_id=ea.attribute_id AND cea.is_global=1 AND cea.is_configurable=1";
@@ -49,7 +49,7 @@ public function getConfigurableOptsFromAsId($asid)
 		$sql.=" WHERE $cond
 			GROUP by ea.attribute_id";
 
-		$result=$this->selectAll($sql,array($this->_mmi->prod_etype,$asid));
+		$result=$this->selectAll($sql,array($this->getProductEntityType(),$asid));
 		foreach($result as $r)
 		{
 			$this->_configurable_attrs[$asid][]=$r["attribute_code"];
