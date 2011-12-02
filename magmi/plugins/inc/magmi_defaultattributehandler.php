@@ -152,7 +152,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 					{
 						return "__MAGMI_DELETE__";
 					}
-					$oids=$this->_mmi->getOptionIds($attid,$storeid,array($ivalue));
+					$oids=$this->getOptionIds($attid,$storeid,array($ivalue));
 					$ovalue=$oids[0];
 					unset($oids);
 					break;
@@ -171,11 +171,11 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	public function handleVarcharAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
 
-		if($storeid!==0 && empty($ivalue) && $this->_mmi->mode=="create")
+		if($storeid!==0 && empty($ivalue) && $this->getImportMode()=="create")
 		{
 			return false;
 		}
-		if($ivalue=="" && $this->_mmi->mode=="update")
+		if($ivalue=="" && $this->getImportMode()=="update")
 		{
 			return "__MAGMI_DELETE__";
 		}
