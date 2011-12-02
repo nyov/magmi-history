@@ -13,7 +13,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly indexer",
             "author" => "Dweeves",
-            "version" => "0.1.4",
+            "version" => "0.1.5",
             "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_indexer"
             );
 	}
@@ -314,7 +314,7 @@ class ItemIndexer extends Magmi_ItemProcessor
 	public function buildPriceIndex($pid)
 	{
 		$priceidx=$this->tablename("catalog_product_index_price");
-		$pet=$this->_mmi->prod_etype;
+		$pet=$this->getProductEntityType();
 		$sql="DELETE FROM $priceidx WHERE entity_id=?";
 		$this->delete($sql,$pid);
 		$cpe=$this->tablename("catalog_product_entity");
