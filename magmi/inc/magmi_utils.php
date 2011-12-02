@@ -57,6 +57,32 @@ function getRelative(&$val)
 	return $dir;
 }
 
+function abspath($path,$basepath="",$resolve=true)
+{
+	if($basepath=="")
+	{
+		$basepath=dirname(dirname(__FILE__));
+	}
+	$cpath=$basepath."/".$path;
+	if($resolve)
+	{
+		$abs=realpath($cpath);
+	}
+	else
+	{
+		$abs=preg_replace('|\w+/\.\.\/|', '',$cpath );
+		$abs=preg_replace('|\./|','',$abs);
+	
+	}
+	return $abs;
+}
+
+function isabspath($path)
+{
+	 return ($path[0]=="." || (substr(PHP_OS,3)=="WIN" && strlen($path)>1)?$path[1]==":":$path[0]=="/");
+}
+
+
 class Slugger
 {
 	static protected $_translit=array(
