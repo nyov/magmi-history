@@ -18,7 +18,6 @@ abstract class Magmi_Engine extends DbHelper
 	protected $_conf;
 	protected $_initialized=false;
 	protected $_exceptions=array();
-	public $magversion;
 	public $tprefix;
 	protected $_connected;
 	protected $_activeplugins;
@@ -38,14 +37,14 @@ abstract class Magmi_Engine extends DbHelper
 		mb_internal_encoding("UTF-8");
 	}
 	
-
+	
 	public final  function initialize($params=array())
 	{
 		try
 		{
 			$this->_conf=Magmi_Config::getInstance();
 			$this->_conf->load();
-			$this->magversion=$this->_conf->get("MAGENTO","version");
+			
 			$this->tprefix=$this->_conf->get("DATABASE","table_prefix");
 			$this->_excid=0;
 			$this->_initialized=true;
@@ -64,6 +63,10 @@ abstract class Magmi_Engine extends DbHelper
 	public function getMagentoDir()
 	{
 		return $this->_conf->getMagentoDir();
+	}
+	public function getMagentoVersion()
+	{
+		$this->_conf->get("MAGENTO","version");
 	}
 	
 	public function getPluginFamilies()
