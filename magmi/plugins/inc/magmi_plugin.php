@@ -1,6 +1,6 @@
 <?php
 require_once("magmi_config.php");
-
+require_once("magmi_mixin.php");
 class Magmi_PluginConfig extends ProfileBasedConfig
 {
 	protected $_prefix;
@@ -102,9 +102,8 @@ class Magmi_PluginOptionsPanel
 	}
 }
 
-abstract class Magmi_Plugin
+abstract class Magmi_Plugin extends Magmi_Mixin
 {
-	protected $_mmi=null;
 	protected $_class;
 	protected $_plugintype;
 	protected $_plugindir;
@@ -183,7 +182,7 @@ abstract class Magmi_Plugin
 		{
 			$data="{$pinf["name"]} v{$pinf["version"]} - ".$data;
 		}
-		$this->_mmi->log($data,"plugin;$this->_class;$type");
+		$this->_caller_log($data,"plugin;$this->_class;$type");
 	}
 	
 	public function pluginHello()
@@ -213,13 +212,10 @@ abstract class Magmi_Plugin
 	{
 		return $this->_magmiconfig;
 	}
-	public final function setMmiRef($mmi)
-	{
-		$this->_mmi=$mmi;
-	}
+	
 	public final function pluginInit($mmi,$meta,$params=null,$doinit=true,$profile=null)
 	{		
-		$this->setMmiRef($mmi);
+		$this->bind($mmi);
 		$this->_pluginmeta=$meta;
 		$this->_class=get_class($this);
 		$this->_config=new Magmi_PluginConfig(get_class($this),$profile);	
@@ -341,15 +337,5 @@ abstract class Magmi_Plugin
 		return array(true,"");
 	}
 	
-	public function __call($data,$arg)
-	{
-		if(method_exists($this->_mmi,$data))
-		{
-		  return call_user_func_array(array($this->_mmi,$data), $arg);
-		}
-		else
-		{
-			die("Invalid Method Call: $data - Not found in Plugin nor associated Magmi engine instance");
-		}
-	}
+
 }
