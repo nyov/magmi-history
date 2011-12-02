@@ -1,5 +1,6 @@
 <?php
 require_once("magmi_mixin.php");
+require_once("magmi_utils.php");
 
 class Magmi_CSVReader extends Magmi_Mixin
 {
@@ -34,37 +35,11 @@ class Magmi_CSVReader extends Magmi_Mixin
 		
 	}
 	
-	public function getAbsPath($path)
-	{
-		if(strpos($path, $this->getScanDir())===FALSE)
-		{
-			return $this->getScanDir().preg_replace("|/+|","/",str_replace($this->getParam("CSV:basedir","var/import"),"",str_replace("..","",$path)));
-		}
-		else
-		{
-			return $path;
-		}
-	}
-	
-	public function getScanDir()
-	{
-		$scandir=$this->getParam("CSV:basedir","var/import");
-		if($scandir[0]!="/")
-		{
-			$scandir=Magmi_Config::getInstance()->getMagentoDir()."/".$scandir;
-		}
-		return $scandir;	
-	}
-	
-	public function getCSVList()
-	{
-		$scandir=$this->getScanDir();
-		$files=glob("$scandir/*.csv");
-		return $files;
-	}
 	
 	
-	public function getRecordsCount()
+	
+	
+	public function getLinesCount()
 	{
 		//open csv file
 		$f=fopen($this->_filename,"rb");
@@ -102,11 +77,7 @@ class Magmi_CSVReader extends Magmi_Mixin
 		return $count;
 	}
 	
-	public function getAttributeList()
-	{
 		
-	}
-	
 	public function checkCSV()
 	{
 		$this->_curline=0;
