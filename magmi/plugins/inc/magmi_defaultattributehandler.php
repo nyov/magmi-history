@@ -16,7 +16,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Standard Attribute Import",
             "author" => "Dweeves",
-            "version" => "1.0.1"
+            "version" => "1.0.2"
             );
 	}
 	
