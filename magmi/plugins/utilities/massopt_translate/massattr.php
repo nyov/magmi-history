@@ -10,7 +10,7 @@ class MassOptionAttributeValImporter extends Magmi_UtilityPlugin
 	{
 		return array("name"=>"Mass Select/Multiselect Attribute value translater",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.0");
+					 "version"=>"1.0.1");
 	}
 	
 	public function getStoreId($sc)
@@ -102,22 +102,17 @@ class MassOptionAttributeValImporter extends Magmi_UtilityPlugin
 	
 	public function getAbsPath($path)
 	{
-		if(strpos($path, $this->getScanDir())===FALSE)
-		{
-			return $this->getScanDir().preg_replace("|/+|","/",str_replace($this->getParam("CSV:basedir","var/import"),"",str_replace("..","",$path)));
-		}
-		else
-		{
-			return $path;
-		}
+		
+		return abspath($path,$this->getScanDir());
+		
 	}
 	
-	public function getScanDir()
+	public function getScanDir($resolve=true)
 	{
 		$scandir=$this->getParam("CSV:basedir","var/import");
-		if($scandir[0]!="/")
+		if(!isabspath($scandir))
 		{
-			$scandir=Magmi_Config::getInstance()->getMagentoDir()."/".$scandir;
+			$scandir=abspath($scandir,Magmi_Config::getInstance()->getMagentoDir(),$resolve);
 		}
 		return $scandir;	
 	}
