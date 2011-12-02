@@ -13,6 +13,15 @@ class DirbasedConfig extends Properties
 		$this->_confname=$basedir.DS.$confname;
 	}
 	
+	public function get($secname,$pname,$default=null)
+	{
+		if(!isset($this->_props))
+		{
+			$this->load();
+		}
+		return parent::get($secname, $pname,$default);
+	}
+	
 	public function getConfFile()
 	{
 		return $this->_confname;
