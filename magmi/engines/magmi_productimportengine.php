@@ -68,6 +68,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		return $this->_skustats;
 	}
 
+	public function getImportMode()
+	{
+		return $this->mode;
+	}
 	/**
 	 * (non-PHPdoc)
 	 * @see Magmi_Engine::getEngineInfo()
@@ -1291,6 +1295,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	}
 
+	public function getProductEntityType()
+	{
+		return $this->prod_etype;
+	}
+	
 	public function getCurrentRow()
 	{
 		return $this->_current_row;
