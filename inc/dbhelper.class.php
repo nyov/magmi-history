@@ -567,16 +567,17 @@ class DBHelper
  		$results=array();
  		foreach($stmts as $stmt)
  		{
- 			$this->replaceParams($stmt,$params);
+ 	    	$zparams=$params;
+ 			$this->replaceParams($stmt,$zparams);
  			if($return)
  			{
  				if(substr(trim($stmt),0,6)=="SELECT")
  				{
- 					$results[$stmt]=$this->selectAll($stmt,$params);
+ 					$results[$stmt]=$this->selectAll($stmt,$zparams);
  					continue;
  				}
  			}
- 			$this->exec_stmt($stmt,$params);
+ 			$this->exec_stmt($stmt,$zparams);
  		}	
  		if($return)
  		{
