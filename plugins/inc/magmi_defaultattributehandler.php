@@ -86,7 +86,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		$ovalue=deleteifempty(trim($ivalue));
 		//Handle european date format
-		if(preg_match("|(\d){1,2}.(\d){1,2}.(\d){4}|",$ovalue,$matches))
+		if(preg_match("|(\d){1,2}/(\d){1,2}/(\d){4}|",$ovalue,$matches))
 		{
 			$ovalue=sprintf("%4d-%2d-%2d",$matches[3],$matches[2],$matches[1]);
 		}
