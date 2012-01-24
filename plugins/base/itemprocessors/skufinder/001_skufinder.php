@@ -1,6 +1,8 @@
 <?php
 class SkuFinderItemProcessor extends Magmi_ItemProcessor
 {
+	private $_compchecked=FALSE;
+	
  	public function getPluginInfo()
     {
         return array(
@@ -13,18 +15,44 @@ class SkuFinderItemProcessor extends Magmi_ItemProcessor
     
     public function processItemBeforeId(&$item,$params=null)
 	{
+		
 		$matchfield=$this->getParam("SKUF:matchfield");
+		
+		$attinfo=$this->getAttrInfo($matchfield);
+		if($this->_compchecked==FALSE)
+		{
+			//Checking attribute compatibility with sku matching
+			if($attinfo==NULL)
+			{
+				$this->log("$matchfield is not a valid attribute","error");
+				$item["__MAGMI_LAST__"]=1;
+				return false;
+			}
+			if($attinfo["is_unique"]==0 || $attinfo["is_global"]==0)
+			{
+				$this->log("sku matching attribute $matchfield must be unique & global scope");
+				$item["__MAGMI_LAST__"]=1;
+				return false;
+			}
+			if($attinfo["backend_type"]=="static")
+			{
+				$this->log("$matchfield is ".$attinfo["backend_type"].", it cannot be used as sku matching field.","error");
+				$item["__MAGMI_LAST__"]=1;
+				return false;				
+			} 
+			if($attinfo["frontend_input"]=="select" || $attinfo["frontend_input"]=="multiselect" )
+			{
+				$this->log("$matchfield is ".$attinfo["frontend_input"].", it cannot be used as sku matching field.","error");
+				$item["__MAGMI_LAST__"]=1;
+				return false;		
+			}
+			$this->_compchecked=true;
+		}
+		
 		//no item data for selected matching field, skipping
 		if(!isset($item[$matchfield]) && trim($item["matchfield"])!=='')
 		{
 			$this->log("No value for $matchfield in datasource","error");
-			return false;
-		}
-		$attinfo=$this->getAttrInfo($matchfield);
-		//no attribute info for matching field, skipping
-		if($attinfo==NULL)
-		{
-			$this->log("$matchfield is not a valid attribute","error");
 			return false;
 		}
 		//now find sku
