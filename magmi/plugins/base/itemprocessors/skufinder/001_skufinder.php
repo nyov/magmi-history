@@ -16,8 +16,12 @@ class SkuFinderItemProcessor extends Magmi_ItemProcessor
     public function processItemBeforeId(&$item,$params=null)
 	{
 		
-		$matchfield=$this->getParam("SKUF:matchfield");
-		
+		$matchfield=trim($this->getParam("SKUF:matchfield"));
+		//protection from tricky testers ;)
+		if($matchfield=="sku")
+		{
+			return true;
+		}
 		$attinfo=$this->getAttrInfo($matchfield);
 		if($this->_compchecked==FALSE)
 		{
