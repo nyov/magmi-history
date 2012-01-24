@@ -52,15 +52,14 @@ class Magmi_PluginHelper
 		$pluginclasses=array();
 		foreach($candidates as $pcfile)
 		{
-			$content=file_get_contents($pcfile);
-			if(preg_match_all("/class\s+(.*?)\s+extends\s+$baseclass/mi",$content,$matches,PREG_SET_ORDER))
+			$dirname=dirname(substr($pcfile,strlen($this->plugin_dir)));
+			if(substr(basename($dirname),0,2)!='__')
 			{
-				
-				require_once($pcfile);				
-				foreach($matches as $match)
+				$content=file_get_contents($pcfile);
+				if(preg_match_all("/class\s+(.*?)\s+extends\s+$baseclass/mi",$content,$matches,PREG_SET_ORDER))
 				{
-					$dirname=dirname(substr($pcfile,strlen($this->plugin_dir)));
-					if(substr(basename($dirname),0,2)!='__')
+					require_once($pcfile);				
+					foreach($matches as $match)
 					{
 						$pluginclasses[]=array("class"=>$match[1],"dir"=>$dirname,"file"=>basename($pcfile));
 					}
