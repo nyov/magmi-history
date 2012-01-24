@@ -121,17 +121,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 
 
-
-	/**
-	 * Initilialize webstore list
-	 */
-	public function initWebsites()
-	{
-		$cws=$this->tablename('core_website');
-		$this->_defaultwsid=$this->selectone("SELECT website_id from $cws WHERE is_default=1",null,"website_id");
-
-	}
-
 	/**
 	 *
 	 * Return list of store codes that share the same website than the stores passed as parameter
@@ -145,8 +134,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$wscarr=csl2arr($scodes);
 			$qcolstr=$this->arr2values($wscarr);
 			$cs=$this->tablename("core_store");
-			$sql="SELECT cs_sec.store_id from $cs as csmain
-				 JOIN $cs as cs_sec ON cs_sec.website_id=csmain.website_id AND csmain.code IN ($qcolstr)";
+			$sql="SELECT website_id from $cs as csmain
+				 csmain.code IN ($qcolstr) GROUP BY website_id";
 			$sidrows=$this->selectAll($sql,$wscarr);
 			foreach($sidrows as $sidrow)
 			{
@@ -956,29 +945,21 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getItemWebsites($item)
 	{
-		//use default website
-		if(!isset($item["websites"]) || empty($item["websites"]))
+		$k=$item["store"];
+		if(!isset($this->_wsids[$k]))
 		{
-			return array($this->_defaultwsid);
-		}
-		else
-		{
-			if(!isset($this->_wsids[$item["websites"]]))
-			{
-				$this->_wsids[$item["websites"]]=array();
-
-				$cws=$this->tablename("core_website");
-				$wscodes=csl2arr($item["websites"]);
-				$qcolstr=$this->arr2values($wscodes);
-				$rows=$this->selectAll("SELECT website_id FROM $cws WHERE code IN ($qcolstr)",$wscodes);
+				$this->_wsids[$k]=array();
+				$cs=$this->tablename("core_store");
+				$scodes=csl2arr($k);
+				$qcolstr=$this->arr2values($scodes);
+				$rows=$this->selectAll("SELECT website_id FROM $cs WHERE code IN ($qcolstr) GROUP BY website_id",$scodes);
 				foreach($rows as $row)
 				{
-					$this->_wsids[$item["websites"]][]=$row['website_id'];
+					$this->_wsids[$k][]=$row['website_id'];
 				}
 			}
-			return $this->_wsids[$item["websites"]];
-		}
-
+			return $this->_wsids[$k];
+	
 	}
 
 	/**
@@ -1028,6 +1009,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$this->_same=true;
 	}
 
+	
 	public function getItemIds($item)
 	{
 		$sku=$item["sku"];
@@ -1225,7 +1207,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			}
 
 			//update websites
-			if($this->mode!="update" || isset($item["websites"]))
+			if($this->mode!="update")
 			{
 				$this->updateWebSites($pid,$item);
 			}
@@ -1350,7 +1332,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$this->connectToMagento();
 		try
 		{
-			$this->initWebsites();
 			$this->initProdType();
 			$this->createPlugins($this->_profile,$params);
 			$this->callPlugins("datasources,itemprocessors","startImport");
@@ -1465,7 +1446,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			$this->resetSkuStats();
 			//intialize store id cache
-			$this->initWebsites();
 			$this->callPlugins("datasources,itemprocessors","startImport");
 			//initializing item processors
 			$cols=$this->datasource->getColumnNames();
