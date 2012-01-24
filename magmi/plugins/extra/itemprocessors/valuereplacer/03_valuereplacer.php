@@ -9,13 +9,13 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 {
 
 	protected $_rvals=array();
-	
+	protected $_before=array("sku","attribute_set");
     public function getPluginInfo()
     {
         return array(
             "name" => "Value Replacer",
             "author" => "Dweeves",
-            "version" => "0.0.6",
+            "version" => "0.0.7",
 					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Value_Replacer"
         );
     }
@@ -26,6 +26,31 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 		$matches=array();
 		$ik=array_keys($item);
 		$rep="";
+		/* TODO : FINISH dbitem syntax
+		//do we have , db item reference in formula
+		if(preg_match("|\{dbitem\.(.*?)\}|",$pvalue))
+		{
+			//step 1, list wanted field values
+			while(preg_match("|\{dbitem\.(.*?)\}|",$pvalue,$matches))
+			{
+					if($match!=$matches[0])
+					{
+						$fields[$match]=$match;
+					}
+			}
+			//step 2, build select
+			foreach($fields as $attcode=>$dummy)
+			{
+				$attrinfo=$this->getAttrInfo($attcode);
+				if($attrinfo)
+			}
+		
+		}*/
+		
+		
+		
+		
+		
 		while(preg_match("|\{item\.(.*?)\}|",$pvalue,$matches))
 		{
 			foreach($matches as $match)
@@ -112,9 +137,27 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 	
 	public function processItemBeforeId(&$item,$params=null)
 	{
+		//only check for "before" compatible fields
+		for($i=0;$i<count($this->_before);$i++)
+		{	
+			$attname=$this->_before[$i];
+			if(isset($this->_rvals[$attname]))
+			{
+				$item[$attname]=$this->parseval($this->_rvals[$attname],$item,$params);
+			}
+		}	
+		return true;
+	}
+
+	public function processItemAfterId(&$item,$params=null)
+	{
 		foreach($this->_rvals as $attname=>$pvalue)
 		{
-			$item[$attname]=$this->parseval($pvalue,$item,$params);
+			//do not reparse "before" fields
+			if(!in_array($attname,$this->_before))
+			{
+				$item[$attname]=$this->parseval($pvalue,$item,$params);
+			}
 		}
 		return true;
 	}
