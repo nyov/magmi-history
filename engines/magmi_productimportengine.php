@@ -39,8 +39,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	private $_currentpid;
 	private $_extra_attrs;
 	private $_profile;
-	private $_defaultwsid;
-	private $_wsids=array();
 	private $_sid_wsscope=array();
 	private $_sid_sscope=array();
 	private $_prodcols=array();
@@ -885,10 +883,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	public function assignCategories($pid,$item)
 	{
 		$cce=$this->tablename("catalog_category_entity");
-		$catids=csl2arr($item["category_ids"]);
-		//build possible path list
-		$sql="SELECT entity_id FROM $cce
-			  WHERE entity_id IN (".$item['category_ids'].")";
 		$ccpt=$this->tablename("catalog_category_product");
 		#handle assignment reset
 		if(!isset($item["category_reset"]) || $item["category_reset"]==1)
@@ -924,7 +918,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			$sql="DELETE FROM $ccpt WHERE category_id IN (".$this->arr2values($ddata).") AND product_id=?";
 			$ddata[]=$pid;
-			$this->delete($sql,$data);
+			$this->delete($sql,$ddata);
 			unset($ddata);
 		}
 
@@ -1134,7 +1128,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			return false;
 		}
-
+		//check if sku has been reset
+		if(!isset($item["sku"]) || trim($item["sku"])=='')
+		{
+			$this->log('No sku info found for record #'.$this->_current_row,"error");
+			return false;	
+		}
 		//handle "computed" ignored columns
 		$this->handleIgnore($item);
 		$itemids=$this->getItemIds($item);
