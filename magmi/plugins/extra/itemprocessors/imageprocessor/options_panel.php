@@ -38,6 +38,14 @@ if you've got 5 stores,i will create 5 different copies of the input image &amp;
 <option value="no" <?php if($existonly=="no"){?>selected="selected"<?php }?>>No</option>
 </select>
 </div>
+<div class="formline">
+<span>Pre-download check for remote images</span>
+<select name="IMG:predlcheck">
+<?php $qdlc=$this->getParam("IMG:predlcheck","yes");?>
+<option value="yes" <?php if($qdlc=="yes"){?>selected="selected"<?php }?>>Enable</option>
+<option value="no" <?php if($qdlc=="no"){?>selected="selected"<?php }?>>Disable</option>
+</select>
+</div>
 <ul class="formline">
 	<li class="label">Change attributes on image error</li>
 	<li class="value"><input type="text" id="IMG:err_attrlist" name="IMG:err_attrlist" size="80" value="<?php echo $this->fixListParam($this->getParam("IMG:err_attrlist"))?>" onblur="img_mf.buildparamlist()"></input></li>
