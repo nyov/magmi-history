@@ -39,7 +39,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.19",
+            "version" => "1.0.20",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Image_attributes_processor"
             );
 	}
@@ -511,7 +511,17 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				$imgfile=str_replace($bimgfile,urlencode($bimgfile),$imgfile);
 				
 				$curlh=$this->createUrlContext($imgfile);
-				$exists=$this->Urlexists($imgfile,$curlh);
+				//only check existence on with HEAD ping if enabled 
+				if($this->getParam("IMG:predlcheck","yes")=="yes")
+				{
+					$exists=$this->Urlexists($imgfile,$curlh);
+				}
+				else
+				{
+					//assume existing on remote
+					$exists=true;
+				}
+				
 			}
 			else
 			{			
