@@ -13,21 +13,29 @@ function magmi_post_install()
 			$todelete[]=basename($fname);
 		}
 		$allfiles=glob("../integration/*.*");
-		foreach($allfiles as $fname)
+		if($allfiles!==false)
 		{
-			if(in_array(basename($fname),$todelete))
+			foreach($allfiles as $fname)
 			{
-			    $out.="deleting $fname (new dir struct)<br>";
-				unlink($fname);
-			}
-			else 
-			{
-			    $out.="moving $fname to migrated (custom script)<br>";
-			    @mkdir("../integration/scripts/migrated/");
-				copy($fname,"../integration/scripts/migrated/".basename($fname));
-				unlink($fname);
+				if(in_array(basename($fname),$todelete))
+				{
+				    $out.="deleting $fname (new dir struct)<br>";
+					unlink($fname);
+				}
+				else 
+				{
+				    $out.="moving $fname to migrated (custom script)<br>";
+				    @mkdir("../integration/scripts/migrated/");
+					copy($fname,"../integration/scripts/migrated/".basename($fname));
+					unlink($fname);
+				}
 			}
 		}
+		else
+		{
+		  $out="nothing to do";
+		}
+		
 	}
 	return array("OK"=>$out);
 }
