@@ -132,8 +132,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$wscarr=csl2arr($scodes);
 			$qcolstr=$this->arr2values($wscarr);
 			$cs=$this->tablename("core_store");
-			$sql="SELECT website_id from $cs as csmain
-				 csmain.code IN ($qcolstr) GROUP BY website_id";
+			$sql="SELECT csdep.store_id FROM $cs as csmain 
+				 JOIN $cs as csdep ON csdep.website_id=csmain.website_id
+				 WHERE csmain.code IN ($qcolstr) ";
 			$sidrows=$this->selectAll($sql,$wscarr);
 			foreach($sidrows as $sidrow)
 			{
@@ -269,7 +270,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$qcolstr=$this->arr2values($toscan);
 
 			$tname=$this->tablename("eav_attribute");
-			if($this->magversion!="1.3.x")
+			if($this->getMagentoVersion()!="1.3.x")
 			{
 				$extra=$this->tablename("catalog_eav_attribute");
 				//SQL for selecting attribute properties for all wanted attributes
