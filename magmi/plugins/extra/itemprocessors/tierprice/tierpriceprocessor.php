@@ -9,13 +9,14 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 {
 	protected $_tpcol=array();
     protected $_singlestore=0;
- 
+    protected $__pricescope=2;
+    
 	public function getPluginInfo()
 	{
 		return array(
             "name" => "Tier price importer",
-            "author" => "Dweeves",
-            "version" => "0.0.8",
+            "author" => "Dweeves,bepixeld",
+            "version" => "0.0.8a",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Tier_price_importer"
             );
 	}
@@ -96,7 +97,8 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  $data=array();
 		  //it seems that magento does not handle "per website" tier price on single store deployments , so force it to "default"
 		  //so we test wether we have single store deployment or not.
-		  if($this->_singlestore==0)
+		  //bepixeld patch : check pricescope from general config
+		  if($this->_singlestore==0 || $this->_pricescope==0)
 		  {
 		    $wsids=$this->getItemWebsites($item);
 		  }
@@ -198,6 +200,9 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 	 {
 	  $this->_singlestore=1;
 	 }
-	
+	 //bepixeld patch : check pricescope from general config
+	 $sql = "SELECT value FROM ". $this->tablename('core_config_data') ." WHERE path=?";
+	 $this->_pricescope = intval($this->selectone($sql, array('catalog/price/scope'), 'value')); //0=global, 1=website	  
+	 
 	}
 }
