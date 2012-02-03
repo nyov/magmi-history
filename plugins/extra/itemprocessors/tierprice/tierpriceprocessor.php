@@ -98,7 +98,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		  //it seems that magento does not handle "per website" tier price on single store deployments , so force it to "default"
 		  //so we test wether we have single store deployment or not.
 		  //bepixeld patch : check pricescope from general config
-		  if($this->_singlestore==0 || $this->_pricescope==0)
+		  if($this->_singlestore==0 && $this->_pricescope!=0)
 		  {
 		    $wsids=$this->getItemWebsites($item);
 		  }
