@@ -54,7 +54,6 @@ require_once("../../inc/magmi_defs.php");
  	if($sku>99 && $sku%100==0)
  	{
  		//first, we'll remove all existing relations (upsell/cross sell / related)
-		$item["image"]="http://ecx.images-amazon.com/images/I/215j9DMIHnL._SL75_.jpg";
  		$subskus=array();
  		for($i=$sku-99;$i<$sku;$i++)
  		{
