@@ -449,6 +449,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 					$errors=array("type"=>"download error","message"=>curl_error($ch));
 					$this->fillErrorAttributes($item);		
 					$this->log("error copying $target : {$errors["type"]},{$errors["message"]}","warning");
+					unset($errors);
 					@unlink($target);
 					return false;
 				}
