@@ -15,7 +15,6 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	
 	public function initialize($params)
 	{
-		ini_set("allow_url_fopen",true);		
 		//declare current class as attribute handler
 		$this->registerAttributeHandler($this,array("frontend_input:(media_image|gallery)"));
 		$this->magdir=Magmi_Config::getInstance()->getMagentoDir();
@@ -223,13 +222,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	public function addImageToGallery($pid,$storeid,$attrdesc,$imgname,$targetsids,$imglabel=null,$excluded=false,$refid=null)
 	{
 		$gal_attinfo=$this->getAttrInfo("media_gallery");
-		if($gal_attinfo==null)
-		{
-			$this->initAttrInfos(array("media_gallery"));
-			$gal_attinfo=$this->getAttrInfo("media_gallery");
-		}
-			$tg=$this->tablename('catalog_product_entity_media_gallery');
-			$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
+		$tg=$this->tablename('catalog_product_entity_media_gallery');
+		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
 		$vid=$this->getImageId($pid,$gal_attinfo["attribute_id"],$imgname,$refid);
 		if($vid!=null)
 		{
@@ -443,12 +437,21 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				curl_setopt( $context, CURLOPT_NOBODY, false);
 				curl_setopt($context, CURLOPT_FILE, $fp);
 				curl_setopt($context, CURLOPT_HEADER, 0);
+				curl_setopt($context,CURLOPT_FAILONERROR,true);
 				if(!ini_get('safe_mode'))
 				{
 					curl_setopt($context, CURLOPT_FOLLOWLOCATION, 1);
 				}
 				curl_exec($context);
 				@fclose($fp);
+				if(curl_getinfo($context,CURLINFO_HTTP_CODE)>=400)
+				{
+					$errors=array("type"=>"download error","message"=>curl_error($ch));
+					$this->fillErrorAttributes($item);		
+					$this->log("error copying $target : {$errors["type"]},{$errors["message"]}","warning");
+					@unlink($target);
+					return false;
+				}
 				return true;
 			}
 			else
@@ -527,7 +530,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{			
 				$exists=($this->getImageFSPath($imgfile,true)!==false);
 			}
-			if(!$exists && $checkexist)
+			if(!$exists)
 			{
 				$this->log("$fname not found, skipping image","warning");
 				$this->fillErrorAttributes($item);
