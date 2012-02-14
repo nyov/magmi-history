@@ -899,6 +899,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$inserts=array();
 		$data=array();
 		$ddata=array();
+		$catids=csl2arr($item["category_ids"]);
 		foreach($catids as $catid)
 		{
 			$rel=getRelative($catid);
