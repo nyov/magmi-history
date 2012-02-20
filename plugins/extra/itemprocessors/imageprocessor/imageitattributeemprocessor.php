@@ -38,7 +38,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.20",
+            "version" => "1.0.21",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Image_attributes_processor"
             );
 	}
@@ -205,6 +205,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	 */
 	public function resetGallery($pid,$storeid,$attid)
 	{
+		
 		$tgv=$this->tablename('catalog_product_entity_media_gallery_value');
 		$tg=$this->tablename('catalog_product_entity_media_gallery');
 		$sql="DELETE emgv,emg FROM `$tgv` as emgv 
@@ -621,7 +622,9 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			}
 		}
 		//Reset media_gallery
-		if(isset($item["media_gallery"]))
+		$galreset=!(isset($item["media_gallery_reset"])) || $item["media_gallery_reset"]==1;
+		
+		if( isset($item["media_gallery"]) && !$galreset)
 		{
 			$gattrdesc=$this->getAttrInfo("media_gallery");
 			$sids=$this->getItemStoreIds($item,$gattrdesc["is_global"]);
