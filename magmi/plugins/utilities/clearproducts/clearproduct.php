@@ -5,7 +5,7 @@ class ClearProductUtility extends Magmi_UtilityPlugin
 	{
 		return array("name"=>"Clear Catalog",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.2");
+					 "version"=>"1.0.3");
 	}
 	
 	public function runUtility()
@@ -47,12 +47,11 @@ class ClearProductUtility extends Magmi_UtilityPlugin
 					  "cataloginventory_stock_item",
 					  "cataloginventory_stock_status");
 		
-		//Bugfix , add catalog product flat tables to clear products
-		$sql="SELECT store_id FROM ".$this->tablename("core_store")." WHERE store_id!=0";
-		$result=$this->selectAll($sql);
-		foreach($result as $sids)
+		//clear flat catalogs index
+		$stmt=$this->exec_stmt("SHOW TABLES LIKE '".$this->tablename('catalog_product_flat')."%'",NULL,false);
+		while($row=$stmt->fetch(PDO::FETCH_NUM))
 		{
-			$tables[]="catalog_product_flat_".$sids["store_id"];
+			$this->exec_stmt("TRUNCATE TABLE ".$row[0]);
 		}
 		
 		foreach($tables as $table)
