@@ -76,7 +76,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.5.1","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.6","author"=>"dweeves");
 	}
 
 	/**
@@ -939,16 +939,24 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	}
 
 
-	public function getItemWebsites($item)
+	public function getItemWebsites($item,$default=false)
 	{
 		$k=$item["store"];
+		
 		if(!isset($this->_wsids[$k]))
 		{
 				$this->_wsids[$k]=array();
 				$cs=$this->tablename("core_store");
-				$scodes=csl2arr($k);
-				$qcolstr=$this->arr2values($scodes);
-				$rows=$this->selectAll("SELECT website_id FROM $cs WHERE code IN ($qcolstr) GROUP BY website_id",$scodes);
+				if(trim($k)!="admin")
+				{
+					$scodes=csl2arr($k);
+					$qcolstr=$this->arr2values($scodes);
+					$rows=$this->selectAll("SELECT website_id FROM $cs WHERE code IN ($qcolstr) WHERE store_id!=0 GROUP BY website_id",$scodes);
+				}
+				else
+				{
+					$rows=$this->selectAll("SELECT website_id FROM $cs WHERE store_id!=0 GROUP BY website_id ");
+				}
 				foreach($rows as $row)
 				{
 					$this->_wsids[$k][]=$row['website_id'];
