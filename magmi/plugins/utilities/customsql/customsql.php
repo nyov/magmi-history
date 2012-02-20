@@ -53,6 +53,19 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 	public function fillPrefixedParameters($stmt,&$params)
 	{
 		$pparams=array();
+		$hasnps=preg_match_all('|\[\[(\w+?)/.*?\]\]|msi',$stmt,$matches);
+		if($hasnps)
+		{
+			$namedparams=$matches[1];
+			foreach($params as $k=>$v)
+			{
+				if(!in_array($k,$namedparams))
+				{
+					unset($params[$k]);
+				}
+			}
+		}
+	
 		$hasp=preg_match_all('|\[\[(tn:.*?)\]\]|msi',$stmt,$matches);
 		if($hasp)
 		{
@@ -63,7 +76,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 			$info=explode(":",$pparam);
 			switch($info[0]){
 				case "tn":
-					$params[$pparam]=$this->tablename($info[1]);	
+					$params[$pparam]=$this->tablename($info[1]);
 			}
 		}
 	}
