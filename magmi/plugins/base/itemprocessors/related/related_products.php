@@ -12,10 +12,6 @@ class RelatedProducts extends Magmi_ItemProcessor
             );
  }
  
- public function getPluginParamNames()
- {
-		return array('XREL:full_relate');
- }
  
  public function checkRelated(&$rinfo)
  {
@@ -43,6 +39,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  {
  	$related=isset($item["re_skus"])?$item["re_skus"]:null;
  	$xrelated=isset($item["xre_skus"])?$item["xre_skus"]:null;
+ 	$srelated=isset($item["*re_skus"])?$item["*re_skus"]:null;
 	$pid=$params["product_id"];
 	$new=$params["new"];
  
@@ -64,6 +61,16 @@ class RelatedProducts extends Magmi_ItemProcessor
 		}
 		$this->setXRelatedItems($item,$rinf["add"]);
  	}
+ 	
+  	if(isset($srelated) && trim($srelated)!="")
+ 	{
+ 		$rinf=$this->getRelInfos($srelated);
+ 		if($new==false)
+		{
+			$this->deleteXRelatedItems($item,$rinf["del"],true);
+		}
+		$this->setXRelatedItems($item,$rinf["add"],true);
+ 	}
  }
  
  public function deleteRelatedItems($item,$inf)
@@ -84,7 +91,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  	}
  }
  
- public function deleteXRelatedItems($item,$inf)
+ public function deleteXRelatedItems($item,$inf,$fullcross=false)
  {
  	$joininfo=$this->buildJoinCond($item,$inf,"cpe2.sku,cpe.sku");
  	$j2=$joininfo["join"]["cpe2.sku"];
@@ -217,9 +224,8 @@ class RelatedProducts extends Magmi_ItemProcessor
  	}
  }
  
- public function setXRelatedItems($item,$rinfo)
+ public function setXRelatedItems($item,$rinfo,$fullrel=false)
  {
- 	$fullrel=$this->getParam("XREL:full_relate",false)==true;
  	if($this->checkRelated($rinfo)>0)
  	{
  		$joininfo=$this->buildJoinCond($item,$rinfo,"cpe.sku,cpe2.sku");
