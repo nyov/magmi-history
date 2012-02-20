@@ -63,7 +63,12 @@ require_once("../../inc/magmi_defs.php");
 		$item["simples_skus"]=implode(",",$subskus);
 		$item["type"]="configurable";
 		$item["configurable_attributes"]="color";
- 		
+		//cross relate with all skus ending by 2
+		$item["xre_skus"]="re::.*2$";
+		//star relate all skus ending with 1
+		$item["*re_skus"]="re::.*1$";
+		
+		
  	}
  	
  	/* import current item */
