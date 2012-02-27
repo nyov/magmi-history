@@ -9,13 +9,13 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 {
 
 	protected $_rvals=array();
-	protected $_before=array("sku","attribute_set");
+	protected $_before=array("sku","attribute_set","type");
     public function getPluginInfo()
     {
         return array(
             "name" => "Value Replacer",
             "author" => "Dweeves",
-            "version" => "0.0.7",
+            "version" => "0.0.7a",
 					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Value_Replacer"
         );
     }
