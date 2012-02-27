@@ -18,7 +18,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
-            "version" => "1.3.5",
+            "version" => "1.3.6",
 			"url"=> "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Configurable_Item_processor"
             );
 	}
@@ -256,7 +256,8 @@ public function getConfigurableOptsFromAsId($asid)
 			{
 				$data[]=$psaid;
 				$data[]=$sid;
-				$ins[]="(?,?,1,'')";
+				$data[] = $attrinfo['frontend_label'];
+				$ins[]="(?,?,1,?)";
 			}
 			//insert/update attribute value for association
 			$sql="INSERT INTO `$cpsal` (`product_super_attribute_id`,`store_id`,`use_default`,`value`) VALUES ".implode(",",$ins).
