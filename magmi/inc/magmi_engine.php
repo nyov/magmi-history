@@ -23,12 +23,13 @@ abstract class Magmi_Engine extends DbHelper
 	protected $_activeplugins;
 	protected $_pluginclasses;
 	protected $_builtinplugins=array();
+	protected $_ploop_callbacks=array();
 	private $_excid=0;
 	public $logger=null;
 	
 	public function getEngineInfo()
 	{
-		return array("name"=>"Generic Magmi Engine","version"=>"1.0","author"=>"dweeves");
+		return array("name"=>"Generic Magmi Engine","version"=>"1.1","author"=>"dweeves");
 	}
 	
 	public function __construct()
@@ -67,6 +68,16 @@ abstract class Magmi_Engine extends DbHelper
 	public function getMagentoVersion()
 	{
 		$this->_conf->get("MAGENTO","version");
+	}
+	
+	protected function _registerPluginLoopCallback($cbtype,$cb)
+	{
+	  	$this->_ploop_callbacks[$cbtype]=$cb;
+	}
+	
+	protected function _unregisterPluginLoopCallback($cbtype)
+	{
+		unset($this->_ploop_callbacks[$cbtype]);
 	}
 	
 	public function getPluginFamilies()
@@ -225,12 +236,19 @@ abstract class Magmi_Engine extends DbHelper
 						$callres=($data==null?($params==null?$pinst->$callback():$pinst->$callback($params)):$pinst->$callback($data,$params));
 						if($callres===false && $data!=null)
 						{
+						
 						  $result=false;
-						  if($break)
-						  {
+								
+						}
+						if(isset($this->_ploop_callbacks[$callback]))
+						{
+							$cb=$this->_ploop_callbacks[$callback];
+							$this->$cb($pinst,$data,$result);
+						}
+						if($result===false && $break)
+						{
 						  	return $result;
-						  }							
-						}						
+						}					
 					}
 				}
 			}
