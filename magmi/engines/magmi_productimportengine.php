@@ -163,36 +163,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		return $this->_sid_sscope[$scodes];
 	}
 
-	/**
-	 *
-	 *
-	 * @param string $storestr (comma separated), list of store view codes
-	 * @return array of store ids corresponding to store codes
-	 */
-	public function getStoreIds($storestr)
-	{
-		//if no cache hit for these store list
-		if(!isset($this->sidcache[$storestr]))
-		{
-			//default store flag
-			$bfound=false;
-			$stores=csl2arr($storestr);
-			$sids=array();
-			//find store id for store list
-			foreach($stores as $scode)
-			{
-				$scode=trim($scode);
-				$sid=$this->store_ids[$scode];
-
-				//add store id to id list
-				$sids[]=$sid;
-			}
-			//fill id cache list for store list
-			$this->sidcache[$storestr]=$sids;
-		}
-		//return id cache list for store list
-		return $this->sidcache[$storestr];
-	}
 
 	/**
 	 * returns mode
@@ -1343,6 +1313,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			$this->initProdType();
 			$this->createPlugins($this->_profile,$params);
+			$this->_registerPluginLoopCallback("processItemAfterId", "onPluginProcessedItemAfterId");
 			$this->callPlugins("datasources,itemprocessors","startImport");
 			$this->resetSkuStats();
 		}
@@ -1352,6 +1323,11 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 	}
 
+	public function onPluginProcessedItemAfterId($plinst,&$item,$plresult)
+	{
+		$this->handleIgnore($item);
+	}
+	
 	public function exitImport()
 	{
 		$this->callPlugins("datasources,general,itemprocessors","endImport");
