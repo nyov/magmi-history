@@ -101,7 +101,7 @@ div.title
 .title .info
 {
  float:left;
- width:598px;
+ /*width:598px;*/
  border: 1px solid #8888cc;
  height:100%;
 }
