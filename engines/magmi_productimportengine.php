@@ -921,7 +921,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 				{
 					$scodes=csl2arr($k);
 					$qcolstr=$this->arr2values($scodes);
-					$rows=$this->selectAll("SELECT website_id FROM $cs WHERE code IN ($qcolstr) WHERE store_id!=0 GROUP BY website_id",$scodes);
+					$rows=$this->selectAll("SELECT website_id FROM $cs WHERE code IN ($qcolstr) AND store_id!=0 GROUP BY website_id",$scodes);
 				}
 				else
 				{
