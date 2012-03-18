@@ -3,20 +3,75 @@
 This plugin enables magmi import from csv files (using Dataflow format + magmi extended columns)<br/> <b>NOT Magento 1.5 new importexport format!!</b>
 </div>
 <div>
-<ul class="formline">
-<li class="label">CSVs base directory</li>
-<li class="value">
-<input type="text" name="CSV:basedir" id="CSV:basedir" value="<?php echo $this->getParam("CSV:basedir","var/import")?>"></input>
-<div class="fieldinfo">Relative paths are relative to magento base directory , absolute paths will be used as is</div></li>
-</ul>
-<ul class="formline">
-<li class="label" >File to import:</li>
-<li class="value" id="csvds_filelist">
-<?php echo $this->getOptionsPanel("csvds_filelist.php")->getHtml(); ?>
-</li>
-</ul>
+
+<div class="csvmode">
+</div>
+
+ <ul class="formline">
+	 <li class="label">CSV import mode</li>
+ 	<li class="value">
+ 	<select name="CSV:importmode" id="CSV:importmode">
+	 	<option value="local" <?php if($this->getParam("CSV:importmode","local")=="local"){?>selected="selected"<?php }?>>Local</option>
+ 		<option value="remote" <?php if($this->getParam("CSV:importmode","local")=="remote"){?>selected="selected"<?php }?>>Remote</option>
+ 	</select>
+ </ul>
+
+<div id="localcsv" <?php if($this->getParam("CSV:importmode","local")=="remote"){?> style="display:none"<?php }?>>
+ <ul class="formline">
+ <li class="label">CSVs base directory</li>
+ <li class="value">
+ <input type="text" name="CSV:basedir" id="CSV:basedir" value="<?php echo $this->getParam("CSV:basedir","var/import")?>"></input>
+ <div class="fieldinfo">Relative paths are relative to magento base directory , absolute paths will be used as is</div></li>
+ </ul>
+ <ul class="formline">
+ <li class="label" >File to import:</li>
+ <li class="value" id="csvds_filelist">
+ <?php echo $this->getOptionsPanel("csvds_filelist.php")->getHtml(); ?>
+ </li>
+ </ul>
+</div>
+
+<div id="remotecsv" <?php if($this->getParam("CSV:importmode","local")=="local"){?> style="display:none"<?php }?>>
+ <ul class="formline">
+ <li class="label">Remote CSV url</li>
+ <li class="value">
+ <input type="text" name="CSV:remoteurl" id="CSV:remoteurl" value="<?php echo $this->getParam("CSV:remoteurl","")?>" style="width:400px"></input>
+ </li>
+ </ul>
+ <input type="checkbox" id="CSV:remoteauth" name="CSV:remoteauth" <?php  if($this->getParam("CSV:remoteauth",0)==1){?>checked="checked"<?php }?>>authentication needed
+ <div id="remoteauth" <?php  if($this->getParam("CSV:remoteauth",0)==0){?>style="display:none"<?php }?>>
+ 
+ <div class="remoteuserpass">
+ 	<ul class="formline">
+ 		<li class="label">User</li>
+ 		<li class="value"><input type="text" id="CSV:remoteuser" value="<?php echo $this->getParam("CSV:remoteuser","")?>"></li>
+ 		
+ 	</ul> 
+ 	<ul class="formline">
+ 		<li class="label">Password</li>
+ 		<li class="value"><input type="text" id="CSV:remotepass" value="<?php echo $this->getParam("CSV:remoteuser","")?>"></li>
+ 	</ul> 
+ 	</div>
+<?php if(substr($this->getParam("CSV:remoteurl"),0,4=="http")){?>
+<div id="httpauthmode">
+	 <ul class="formline">
+	 <li class="label">HTTP Authetication Method</li>
+ 	<li class="value">
+ 	<select name="CSV:remoteauth" id="CSV:remoteauth">
+	 	<option value="BASIC">Basic</option>
+ 		<option value="DIGEST">Digest</option>
+ 		<option value="NTLM">NTLM</option>
+ 	</select>
+ </ul>
+ </div>
+ <?php }?>
+</div>
+</div>
+
+
 </div>
 <div>
+<h3>CSV options</h3>
 <span class="">CSV separator:</span><input type="text" maxlength="3" size="3" name="CSV:separator" value="<?php echo $this->getParam("CSV:separator")?>"></input>
 <span class="">CSV Enclosure:</span><input type="text" maxlength="3" size="3" name="CSV:enclosure" value='<?php echo $this->getParam("CSV:enclosure")?>'></input>
 </div>
@@ -62,4 +117,28 @@ $malformed=($hdline!="" && $hdline!=1)?>
 			$('CSV:headerline').value="";
 		}
 	});
+	$('CSV:importmode').observe('change',function()
+			{
+				if($F('CSV:importmode')=='local')
+				{
+					$('localcsv').show();
+					$('remotecsv').hide();
+				}
+				else
+				{
+					$('localcsv').hide();
+					$('remotecsv').show();
+				}
+			});
+	$('CSV:remoteauth').observe('click',function()
+			{
+				if($('CSV:remoteauth').checked)
+				{
+					$('remoteauth').show();		
+				}
+				else
+				{
+					$('remoteauth').hide();
+				}
+			});
 </script>
