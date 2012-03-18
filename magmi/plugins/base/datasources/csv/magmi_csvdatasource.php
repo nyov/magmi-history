@@ -38,16 +38,24 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		return $files;
 	}
 	
-	public function getPluginParamNames()
+	public function getPluginParams($params)
 	{
-		return array('CSV:filename','CSV:enclosure','CSV:separator','CSV:basedir','CSV:headerline','CSV:noheader','CSV:allowtrunc');
+		$pp=array();
+		foreach($params as $k=>$v)
+		{
+			if(preg_match("/^CSV:.*$/",$k))
+			{
+				$pp[$k]=$v;
+			}
+		}
+		return $pp;
 	}
 	
 	public function getPluginInfo()
 	{
 		return array("name"=>"CSV Datasource",
 					 "author"=>"Dweeves",
-					 "version"=>"1.1.4");
+					 "version"=>"1.2");
 	}
 	
 	public function getRecordsCount()
@@ -60,8 +68,141 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		
 	}
 	
+  public function getRemoteFile($url,$creds=null,$authmode=null)
+  {
+	$ch = curl_init($url);
+	$this->log("Fetching CSV: $url","startup");
+			//output filename (current dir+remote filename)
+	$csvdldir=dirname(__FILE__)."/downloads";
+	if(!file_exists($csvdldir))
+	{
+		@mkdir($csvdldir);
+		@chmod($csvdldir, Magmi_Config::getInstance()->getDirMask());
+	}
+	
+		$outname=$csvdldir."/".basename($url);
+  //open file for writing
+		if(file_exists($outname))
+		{
+			unlink($outname);
+		}
+		$fp = fopen($outname, "w");
+		if($fp==false)
+		{
+			throw new Exception("Cannot write file:$outname");
+		}
+	if(substr($url,0,4)=="http")
+	{
+		$lookup=1;
+		$amodes=array("BASIC"=>CURLAUTH_BASIC,
+                 "DIGEST"=>CURLAUTH_DIGEST,
+                "NTLM"=>CURLAUTH_NTLM);
+                
+  	  $lookup_opts= array(CURLOPT_RETURNTRANSFER=>true,
+							     CURLOPT_HEADER=>true,
+							     CURLOPT_NOBODY=>true,
+							     CURLOPT_FILETIME=>true,
+							     CURLOPT_CUSTOMREQUEST=>"HEAD");
+							  
+    	$dl_opts=array(CURLOPT_FILE=>$fp,
+		                         CURLOPT_CUSTOMREQUEST=>"GET",
+	  						     CURLOPT_HEADER=>false,
+							     CURLOPT_NOBODY=>false,
+							     CURLOPT_HTTPHEADER=> array('Expect:'));
+	
+	}
+	else
+	{
+		if($subtr($url,0,3)=="ftp")
+		{
+			$lookup=0;
+			$dl_opts=array(CURLOPT_FILE=>$fp);
+		}
+	}
+	
+	if($creds!="")
+	{
+	   $lookup_opts[CURLOPT_HTTPAUTH]=$amodes[$authmode];
+	   $lookup_opts[CURLOPT_USERPWD]="$creds";
+	   $dl_opts[CURLOPT_HTTPAUTH]=$amodes[$authmode];
+	   $dl_opts[CURLOPT_USERPWD]="$creds";
+	}
+	
+	if($lookup)
+	{	
+		//lookup , using HEAD request
+		$ok=curl_setopt_array($ch,$lookup_opts);
+		$res=curl_exec($ch);
+		if($res!==false)
+		{
+			$lm=curl_getinfo($ch);
+			if(curl_getinfo($ch,CURLINFO_HTTP_CODE)!=200)
+			{
+				$resp = explode("\n\r\n", $res);
+				$this->log("http header:<pre>".$resp[0]."</pre>","error");
+				throw new Exception("Cannot fetch $url");
+				
+			}
+		}
+		else
+		{
+			throw Exception("Cannot fetch $url");
+		}
+
+	}
+	
+	$res=array("should_dl"=>true,"reason"=>"");
+
+	if($res["should_dl"])
+	{
+	    //clear url options
+		$ok=curl_setopt_array($ch, array());
+		
+		//Download the file , force expect to nothing to avoid buffer save problem
+	    curl_setopt_array($ch,$dl_opts);
+		curl_exec($ch);
+		if(curl_error($ch)!="")
+		{
+			$this->log(curl_error($ch),"error");
+			throw Exception("Cannot fetch $url");
+		}
+		else
+		{
+			$lm=curl_getinfo($ch);
+			
+			$this->log("CSV Fetched in ".$lm['total_time']. "secs","startup");
+		}
+		curl_close($ch);
+		fclose($fp);
+		
+	}
+	else
+	{
+	    curl_close($ch);
+	    //bad file or bad hour, no download this time
+		$this->log("No dowload , ".$res["reason"],"info");
+	}
+    //return the csv filename
+	return $outname;
+}
 	public function beforeImport()
 	{
+		if($this->getParam("CSV:importmode","local")=="remote")
+		{
+			$url=$this->getParam("CSV:remoteurl","");
+			$creds="";
+			$authmode="";
+			if($this->getParam("CSV:remoteauth"!=""))
+			{
+				$user=$this->getParam("CSV:remoteuser");
+				$pass=$this->getParam("CSV:remotepass");
+				$authmode=$this->getParam("CSV:authmode");
+				$creds="$user:$pass";
+			}
+			$outname=$this->getRemoteFile($url,$creds,$authmode);
+			$this->setParam("CSV:filename", $outname);
+			$this->_csvreader->initialize();
+		}
 		return $this->_csvreader->checkCSV();
 	}
 	
