@@ -192,7 +192,7 @@ abstract class Magmi_Engine extends DbHelper
 		{
 			foreach($this->_activeplugins[$pfamily] as $pinstance)
 			{
-				if(get_class($pinstance)==$pclassanme)
+				if(get_class($pinstance)==$pclassname)
 				{
 					$inst=$pinstance;
 					break;
