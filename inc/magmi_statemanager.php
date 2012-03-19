@@ -12,12 +12,12 @@ class Magmi_StateManager
 	
 	public static function getStateFile()
 	{
-		return dirname(dirname(self::$_script)).DS."state".DS."magmistate";
+		return self::getStateDir().DS."magmistate";
 	}
 
 	public static function getTraceFile()
 	{
-		return dirname(dirname(self::$_script)).DS."state".DS."trace.txt";
+		return self::getStateDir().DS."trace.txt";
 		
 	}
 	
