@@ -2,6 +2,11 @@
 require_once("magmi_mixin.php");
 require_once("magmi_utils.php");
 
+class Magmi_CSVException extends Exception
+{
+	
+}
+
 class Magmi_CSVReader extends Magmi_Mixin
 {
 	protected $_filename;
@@ -84,11 +89,11 @@ class Magmi_CSVReader extends Magmi_Mixin
 		ini_set("auto_detect_line_endings",true);
 		if(!isset($this->_filename))
 		{
-			throw new CSVException("No csv file set");
+			throw new Magmi_CSVException("No csv file set");
 		}
 		if(!file_exists($this->_filename))
 		{
-			throw new CSVException("{$this->_filename} not found");
+			throw new Magmi_CSVException("{$this->_filename} not found");
 		}
 		$this->log("Importing CSV : $this->_filename using separator [ $this->_dcsep ] enclosing [ $this->_cenc ]","startup");
 	}
