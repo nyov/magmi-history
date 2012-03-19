@@ -1,6 +1,9 @@
 <?php 
-   header("Cache-Control: no-cache, must-revalidate");
-   header("Pragma: no-cache");
+  header('Pragma: public');   // required
+  header('Expires: 0');    // no cache
+  header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+  header('Last-Modified: '.gmdate ('D, d M Y H:i:s', filemtime ($file_name)).' GMT');
+  header('Cache-Control: private',false);
     
     require_once("header.php");
 	require_once("magmi_config.php");
