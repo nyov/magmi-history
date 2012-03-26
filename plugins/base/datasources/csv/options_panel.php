@@ -38,33 +38,22 @@ This plugin enables magmi import from csv files (using Dataflow format + magmi e
  <input type="text" name="CSV:remoteurl" id="CSV:remoteurl" value="<?php echo $this->getParam("CSV:remoteurl","")?>" style="width:400px"></input>
  </li>
  </ul>
- <input type="checkbox" id="CSV:remoteauth" name="CSV:remoteauth" <?php  if($this->getParam("CSV:remoteauth",0)==1){?>checked="checked"<?php }?>>authentication needed
- <div id="remoteauth" <?php  if($this->getParam("CSV:remoteauth",0)==0){?>style="display:none"<?php }?>>
+ <input type="checkbox" id="CSV:remoteauth" name="CSV:remoteauth" <?php  if($this->getParam("CSV:remoteauth",false)==true){?>checked="checked"<?php }?>>authentication needed
+ <div id="remoteauth" <?php  if($this->getParam("CSV:remoteauth",false)==false){?>style="display:none"<?php }?>>
  
  <div class="remoteuserpass">
  	<ul class="formline">
  		<li class="label">User</li>
- 		<li class="value"><input type="text" id="CSV:remoteuser" value="<?php echo $this->getParam("CSV:remoteuser","")?>"></li>
+ 		<li class="value"><input type="text" name="CSV:remoteuser" id="CSV:remoteuser" value="<?php echo $this->getParam("CSV:remoteuser","")?>"></li>
  		
  	</ul> 
  	<ul class="formline">
  		<li class="label">Password</li>
- 		<li class="value"><input type="text" id="CSV:remotepass" value="<?php echo $this->getParam("CSV:remoteuser","")?>"></li>
+ 		<li class="value"><input type="text" name="CSV:remotepass" id="CSV:remotepass" value="<?php echo $this->getParam("CSV:remotepass","")?>"></li>
  	</ul> 
  	</div>
-<?php if(substr($this->getParam("CSV:remoteurl"),0,4=="http")){?>
-<div id="httpauthmode">
-	 <ul class="formline">
-	 <li class="label">HTTP Authetication Method</li>
- 	<li class="value">
- 	<select name="CSV:remoteauth" id="CSV:remoteauth">
-	 	<option value="BASIC">Basic</option>
- 		<option value="DIGEST">Digest</option>
- 		<option value="NTLM">NTLM</option>
- 	</select>
- </ul>
- </div>
- <?php }?>
+
+
 </div>
 </div>
 
@@ -88,6 +77,18 @@ $malformed=($hdline!="" && $hdline!=1)?>
 <span class="">CSV Header at line:</span><input type="text" id="CSV:headerline" name="CSV:headerline"  maxlength="7" size="7" value="<?php echo $hdline?>"></input>
 </div>
 <script type="text/javascript">
+	handle_auth=function()
+	{
+		if($('CSV:remoteauth').checked)
+		{
+			$('remoteauth').show();	
+		}
+		else
+		{
+			$('remoteauth').hide();
+		}
+	}
+	
 	$('CSV:basedir').observe('blur',function()
 			{
 			new Ajax.Updater('csvds_filelist','ajax_pluginconf.php',{
@@ -130,15 +131,6 @@ $malformed=($hdline!="" && $hdline!=1)?>
 					$('remotecsv').show();
 				}
 			});
-	$('CSV:remoteauth').observe('click',function()
-			{
-				if($('CSV:remoteauth').checked)
-				{
-					$('remoteauth').show();		
-				}
-				else
-				{
-					$('remoteauth').hide();
-				}
-			});
+	$('CSV:remoteauth').observe('click',handle_auth);
+	$('CSV:remoteurl').observe('blur',handle_auth);
 </script>
