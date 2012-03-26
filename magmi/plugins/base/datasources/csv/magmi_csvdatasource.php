@@ -94,13 +94,11 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	if(substr($url,0,4)=="http")
 	{
 		$lookup=1;
-		$amodes=array("BASIC"=>CURLAUTH_BASIC,
-                 "DIGEST"=>CURLAUTH_DIGEST,
-                "NTLM"=>CURLAUTH_NTLM);
                 
   	  $lookup_opts= array(CURLOPT_RETURNTRANSFER=>true,
 							     CURLOPT_HEADER=>true,
 							     CURLOPT_NOBODY=>true,
+							     CURLOPT_FOLLOWLOCATION=>true,
 							     CURLOPT_FILETIME=>true,
 							     CURLOPT_CUSTOMREQUEST=>"HEAD");
 							  
@@ -108,12 +106,14 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		                         CURLOPT_CUSTOMREQUEST=>"GET",
 	  						     CURLOPT_HEADER=>false,
 							     CURLOPT_NOBODY=>false,
+							     CURLOPT_FOLLOWLOCATION=>true,
+							     CURLOPT_UNRESTRICTED_AUTH=>true,
 							     CURLOPT_HTTPHEADER=> array('Expect:'));
 	
 	}
 	else
 	{
-		if($subtr($url,0,3)=="ftp")
+		if(substr($url,0,3)=="ftp")
 		{
 			$lookup=0;
 			$dl_opts=array(CURLOPT_FILE=>$fp);
@@ -122,10 +122,21 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	
 	if($creds!="")
 	{
-	   $lookup_opts[CURLOPT_HTTPAUTH]=$amodes[$authmode];
+	if($lookup!=0)
+	{
+		if(substr($url,0,4)=="http")
+		{
+	  	 $lookup_opts[CURLOPT_HTTPAUTH]=CURLAUTH_ANY;
+	  	 $lookup_opts[CURLOPT_UNRESTRICTED_AUTH]=true;
+		}
 	   $lookup_opts[CURLOPT_USERPWD]="$creds";
-	   $dl_opts[CURLOPT_HTTPAUTH]=$amodes[$authmode];
-	   $dl_opts[CURLOPT_USERPWD]="$creds";
+	}
+	if(substr($url,0,4)=="http")
+	{
+		$dl_opts[CURLOPT_HTTPAUTH]=CURLAUTH_ANY;
+	  	$dl_opts[CURLOPT_UNRESTRICTED_AUTH]=true;
+	}
+	$dl_opts[CURLOPT_USERPWD]="$creds";
 	}
 	
 	if($lookup)
@@ -164,7 +175,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		if(curl_error($ch)!="")
 		{
 			$this->log(curl_error($ch),"error");
-			throw Exception("Cannot fetch $url");
+			throw new Exception("Cannot fetch $url");
 		}
 		else
 		{
@@ -192,7 +203,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 			$url=$this->getParam("CSV:remoteurl","");
 			$creds="";
 			$authmode="";
-			if($this->getParam("CSV:remoteauth"!=""))
+			if($this->getParam("CSV:remoteauth",false)==true)
 			{
 				$user=$this->getParam("CSV:remoteuser");
 				$pass=$this->getParam("CSV:remotepass");
