@@ -38,7 +38,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.21",
+            "version" => "1.0.22",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Image_attributes_processor"
             );
 	}
@@ -623,8 +623,9 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		}
 		//Reset media_gallery
 		$galreset=!(isset($item["media_gallery_reset"])) || $item["media_gallery_reset"]==1;
+		$forcereset = (isset($item["media_gallery_reset"])) && $item["media_gallery_reset"]==1;
 		
-		if( isset($item["media_gallery"]) && !$galreset)
+		if( (isset($item["media_gallery"]) && $galreset) || $forcereset)
 		{
 			$gattrdesc=$this->getAttrInfo("media_gallery");
 			$sids=$this->getItemStoreIds($item,$gattrdesc["is_global"]);
