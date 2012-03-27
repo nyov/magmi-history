@@ -20,10 +20,10 @@
 </ul>
 <ul class="formline">
 <li class="label">Body:</li>
-<li class="value"><textarea name="EMAILREP:body"><?php echo $this->getParam("EMAILREP:body","report attached");?></textarea>
+<li class="value"><textarea name="EMAILREP:body"><?php echo $this->getParam("EMAILREP:body","report attached");?></textarea></li>
 </ul>
 <ul class="formline">
 <li class="label">Attachments</li>
-<li class="value"><input type="checkbox" name="EMAILREP:attachlog" <?php if($this->getParam("EMAILREP:attachlog")==true){?>checked="checked"<?php }?>>Attach import log
-<li class="value"><input type="checkbox" name="EMAILREP:attachcsv" <?php if($this->getParam("EMAILREP:attachcsv")==true){?>checked="checked"<?php }?>>Attach source CSV
+<li class="value"><input type="checkbox" name="EMAILREP:attachlog" <?php if($this->getParam("EMAILREP:attachlog")==true){?>checked="checked"<?php }?>>Attach import log</li>
+<li class="value"><input type="checkbox" name="EMAILREP:attachcsv" <?php if($this->getParam("EMAILREP:attachcsv")==true){?>checked="checked"<?php }?>>Attach source CSV</li>
 </ul>
