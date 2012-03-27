@@ -4,19 +4,19 @@
 </div>
 <ul class="formline">
 <li class="label">Email report to:</li>
-<li class="value"><input type="text" name="EMAILREP:to" value="<?php echo $this->getParam("EMAILREP:to","")?>">
+<li class="value"><input type="text" style="width:400px" name="EMAILREP:to" value="<?php echo $this->getParam("EMAILREP:to","")?>"><div class="fieldinfo">You can set several receiver emails separated by a comma (,)</div></li>
 </ul>
 <ul class="formline">
 <li class="label">Report sender:</li>
-<li class="value"><input type="text" name="EMAILREP:from" value="<?php echo $this->getParam("EMAILREP:from","magmi@sourceforge.net")?>">
+<li class="value"><input type="text" name="EMAILREP:from" value="<?php echo $this->getParam("EMAILREP:from","magmi@sourceforge.net")?>"></li>
 </ul>
 <ul class="formline">
 <li class="label">Report sender alias:</li>
-<li class="value"><input type="text" name="EMAILREP:from_alias" value="<?php echo $this->getParam("EMAILREP:from_alias","Magmi Importer")?>">
+<li class="value"><input type="text" name="EMAILREP:from_alias" value="<?php echo $this->getParam("EMAILREP:from_alias","Magmi Importer")?>"></li>
 </ul>
 <ul class="formline">
 <li class="label">Subject:</li>
-<li class="value"><input type="text" name="EMAILREP:subject" value="<?php echo $this->getParam("EMAILREP:subject","Magmi import report")?>">
+<li class="value"><input type="text" name="EMAILREP:subject" value="<?php echo $this->getParam("EMAILREP:subject","Magmi import report")?>"></li>
 </ul>
 <ul class="formline">
 <li class="label">Body:</li>
