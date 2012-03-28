@@ -97,4 +97,10 @@ static public function getCategory()
 	{
 		return "Input Data Preprocessing";
 	}
+	
+	public function isEntityRelated()
+	{
+		return false;
+	}
+	
 }
