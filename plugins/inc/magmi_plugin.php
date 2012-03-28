@@ -337,5 +337,10 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 		return array(true,"");
 	}
 	
+	public function isEntityRelated()
+	{
+		return true;
+	}
+	
 
 }
