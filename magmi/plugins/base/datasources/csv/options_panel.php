@@ -79,58 +79,59 @@ $malformed=($hdline!="" && $hdline!=1)?>
 <script type="text/javascript">
 	handle_auth=function()
 	{
-		if($('CSV:remoteauth').checked)
+		if($('#CSV:remoteauth').attr('checked'))
 		{
-			$('remoteauth').show();	
+			$('#remoteauth').show();	
 		}
 		else
 		{
-			$('remoteauth').hide();
+			$('#remoteauth').hide();
 		}
 	}
 	
-	$('CSV:basedir').observe('blur',function()
-			{
-			new Ajax.Updater('csvds_filelist','ajax_pluginconf.php',{
-			parameters:{file:'csvds_filelist.php',
-						plugintype:'datasources',
-					    pluginclass:'<?php echo get_class($this->_plugin)?>',
-					    profile:'<?php echo $this->getConfig()->getProfile()?>',
-					    'CSV:basedir':$F('CSV:basedir')}});
-			});
-	$('malformedcb').observe('click',function(ev){
-		if($('malformedcb').checked)
+	$('#CSV:basedir').blur(function()
+	{
+		loaddiv($('#csvds_filelist'),'ajax_pluginconf.php',
+												decodeURIComponent($.param({file:'csvds_filelist.php',
+																plugintype:'datasources',
+				    pluginclass:'<?php echo get_class($this->_plugin)?>',
+				    profile:'<?php echo $this->getConfig()->getProfile()?>',
+				    'CSV:basedir':$('#CSV:basedir').val()})));
+	});
+				
+	$('#malformedcb').click(function(){
+		if($('#malformedcb').attr('checked'))
 		{
-			$('malformed').show();	
+			$('#malformed').show();	
 		}
 		else
 		{
-			$('malformed').hide();
+			$('#malformed').hide();
 		}
 	});
-	$('CSV:headerline').observe('blur',function()
+	$('#CSV:headerline').blur(function()
 	{
-		var wellformed=($F('CSV:headerline')=="1" || $F('CSV:headerline')=="");
+		var wellformed=($('#CSV:headerline').val()=="1" || $('#CSV:headerline').val=="");
 		if(wellformed)
 		{
-			$('malformedcb').checked=false;
-			$('malformed').hide();
-			$('CSV:headerline').value="";
+			$('#malformedcb').attr('checked','false');
+			$('#malformed').hide();
+			$('#CSV:headerline').val("");
 		}
 	});
-	$('CSV:importmode').observe('change',function()
+	$('#CSV:importmode').change(function()
 			{
-				if($F('CSV:importmode')=='local')
+				if(('CSV:importmode').val()=='local')
 				{
-					$('localcsv').show();
-					$('remotecsv').hide();
+					$('#localcsv').show();
+					$('#remotecsv').hide();
 				}
 				else
 				{
-					$('localcsv').hide();
-					$('remotecsv').show();
+					$('#localcsv').hide();
+					$('#remotecsv').show();
 				}
 			});
-	$('CSV:remoteauth').observe('click',handle_auth);
-	$('CSV:remoteurl').observe('blur',handle_auth);
+	$('#CSV:remoteauth').click(handle_auth);
+	$('#CSV:remoteurl').blur(handle_auth);
 </script>

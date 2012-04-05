@@ -129,5 +129,11 @@ public function getPluginInfo()
 			}
 		}
 	}
+	
+	static public function getCompatibleEngines()
+	{
+		return ".*";	
+	}
+	
 
 }

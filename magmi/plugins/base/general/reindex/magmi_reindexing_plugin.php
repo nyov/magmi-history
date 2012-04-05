@@ -61,6 +61,10 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		}
 	}
 			
+	static public function getCompatibleEngines()
+	{
+		return "Magmi_ProductImportEngine";	
+	}
 	
 	public function isRunnable()
 	{

@@ -53,9 +53,10 @@ if you've got 5 stores,i will create 5 different copies of the input image &amp;
 <div id="IMG:err_attrsetup">
 </div>
 <script type="text/javascript">
+window.afterajax=function(){
 var img_vals=<?php echo tdarray_to_js($this,'IMG:err_attrlist','IMG_ERR')?>;
 var img_linetpl='<ul class="formline"><li class="label">set {fieldname} as</li><li class="value"><input type="text" name="IMG_ERR:{fieldname.enc}" value="{value}"></input></li></ul>';
 img_mf=new magmi_multifield('IMG:err_attrlist','IMG:err_attrsetup',img_linetpl,img_vals);
-img_mf.buildparamlist();
+img_mf.buildparamlist();};
 </script>
 

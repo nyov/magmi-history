@@ -42,6 +42,11 @@ class Magmi_UtilityEngine extends Magmi_Engine
 	 * @param string $conf : configuration .ini filename
 	 */
 
+	public  function getProfilesDir()
+	{
+		return "utilities_profiles";
+	}
+	
 	public function getPluginFamilies()
 	{
 		return array("utilities");

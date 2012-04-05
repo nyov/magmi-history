@@ -70,6 +70,8 @@ abstract class Magmi_Engine extends DbHelper
 		$this->_conf->get("MAGENTO","version");
 	}
 	
+	public abstract function getProfilesDir();
+	
 	protected function _registerPluginLoopCallback($cbtype,$cb)
 	{
 	  	$this->_ploop_callbacks[$cbtype]=$cb;
@@ -88,7 +90,7 @@ abstract class Magmi_Engine extends DbHelper
 	
 	public function getEnabledPluginClasses($profile)
 	{
-		$enabledplugins=new EnabledPlugins_Config($profile);
+		$enabledplugins=new EnabledPlugins_Config($this->getProfilesDir(),$profile);
 		$enabledplugins->load();
 		return $enabledplugins->getEnabledPluginFamilies($this->getPluginFamilies());
 	}
@@ -204,11 +206,19 @@ abstract class Magmi_Engine extends DbHelper
 	
 	public function getPluginInstance($family,$order=-1)
 	{
+		
 		if($order<0)
 		{
 			$order+=count($this->_activeplugins[$family]);
 		}
-		return $this->_activeplugins[$family][$order];	
+		if($order>0)
+		{
+			return $this->_activeplugins[$family][$order];	
+		}
+		else
+		{
+			return null;
+		}
 	}
 	
 	public function callPlugins($types,$callback,&$data=null,$params=null,$break=true)

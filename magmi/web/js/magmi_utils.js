@@ -1,3 +1,34 @@
+
+window.afterajax=null;
+
+geturl=function(addr,params,onsuccess) {  
+	window.afterajax=null;
+	var r = $.ajax({  
+	 type: 'POST',  
+	 url: addr,  
+	 context:document.body,
+	 async: false, 
+	 data : params,
+	 datatype: 'text',
+	 success:function(){
+		 
+		 	if(onsuccess)
+		 	{
+		 		onsuccess();
+		 	}
+	 }
+	}).responseText;  
+	return r;  
+	}  
+
+loaddiv=function(zdiv,url,params, onsuccess)
+{
+	$(zdiv).html(geturl(url,params,onsuccess));
+	if(window.afterajax)
+	{
+		window.afterajax();
+	}
+}
 var magmi_multifield=function(listfield,dyncontainer,linetpl,vlist)
 {
 	this.vlist=vlist;
@@ -15,21 +46,33 @@ var magmi_multifield=function(listfield,dyncontainer,linetpl,vlist)
 
 	this.buildparamlist=function()
 	{
-	  var value=$F(listfield)
+	var flistfield=$('#'+this.listfield);
+	var obj=this;
+	if(flistfield.length==0)
+		{
+		flistfield=$(document.getElementById(this.listfield));
+		}
+	  var value=flistfield.val();
 	  var content='';
 	  if(value!="")
 	  {
 	 	var arr=value.split(",");
 	  	var farr=[];
-	 	 arr.each(function(it){
-	 	 	 if(it!='')
+	 	 $.each(arr,function(idx,xval){
+	 	 	 if(xval!='')
 	 	 	 {
-	 	 		 var v=typeof(this.vlist[it])!='undefined'?this.vlist[it]:'';
-	  			farr.push({'field':it,'value':v});
+	 	 		 var v=typeof(obj.vlist[xval])!='undefined'?obj.vlist[xval]:'';
+	  			farr.push({'field':xval,'value':v});
 	 	 	 }
-	  	},this);
-	 	 farr.each(function(it){content+=this.getinputline(it.field,it.value,this.linetpl)},this);
+	  	});
+	 	 $.each(farr,function(idx,it){content+=obj.getinputline(it.field,it.value,obj.linetpl)});
 	  }
-	  $(this.dyncontainer).update(content);
+	  var dyncont=$('#'+this.dyncontainer);
+	  if(dyncont.length==0)
+	  {
+		  dyncont=$(document.getElementById(this.dyncontainer));
+	  }
+		
+	  $(dyncont).html(content);
 	};
 }

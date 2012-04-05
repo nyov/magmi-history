@@ -46,8 +46,9 @@ when leaving the field, new fields will be inserted for filling new column names
 	</div>
 </div>
 <script type="text/javascript">
+window.afterajax=function(){
 var vr_vals=<?php echo tdarray_to_js($this,'VREP:columnlist','VREP')?>;
 var vr_linetpl='<ul class="formline"><li class="label">New value for {fieldname}</li><li class="value"><input type="text" name="VREP:{fieldname.enc}" value="{value}"></input></li></ul>';
 vrep_mf=new magmi_multifield('VREP:columnlist','VREP:columnsetup',vr_linetpl,vr_vals);
-vrep_mf.buildparamlist();
+vrep_mf.buildparamlist();});
 </script>

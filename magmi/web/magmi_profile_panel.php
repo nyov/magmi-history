@@ -15,8 +15,13 @@ if($profile=="")
 {
 	$profile="default";
 }
+if(isset($_REQUEST["engineclass"]))
+{
+	$engclass=$_REQUEST["engineclass"];
+}
 $profilename=($profile!="default"?$profile:"Default");
 ?>
+<script type="text/javascript" src="js/magmi_panelutils.js"></script>
 <script type="text/javascript">
 		var profile="<?php echo $profile?>";
 	</script>
@@ -62,7 +67,9 @@ else{?>
 	<?php
 	require_once("magmi_pluginhelper.php");
 	$order=array("datasources","general","itemprocessors");
-	$plugins=Magmi_PluginHelper::getInstance('main')->getPluginClasses($order);
+	Magmi_PluginHelper::getInstance('main')->setEngineClass($engclass);
+	
+	$plugins=Magmi_PluginHelper::getInstance('main')->getEnginePluginClasses();
 	$pcats=array();
 	foreach($plugins as $k=>$pclasslist)
 	{
@@ -83,6 +90,7 @@ else{?>
 </div>
 <div class="container_12" id="profile_cfg">
 <form action="" method="POST" id="saveprofile_form">
+	<input type="hidden" name="engine" id="engine" value="<?php echo $engclass?>">
 	<input type="hidden" name="profile" id="curprofile" value="<?php echo $profile?>">
 	<?php foreach($order as $k)
 	{?>
@@ -100,6 +108,7 @@ else{?>
 			
 			<?php 
 			$sinst=null;
+			Magmi_PluginHelper::getInstance($profile)->setEngineClass($engclass);
 			foreach($pinf as $pclass)
 			{
 				$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($k,$pclass);
@@ -156,7 +165,7 @@ else{?>
 						<?php }?>
 						<ul>
 						<?php
-							$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($k,$pclass);
+								$pinst=Magmi_PluginHelper::getInstance($profile)->createInstance($k,$pclass);
 							$pinfo=$pinst->getPluginInfo();
 			  				$info=$pinst->getShortDescription();
 			  				$plrunnable=$pinst->isRunnable();
@@ -256,211 +265,17 @@ else{?>
 
 window.lastsaved={};
 
-handleRunChoice=function(radioname,changeinfo)
-{
-	var changed=changeinfo.changed;
-	var sval=$$('input:checked[type="radio"][name="'+radioname+'"]').pluck('value');
-	if(sval=='saveprof')
-	{
-		saveProfile(1,function(){$('runmagmi').submit();});
-	}
-	if(sval=='useold')
-	{
-		$('runmagmi').submit();
-	}
-	if(sval=='applyp')
-	{
-		changed.each(function(it){
-			$('runmagmi').insert({bottom:'<input type="hidden" name="'+it.key+'" value="'+it.value+'">'});
-		});
-		$('runmagmi').submit();
-	}
-}
-
-cancelimport=function()
-{
- $('overlay').hide();	
-}
-
-updatelastsaved=function()
-{ 
- gatherclasses(['DATASOURCES','GENERAL','ITEMPROCESSORS']);
- window.lastsaved=$H($('saveprofile_form').serialize(true));	
-};
-
-comparelastsaved=function()
-{
- gatherclasses(['DATASOURCES','GENERAL','ITEMPROCESSORS']);
- var curprofvals=$H($('saveprofile_form').serialize(true));
- var changeinfo={changed:false,target:''};
- var out="";
- var diff={};
- changeinfo.target='paramchanged';
- curprofvals.each(function(kv)
- {
-	 var lastval=window.lastsaved.get(kv.key);
- 	if(kv.value!=lastval)
- 	{
-		diff[kv.key]=kv.value;
-		if(kv.key.substr(0,8)=="PLUGINS_")
-		{
-			changeinfo.target='pluginschanged';
-		}
-	}
- });
-
-changeinfo.changed=$H(diff);
-if(changeinfo.changed.size()==0)
-{
-	changeinfo.changed=false;
-}
- return changeinfo;
-};
-
-addclass=function(it,o)
-{
-	if(it.checked){
-		this.arr.push(it.name);
-	}
-};
-
-gatherclasses=function(tlist)
-{
-	tlist.each(function(t,o){
-		var context={arr:[]};
-		$$(".pl_"+t.toLowerCase()).each(addclass,context);
-		var target=$("plc_"+t);
-		target.value=context.arr.join(",");
-	});
-};
-
-initConfigureLink=function(maincont)
-{
- var cfgdiv=maincont.select('.pluginconf');
- if(cfgdiv.length>0)
- {
- 	cfgdiv=cfgdiv[0];
- 	var confpanel=maincont.select('.pluginconfpanel');
-	 confpanel=confpanel[0]
-	cfgdiv.stopObserving('click');
- 	cfgdiv.observe('click',function(ev){
- 	 	confpanel.toggleClassName('selected');
- 		 confpanel.select('.ifield').each(function(it){
- 			it.select('.fieldhelp').each(function(fh){
- 				fh.observe('click',function(ev){
- 					it.select('.fieldsyntax').each(function(el){el.toggle();})
- 						});
- 				});
- 			});
- 	 	});
-
- }
-};
-showConfLink=function(maincont)
-{
-	var cfgdiv=maincont.select('.pluginconf');
-	if(cfgdiv.length>0)
-	 {
-	 
-	cfgdiv=cfgdiv[0];
-	cfgdiv.show();
-	 }
-	
-};
-
-loadConfigPanel=function(container,profile,plclass,pltype)
-{
- new Ajax.Updater({success:container},'ajax_pluginconf.php',
-	{parameters:{
-		profile:profile,
-		plugintype:pltype,
-		pluginclass:plclass},
-		evalScripts:true,
-		onComplete:
-	 	function(){
-	 		showConfLink($(container.parentNode));
-	 		initConfigureLink($(container.parentNode));
-	 	}});
-};
-
-removeConfigPanel=function(container)
-{
-var cfgdiv=$(container.parentNode).select('.pluginconf');
-cfgdiv=cfgdiv[0];
-cfgdiv.stopObserving('click');
- cfgdiv.hide();
- container.removeClassName('selected');
- container.update('');
-};
-
-
-initAjaxConf=function(profile)
-{
-	//foreach plugin selection
-	$$('.pluginselect').each(function(pls)
-	{
-		var del=pls.firstDescendant();
-		var evname=(del.tagName=="SELECT"?'change':'click');
-			
-		//check the click
-		del.observe(evname,function(ev)
-		{
-			var el=Event.element(ev);
-			var plclass=(el.tagName=="SELECT")?el.value:el.name;
-			var elclasses=el.classNames();
-			var pltype="";
-			elclasses.each(function(it){if(it.substr(0,3)=="pl_"){pltype=it.substr(3);}});
-			var doload=(el.tagName=="SELECT")?true:el.checked;	
-			var targets=$(pls.parentNode).select(".pluginconfpanel");
-			var container=targets[0];
-			if(doload)
-			{
-				loadConfigPanel(container,profile,plclass,pltype);
-			}
-			else
-			{
-				removeConfigPanel(container);
-			}
-		});
-	});			
-};
-
-initDefaultPanels=function()
-{
-	$$('.pluginselect').each(function(it){initConfigureLink($(it.parentNode));});
-	updatelastsaved();
-};
-
-saveProfile=function(confok,onsuccess)
-{
-	gatherclasses(['DATASOURCES','GENERAL','ITEMPROCESSORS']);
-  	updatelastsaved();
-	new Ajax.Updater('profileconf_msg',
-			 "magmi_saveprofile.php",
-			 {parameters:$('saveprofile_form').serialize('true'),
-			  onSuccess:function(){
-			  if(confok)
-              {
-				 onsuccess();
-			  }
-			  else
-			  {
-			  	$('profileconf_msg').show();
-			  }}
-	  		});
-	
-};
 
 initAjaxConf('<?php echo $profile?>');
 initDefaultPanels();
 
 
-$('saveprofile').observe('click',function()
+$('#saveprofile').click(function()
 								{
-									saveProfile(<?php echo $conf_ok?1:0 ?>,function(){$('chooseprofile').submit();});
+									saveProfile(<?php echo $conf_ok?1:0 ?>,function(){$('#chooseprofile').submit();});
 									});	
 
-$('runmagmi').observe('submit',function(ev){
+$('#runmagmi').submit(function(ev){
 
 	var ls=comparelastsaved();
 	if(ls.changed!==false)

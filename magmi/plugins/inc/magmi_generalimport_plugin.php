@@ -12,4 +12,9 @@ abstract class Magmi_GeneralImportPlugin extends Magmi_Plugin
 		return true;
 	}
 	
+	static public function getCompatibleEngines()
+	{
+		return ".*";	
+	}
+	
 }
