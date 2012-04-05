@@ -246,28 +246,26 @@ $cansock=true;
 <div class="clear"></div>
 <script type="text/javascript">
 
-$('save_commonconf').observe('click',function()
+$('#save_commonconf').click(function()
 {
-	new Ajax.Updater('commonconf_msg',
-				 "magmi_saveconfig.php",
-				 {parameters:$('commonconf_form').serialize('true'),
-				  onSuccess:function(){$('commonconf_msg').show();}
-	  			});							
+	loaddiv('#common_conf','magmi_saveconfig.pĥp',$('#commonconf_form').serialize(),
+		function(){$('#commonconf_msg').show();});							
 });
+	
 <?php if($conf_ok){?>
-$('runprofile').observe('change',function(ev)
+$('#runprofile').change(function(ev)
 		{
 			document.location='magmi.php?profile='+Event.element(ev).value;
 		});
 <?php }?>	
 
-$('DATABASE:connectivity').observe('change',function(ev)
+$('DATABASE:connectivity').change(function(ev)
 		{
-			var clist=$$('.connectivity');
-					clist.each(function(it)
+			var clist=$('.connectivity');
+					clist.each(function(idx,it)
 					{
 						var el=it;
-						if(el.id=='connectivity:'+$F('DATABASE:connectivity'))
+						if(el.attr('id')=='connectivity:'+('#DATABASE:connectivity').val())
 						{
 							el.show();
 						}

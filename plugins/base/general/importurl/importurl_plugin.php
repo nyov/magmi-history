@@ -12,4 +12,7 @@ class Magmi_ImportUrlPlugin extends Magmi_GeneralImportPlugin
 	{
 		
 	}
+	
+	
+	
 }

@@ -198,9 +198,5 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 		return "Input Data Preprocessing";
 	}
 	
-	public function isEntityRelated()
-	{
-		return false;
-	}
 	
 }

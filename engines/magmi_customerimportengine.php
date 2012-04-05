@@ -19,31 +19,29 @@ require_once("magmi_engine.php");
  * @author dweeves
  *
  */
-class Magmi_ProductImportEngine extends Magmi_Engine
+class Magmi_CustomerImportEngine extends Magmi_Engine
 {
 
 	public $attrinfo=array();
 	public $attrbytype=array();
 	public $store_ids=array();
 	public $status_id=array();
-	public $attribute_sets=array();
-	public $prod_etype;
 	public $sidcache=array();
 	public $mode="update";
+	private $_etypes=array();
 	private $_attributehandlers;
 	private $_current_row;
 	private $_optidcache=null;
-	private $_curitemids=array("sku"=>null);
+	private $_curcustids=array("email"=>null);
 	private $_dstore=array();
 	private $_same;
-	private $_currentpid;
+	private $_currentcid;
 	private $_extra_attrs;
 	private $_profile;
 	private $_sid_wsscope=array();
 	private $_sid_sscope=array();
-	private $_prodcols=array();
-	private $_stockcols=array();
-	private $_skustats=array();
+	private $_custcols=array();
+	private $_custstats=array();
 
 	public function addExtraAttribute($attr)
 	{
@@ -57,13 +55,18 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function __construct()
 	{
-		$this->setBuiltinPluginClasses("itemprocessors",dirname(dirname(__FILE__))."/plugins/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor");
+		$this->setBuiltinPluginClasses("customerprocessors",dirname(dirname(__FILE__))."/plugins/inc/magmi_customerattributehandler.php::Magmi_DefaultAttributeItemProcessor");
 	}
 
 
-	public function getSkuStats()
+	public  function getProfilesDir()
 	{
-		return $this->_skustats;
+		return "customer_profiles";
+	}
+	
+	public function getCustStats()
+	{
+		return $this->_custstats;
 	}
 
 	public function getImportMode()
@@ -76,7 +79,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.6","author"=>"dweeves");
+		return array("name"=>"Magmi Customer Import Engine","version"=>"1.0","author"=>"dweeves");
 	}
 
 	/**
@@ -85,23 +88,24 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 
 
-	public  function getProfilesDir()
-	{
-		return "product_profiles";
-	}
-	
 
-	public function initProdType()
+
+	public function initEntityTypes()
 	{
 		$tname=$this->tablename("eav_entity_type");
-		$this->prod_etype=$this->selectone("SELECT entity_type_id FROM $tname WHERE entity_type_code=?","catalog_product","entity_type_id");
+		$tpks=array("customer","customer_address");
+		$result=$this->selectAll("SELECT entity_type_id FROM $tname WHERE entity_type_code IN (".$this->arr2values($tpks).")",$tpks);
+		foreach($result as $row)
+		{
+			$this->_etypes=array_merge($this->_etypes,$row);
+		}
 	}
 
 
 
 	public function getPluginFamilies()
 	{
-		return array("datasources","general","itemprocessors");
+		return array("datasources","general","customerprocessors","itemprocessors");
 	}
 
 	public function registerAttributeHandler($ahinst,$attdeflist)

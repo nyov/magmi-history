@@ -243,5 +243,8 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		return $this->_csvreader->getNextRecord();
 	}
 	
-
+	static public function getCompatibleEngines()
+	{
+		return ".*";	
+	}
 }
