@@ -10,6 +10,7 @@
  */
 
 require_once("../inc/magmi_defs.php");
+require_once("magmi_pluginhelper.php");
 
 $script=array_shift($argv);
 $options=array();
@@ -46,10 +47,12 @@ function getEngineInstance($options)
 {
 	if(!isset($options["engine"]))
 	{
-		$options["engine"]="magmi_productimportengine:Magmi_ProductImportEngine";
+		$options["engine"]="magmi_productimportengine::Magmi_ProductImportEngine";
 	}
-
-	$optname=$options["engine"];
+	$ph=Magmi_PluginHelper::getInstance($options["profile"]);
+	$ph->setEngineClass($options['engine']);
+	$enginst=$ph->getEngine();
+	/*$optname=$options["engine"];
 	$engdef=explode(":",$optname);
 	$engine_name=$engdef[0];
 	$engine_class=$engdef[1];
@@ -65,7 +68,8 @@ function getEngineInstance($options)
 	if($enginst==null)
 	{
 	 die("Invalid engine definition : ".$optname);
-	}
+	}*/
+	
 	return $enginst;
 }
 $importer=getEngineInstance($options);

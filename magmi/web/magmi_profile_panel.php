@@ -20,6 +20,9 @@ if(isset($_REQUEST["engineclass"]))
 	$engclass=$_REQUEST["engineclass"];
 }
 $profilename=($profile!="default"?$profile:"Default");
+require_once("magmi_pluginhelper.php");
+$ph=Magmi_PluginHelper::getInstance($profile);
+$ph->setEngineClass($engclass);
 ?>
 <script type="text/javascript" src="js/magmi_panelutils.js"></script>
 <script type="text/javascript">
@@ -31,7 +34,7 @@ $profilename=($profile!="default"?$profile:"Default");
 <div class="container_12" id="profile_action">
 <div class="grid_12 subtitle"><span>Configure Current Profile (<?php echo $profilename?>)</span>
 <?php 
-$eplconf=new EnabledPlugins_Config($profile);
+$eplconf=new EnabledPlugins_Config($ph->getEngine()->getProfilesDir(),$profile);
 $eplconf->load();
 $conf_ok=$eplconf->hasSection("PLUGINS_DATASOURCES");
 ?>
@@ -47,11 +50,13 @@ else{?>
 </div>
 <div class="grid_12 col">
 	<form action="magmi_chooseprofile.php" method="POST" id="chooseprofile" >
+	<input type="hidden" name="engineclass" value="<?php echo $engclass?>"/>
 	<h3>Profile to configure</h3>
 	<ul class="formline">
 		<li class="label">Current Magmi Profile:</li>
 		<li class="value">	
-			<select name="profile" onchange="$('chooseprofile').submit()">
+			
+			<select name="profile" id="cp_profile">
 			<option <?php if(null==$profile){?>selected="selected"<?php }?> value="default">Default</option>
 			<?php foreach($profilelist as $profname){?>
 			<option <?php if($profname==$profile){?>selected="selected"<?php }?> value="<?php echo $profname?>"><?php echo $profname?></option>
@@ -62,8 +67,9 @@ else{?>
 	<ul class="formline">
 		<li class="label">Copy Selected Profile to:</li>
 		<li class="value"><input type="text" name="newprofile"></input></li>
+	
 	</ul>
-	<input type="submit" value="Copy Profile &amp; switch"></input>
+	<input id="cp_copyswitch" type="submit" value="Copy Profile &amp; switch"></input>
 	<?php
 	require_once("magmi_pluginhelper.php");
 	$order=array("datasources","general","itemprocessors");
@@ -88,6 +94,12 @@ else{?>
 </form>
 </div>
 </div>
+
+<script type="text/javascript">
+ $('#cp_profile').change(function(){
+	 $('#cp_copyswitch').trigger('click');
+	 });
+</script>
 <div class="container_12" id="profile_cfg">
 <form action="" method="POST" id="saveprofile_form">
 	<input type="hidden" name="engine" id="engine" value="<?php echo $engclass?>">
@@ -266,7 +278,7 @@ else{?>
 window.lastsaved={};
 
 
-initAjaxConf('<?php echo $profile?>');
+initAjaxConf('<?php echo $profile?>','<?php echo $engclass?>');
 initDefaultPanels();
 
 

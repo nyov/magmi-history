@@ -16,13 +16,13 @@ if($profile=="")
 }
 
 $ph=Magmi_PluginHelper::getInstance($profile);
-if(isset($_REQUEST["engine"]))
+	if(isset($_REQUEST["engineclass"]))
 {
-	$ph->setEngineClass($_REQUEST["engine"]);
+	$ph->setEngineClass($_REQUEST["engineclass"]);
 }
 else
 {
 	$enginst=null;
 }
-$plinst->createInstance($pltype,$plclass,$_REQUEST,true);
+$plinst=$ph->createInstance($pltype,$plclass,$_REQUEST,true);
 echo $plinst->getOptionsPanel($file)->getHtml();

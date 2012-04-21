@@ -4,6 +4,8 @@
 	ini_set("error_reporting",E_ALL);
 	require_once("magmi_version.php");
 	session_start();
+	
+ 
 ?>
 <html>
 <head>

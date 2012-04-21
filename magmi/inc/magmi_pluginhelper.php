@@ -16,7 +16,7 @@ class Magmi_PluginHelper
 							 "general"=>array("Magmi_GeneralImportPlugin","*/*"),
 							 "utilities"=>array("Magmi_UtilityPlugin","utilities"));
 	protected $_eng;
-	
+	protected $_engclass;
 	public function __construct($profile=null)
 	{
 		$this->_profile=$profile;
@@ -35,6 +35,7 @@ class Magmi_PluginHelper
 	
 	public function setEngineClass($engclass="magmi_productimportengine::Magmi_ProductImportEngine")
 	{
+		$this->_engclass=$engclass;
 		$enginfo=explode("::",$engclass);
 		$engfile=dirname(dirname(__FILE__))."/engines/".$enginfo[0].".php";
 		if(file_exists($engfile))
@@ -44,9 +45,19 @@ class Magmi_PluginHelper
 			if(class_exists($engcls))
 			{
 				$this->setEngineInstance(new $engcls());
+				$this->_eng->setProfile($this->_profile);
 			}
 		
 		}
+	}
+	
+	public function getEngineClass()
+	{
+		if($this->_engclass==null)
+		{
+			$this->_engclass="magmi_productimportengine::Magmi_ProductImportEngine";
+		}
+		return $this->_engclass;
 	}
 	
 	public  function getEnginePluginClasses()

@@ -1,11 +1,12 @@
 	<?php 
 	ini_set('magic_gpc_quotes',0);
 	$profile=isset($_REQUEST["profile"])?$_REQUEST["profile"]:'default';
+	$engclass=isset($_REQUEST["engineclass"])?$_REQUEST["engineclass"]:'magmi_productimportengine:Magmi_ProductImportEngine';
 	$_SESSION["last_runned_profile"]=$profile;
 	session_write_close();
 	?>
 	<script type="text/javascript">
-	var imp_params={engine:'magmi_productimportengine:Magmi_ProductImportEngine'};
+	var imp_params={engineclass:'<?php echo $engclass?>'};
 	<?php 
 		foreach($_REQUEST as $k=>$v)
 		{
@@ -29,13 +30,14 @@
 		</div>
 		<div class='grid_12 log_info' style="display:none" id='endimport_div'></div>
 	</div>
+	<script type="text/javascript" src=">
+</script>
 <script type="text/javascript">
 	var pcall=0;
 
 	updateTime=function(tdiv,xprefix)
 	{
-		new Ajax.Updater(tdiv,'ajax_gettime.php',{parameters:{prefix:xprefix},
-			onComplete:function(){$(tdiv).show();}});
+		loaddiv(tdiv,'ajax_gettime.php',decodeURIComponent($.param({prefix:xprefix})),function(){$(tdiv).show()});
 	};
 	
 	endImport=function(t)
@@ -54,10 +56,13 @@
 		}
 	};
 
+	updateprogress=functi
 	startProgress=function(imp_params)
 	{
-		window.upd=new Ajax.PeriodicalUpdater("runlog","magmi_progress.php",{frequency:1,evalScripts:true,parameters:{
-		logfile:imp_params['logfile']}});
+		//window.upd=new Ajax.PeriodicalUpdater("runlog","magmi_progress.php",{frequency:1,evalScripts:true,parameters:{
+		//logfile:imp_params['logfile']}});
+		window.setInterval(updateProgress,
+		window.upd=loaddiv('runlog','magmi_progress.php'
 	};
 	
 	startImport=function(imp_params)

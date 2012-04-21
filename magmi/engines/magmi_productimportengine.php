@@ -38,7 +38,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	private $_same;
 	private $_currentpid;
 	private $_extra_attrs;
-	private $_profile;
 	private $_sid_wsscope=array();
 	private $_sid_sscope=array();
 	private $_prodcols=array();

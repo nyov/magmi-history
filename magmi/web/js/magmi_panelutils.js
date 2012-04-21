@@ -114,11 +114,12 @@ showConfLink=function(maincont)
 	
 };
 
-loadConfigPanel=function(container,profile,plclass,pltype)
+loadConfigPanel=function(container,profile,plclass,pltype,engclass)
 {
 	var params={profile:profile,
 			plugintype:pltype,
-			pluginclass:plclass};
+			pluginclass:plclass,
+			engineclass:engclass};
 	
 	
 loaddiv($(container),'ajax_pluginconf.php',decodeURIComponent($.param(params)),	function(){
@@ -138,7 +139,7 @@ $(cfgdiv).unbind('click');
 };
 
 
-initAjaxConf=function(profile)
+initAjaxConf=function(profile,engineclass)
 {
 	//foreach plugin selection
 	$('.pluginselect').each(function(idx,pls)
@@ -164,7 +165,7 @@ initAjaxConf=function(profile)
 			var container=targets[0];
 			if(doload)
 			{
-				loadConfigPanel(container,profile,plclass,pltype);
+				loadConfigPanel(container,profile,plclass,pltype,engineclass);
 			}
 			else
 			{
