@@ -14,9 +14,9 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	public function getPluginInfo()
 	{
 		return array(
-            "name" => "Standard Attribute Import",
+            "name" => "Customer Attribute Import",
             "author" => "Dweeves",
-            "version" => "1.0.2"
+            "version" => "1.0.0"
             );
 	}
 	
@@ -66,7 +66,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @return mixed : false if no further processing is needed,
 	 * 					string (magento value) for the decimal attribute otherwise
 	 */
-	public function handleDecimalAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleDecimalAttribute($pid,&$item,$attrcode,$attrdesc,$ivalue)
 	{
 		//force convert decimal separator to dot
 		$ivalue=str_replace(",",".",$ivalue);
@@ -82,7 +82,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @return mixed : false if no further processing is needed,
 	 * 					string (magento value) for the datetime attribute otherwise
 	 */
-	public function handleDatetimeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleDatetimeAttribute($pid,&$item,$attrcode,$attrdesc,$ivalue)
 	{
 		$ovalue=deleteifempty(trim($ivalue));
 		//Handle european date format
@@ -93,7 +93,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 		return $ovalue;
 	}
 
-	public function handleTextAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleTextAttribute($pid,&$item,$attrcode,$attrdesc,$ivalue)
 	{
 		$ovalue=(empty($ivalue)?'':$ivalue);
 		return $ovalue;	
@@ -111,7 +111,12 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	 * @return mixed : false if no further processing is needed,
 	 * 					int (magento value) for the int attribute otherwise
 	 */
-	public function handleIntAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleGenderAttribute($pid,&$item,$attrcode,$attrdesc,$ivalue)
+	{
+		$ovalue=strtolower($ivalue)=='female'?2:1;
+		return $ovalue;
+	}
+	public function handleIntAttribute($pid,&$item,$attrcode,$attrdesc,$ivalue)
 	{
 		$ovalue=$ivalue;
 		$attid=$attrdesc["attribute_id"];
@@ -121,24 +126,11 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 			//we need to identify its type since some have no options
 			switch($attrdesc["source_model"])
 			{
-				//if its status, default to 1 (Enabled) if not correcly mapped
-				case "catalog/product_status":
-					if(!$this->checkInt($ivalue) ){
-						$ovalue=1;
-					}
-					break;
 				//do not create options for boolean values tagged as select ,default to 0 if not correcly mapped
 				case "eav/entity_attribute_source_boolean":
 					if(!$this->checkInt($ivalue)){
 						$ovalue=0;
 					}
-					break;
-				//if visibility no options either,default to 4 if not correctly mapped
-				case "catalog/product_visibility":
-					if(!$this->checkInt($ivalue)){
-						$ovalue=4;
-					}
-					
 					break;
 					//if it's tax_class, get tax class id from item value
 				case "tax/class_source_product":
@@ -148,13 +140,13 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 					//get option id for value, create it if does not already exist
 					//do not insert if empty
 				default:
-					if($ivalue=="" && $this->getMode()=="update")
+					/*if($ivalue=="" && $this->getMode()=="update")
 					{
 						return "__MAGMI_DELETE__";
 					}
 					$oids=$this->getOptionIds($attid,$storeid,array($ivalue));
 					$ovalue=$oids[0];
-					unset($oids);
+					unset($oids);*/
 					break;
 			}
 		}
@@ -162,16 +154,19 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	}
 
 
+	
+	
+	
 	/**
 	 * attribute handler for varchar based attributes
 	 * @param int $pid : product id
 	 * @param string $ivalue : attribute value
 	 * @param array $attrdesc : attribute description
 	 */
-	public function handleVarcharAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
+	public function handleVarcharAttribute($pid,&$item,$attrcode,$attrdesc,$ivalue)
 	{
 
-		if($storeid!==0 && empty($ivalue) && $this->getImportMode()=="create")
+		if(empty($ivalue) && $this->getImportMode()=="create")
 		{
 			return false;
 		}
@@ -179,6 +174,9 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 		{
 			return "__MAGMI_DELETE__";
 		}
+		
+		
+		
 		
 		$ovalue=$ivalue;
 		$attid=$attrdesc["attribute_id"];

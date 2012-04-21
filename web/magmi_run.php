@@ -6,10 +6,9 @@
 	
 	try
 	{
-		$engdef=explode(":",$params["engine"]);
-		$engine_name=$engdef[0];
-		$engine_class=$engdef[1];
-		require_once("../engines/$engine_name.php");
+		$engclass=$params["engineclass"];
+		$ph=new Magmi_PluginHelper($params['profile']);
+		$ph->setEngineClass($engclass);
 	}
 	catch(Exception $e)
 	{
@@ -59,7 +58,7 @@
 	{
 		Magmi_StateManager::setState("idle");
 		set_time_limit(0);
-		$mmi_imp=new $engine_class();
+		$mmi_imp=$ph->getEngine();
 		$logfile=isset($params["logfile"])?$params["logfile"]:null;
 		if(isset($logfile) && $logfile!="")
 		{

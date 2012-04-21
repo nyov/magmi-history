@@ -201,19 +201,7 @@ class Magmi_Config extends DirbasedConfig
 		return parent::save($arr);		
 	}
 	
-	public function getProfileList()
-	{
-		$proflist=array();
-		$candidates=scandir($this->getConfDir());
-		foreach($candidates as $candidate)
-		{
-			if(is_dir($this->getConfDir().DS.$candidate) && $candidate[0]!="." && substr($candidate,0,2)!="__")
-			{
-				$proflist[]=$candidate;
-			}
-		}
-		return $proflist;
-	}
+	
 	
 }
 

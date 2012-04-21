@@ -5,8 +5,10 @@ require_once("dbhelper.class.php");
 $conf=Magmi_Config::getInstance();
 $conf->load();
 $conf_ok=1;
+
 ?>
 <?php 
+require_once("magmi_pluginhelper.php");
 $profile="";
 if(isset($_REQUEST["profile"]))
 {
@@ -24,7 +26,12 @@ if($profile=="")
 {
 	$profile="default";
 }
-$eplconf=new EnabledPlugins_Config($profile);
+
+$engclass=$_REQUEST["engineclass"];
+$ph=Magmi_PluginHelper::getInstance($profile);
+$ph->setEngineClass($engclass);
+
+$eplconf=new EnabledPlugins_Config($ph->getEngine()->getProfilesDir(),$profile);
 $eplconf->load();
 if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 {
@@ -91,12 +98,13 @@ Zip library not available, Upgrade/Upload function are not enabled
 <form method="POST" id="runmagmi" action="magmi.php" <?php if(!$conf_ok){?>style="display:none"<?php }?>>
 	<input type="hidden" name="run" value="import"></input>
 	<input type="hidden" name="logfile" value="<?php echo Magmi_StateManager::getProgressFile()?>"></input>
+	<input type="hidden" name="engineclass" value="<?php echo $engclass?>"></input>
 	<div class="container_12">
 		<div class="grid_12 col" id="directrun">	
 			<h3>Directly run magmi with existing profile</h3>
 			<div class="formline">
 				<span class="label">Run Magmi With Profile:</span>
-				<?php $profilelist=$conf->getProfileList(); ?>
+				<?php $profilelist=$ph->getEngine()->getProfileList(); ?>
 				<select name="profile" id="runprofile">
 					<option <?php if(null==$profile){?>selected="selected"<?php }?> value="default">Default</option>
 					<?php foreach($profilelist as $profilename){?>

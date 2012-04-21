@@ -27,6 +27,8 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	public $store_ids=array();
 	public $status_id=array();
 	public $sidcache=array();
+	protected $_wsidcache=array();
+	private $_grpid=array();
 	public $mode="update";
 	private $_etypes=array();
 	private $_attributehandlers;
@@ -36,19 +38,14 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	private $_dstore=array();
 	private $_same;
 	private $_currentcid;
+	private $_curitemids;
 	private $_extra_attrs;
-	private $_profile;
 	private $_sid_wsscope=array();
 	private $_sid_sscope=array();
 	private $_custcols=array();
 	private $_custstats=array();
 
-	public function addExtraAttribute($attr)
-	{
-		$attinfo=$this->attrinfo[$attr];
-		$this->_extra_attrs[$attinfo["backend_type"]]["data"][]=$attinfo;
 
-	}
 	/**
 	 * constructor
 	 * @param string $conffile : configuration .ini filename
@@ -63,7 +60,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	{
 		return "customer_profiles";
 	}
-	
+
 	public function getCustStats()
 	{
 		return $this->_custstats;
@@ -72,6 +69,22 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	public function getImportMode()
 	{
 		return $this->mode;
+	}
+
+	public function getCustomerGroupId($item)
+	{
+		$grpname=$item['group_id'];
+		if(!isset($this->_grpid[$grpname]))
+		{
+			$sql='SELECT customer_group_id FROM '.$this->tablename('customer_group').' WHERE customer_group_code=?';
+			$grpid=$this->selectone($sql,array($grpname),'customer_group_id');
+			if($grpid==null)
+			{
+				$grpid=1;
+			}
+			$this->_grpid[$grpname]=$grpid;
+		}
+		return $this->_grpid[$grpname];
 	}
 	/**
 	 * (non-PHPdoc)
@@ -89,15 +102,20 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 
 
 
-
+	public function getEntityTypeId($name)
+	{
+		
+		return isset($this->_etypes[$name])?$this->_etypes[$name]:0;
+	}
+	
 	public function initEntityTypes()
 	{
 		$tname=$this->tablename("eav_entity_type");
-		$tpks=array("customer","customer_address");
-		$result=$this->selectAll("SELECT entity_type_id FROM $tname WHERE entity_type_code IN (".$this->arr2values($tpks).")",$tpks);
+		$tpks=array("customer");
+		$result=$this->selectAll("SELECT entity_type_code,entity_type_id FROM $tname WHERE entity_type_code IN (".$this->arr2values($tpks).")",$tpks);
 		foreach($result as $row)
 		{
-			$this->_etypes=array_merge($this->_etypes,$row);
+			$this->_etypes=array_merge($this->_etypes,array($row['entity_type_code']=>$row['entity_type_id']));
 		}
 	}
 
@@ -140,7 +158,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			$wscarr=csl2arr($scodes);
 			$qcolstr=$this->arr2values($wscarr);
 			$cs=$this->tablename("core_store");
-			$sql="SELECT csdep.store_id FROM $cs as csmain 
+			$sql="SELECT csdep.store_id FROM $cs as csmain
 				 JOIN $cs as csdep ON csdep.website_id=csmain.website_id
 				 WHERE csmain.code IN ($qcolstr) ";
 			$sidrows=$this->selectAll($sql,$wscarr);
@@ -180,33 +198,21 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 		return $this->mode;
 	}
 
-	public function getProdCols()
+	public function getCustCols()
 	{
-		if(count($this->_prodcols)==0)
+		if(count($this->_custcols)==0)
 		{
-			$sql='DESCRIBE '.$this->tablename('catalog_product_entity');
+			$sql='DESCRIBE '.$this->tablename('customer_entity');
 			$rows=$this->selectAll($sql);
 			foreach($rows as $row)
 			{
-				$this->_prodcols[]=$row['Field'];
+				$this->_custcols[]=$row['Field'];
 			}
 		}
-		return $this->_prodcols;
+		return $this->_custcols;
 	}
 
-	public function getStockCols()
-	{
-		if(count($this->_stockcols)==0)
-		{
-			$sql='DESCRIBE '.$this->tablename('cataloginventory_stock_item');
-			$rows=$this->selectAll($sql);
-			foreach($rows as $row)
-			{
-				$this->_stockcols[]=$row['Field'];
-			}
-		}
-		return $this->_stockcols;
-	}
+
 	/**
 	 * Initialize attribute infos to be used during import
 	 * @param array $cols : array of attribute names
@@ -215,8 +221,8 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	{
 		$eav_attr=$this->tablename("eav_attribute");
 		$sql="SELECT attribute_code FROM $eav_attr WHERE  is_required=1
-		AND frontend_input!='' AND frontend_label!='' AND entity_type_id=?";
-		$required=$this->selectAll($sql,$this->prod_etype);
+		AND frontend_input!='' AND frontend_label!='' AND entity_type_id IN (".$this->arr2values($this->_etypes).")";
+		$required=$this->selectAll($sql,array_values($this->_etypes));
 		$reqcols=array();
 		foreach($required as $line)
 		{
@@ -232,13 +238,20 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	 * @param array $cols list of attribute codes to get metadata from
 	 *                    if in this list, some values are not attribute code, no metadata will be cached.
 	 */
-	public function initAttrInfos($cols)
+	public function initAttrInfos($cols,$etypes=null)
 	{
-		if($this->prod_etype==null)
+		
+		if($etypes==null && count($this->_etypes)==0)
 		{
-			//Find product entity type
-			$tname=$this->tablename("eav_entity_type");
-			$this->prod_etype=$this->selectone("SELECT entity_type_id FROM $tname WHERE entity_type_code=?","catalog_product","entity_type_id");
+			$this->initEntityTypes();
+		}
+		if($etypes==null)
+		{
+			$etypes=$this->_etypes;
+		}
+		if(!is_array($etypes))
+		{
+			$etypes=array($etypes);
 		}
 
 		$toscan=array_values(array_diff($cols,array_keys($this->attrinfo)));
@@ -248,19 +261,11 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			$qcolstr=$this->arr2values($toscan);
 
 			$tname=$this->tablename("eav_attribute");
-			if($this->getMagentoVersion()!="1.3.x")
-			{
-				$extra=$this->tablename("catalog_eav_attribute");
-				//SQL for selecting attribute properties for all wanted attributes
-				$sql="SELECT `$tname`.*,$extra.is_global FROM `$tname`
-				LEFT JOIN $extra ON $tname.attribute_id=$extra.attribute_id
-				WHERE  ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=?)";		
-			}
-			else
-			{
-				$sql="SELECT `$tname`.* FROM `$tname` WHERE ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id=?)";
-			}
-			$toscan[]=$this->prod_etype;
+				
+				
+			$sql="SELECT `$tname`.* FROM `$tname` WHERE ($tname.attribute_code IN ($qcolstr)) AND (entity_type_id IN (".$this->arr2values($etypes)."))";
+				
+			$toscan=array_merge($toscan,array_values($etypes));
 			$result=$this->selectAll($sql,$toscan);
 
 			$attrinfs=array();
@@ -282,16 +287,20 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 					continue;
 				}
 				$bt=$a["backend_type"];
-				if(!isset($this->attrbytype[$bt]))
+				$custeid=$this->_etypes['customer'];
+				if($a['entity_type_id']==$custeid)
 				{
-					$this->attrbytype[$bt]=array("data"=>array());
+					if(!isset($this->attrbytype[$bt]))
+					{
+						$this->attrbytype[$bt]=array("data"=>array());
+					}
+					$this->attrbytype[$bt]["data"][]=$a;
 				}
-				$this->attrbytype[$bt]["data"][]=$a;
-			}
+			}	
 			//now add a fast index in the attrbytype array to store id list in a comma separated form
 			foreach($this->attrbytype as $bt=>$test)
 			{
-				$idlist;
+				$idlist=array();
 				foreach($test["data"] as $it)
 				{
 					$idlist[]=$it["attribute_id"];
@@ -324,12 +333,13 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	 * @param boolean $lookup if set, this will try to get info from DB otherwise will get from cache and may return null if not cached
 	 * @return array attribute metadata info
 	 */
-	public function getAttrInfo($attcode,$lookup=true)
+	public function getAttrInfo($attcode,$lookup=true,$etid=null)
 	{
+				
 		$attrinf=isset($this->attrinfo[$attcode])?$this->attrinfo[$attcode]:null;
 		if($attrinf==null && $lookup)
 		{
-			$this->initAttrInfos(array($attcode));
+			$this->initAttrInfos(array($attcode),$etid);
 
 		}
 		if(count($this->attrinfo[$attcode])==0)
@@ -364,16 +374,43 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 		return $this->attribute_sets[$asname];
 	}
 
+	public function getWebsiteId($wscodes)
+	{
+		$wsarr=explode(",",$wscodes);
+		$wsids=array();
+		if(!isset($this->_wsidcache[$wscodes]))
+		{
+			if($wscodes!="admin")
+			{
+				$sql="SELECT website_id FROM ".$this->tablename('core_website')." WHERE code IN (".$this->arr2values($wsarr).") AND website_id!=0 LIMIT 1";
+			}
+			else
+			{
+				$sql="SELECT website_id FROM ".$this->tablename('core_website')." WHERE website_id!=0 AND is_default=1 LIMIT 1";
+				
+			}
+			$result=$this->selectOne($sql,$wscodes,"website_id");
+			if($result==null)
+			{
+				$this->_wsidcache[$wscodes]=0;
+			}
+			else
+			{
+				$this->_wsidcache[$wscodes]=$result;
+			}
+		}
+		return $this->_wsidcache[$wscodes];
+	}
 	/**
 	 * Retrieves product id for a given sku
 	 * @param string $sku : sku of product to get id for
 	 */
-	public function getProductIds($sku)
+	public function getCustomerIds($email)
 	{
-		$tname=$this->tablename("catalog_product_entity");
+		$tname=$this->tablename("customer_entity");
 		$result=$this->selectAll(
-		"SELECT sku,entity_id as pid,attribute_set_id as asid FROM $tname WHERE sku=?",
-		$sku);
+		"SELECT email,entity_id as cid,attribute_set_id as asid FROM $tname WHERE email=?",
+		$email);
 		if(count($result)>0)
 		{
 			return $result[0];
@@ -383,27 +420,31 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			return false;
 		}
 	}
-
 	/**
 	 * creates a product in magento database
 	 * @param array $item: product attributes as array with key:attribute name,value:attribute value
 	 * @param int $asid : attribute set id for values
 	 * @return : product id for newly created product
 	 */
-	public function createProduct($item,$asid)
+	public function createCustomer($item,$asid)
 	{
 		//force item type if not exists
 		if(!isset($item["type"]))
 		{
 			$item["type"]="simple";
 		}
-		$tname=$this->tablename('catalog_product_entity');
-		$item['type_id']=$item['type'];
+		$tname=$this->tablename('customer_entity');
 		$item['attribute_set_id']=$asid;
-		$item['entity_type_id']=$this->prod_etype;
+		$item['entity_type_id']=$this->_etypes['customer'];
 		$item['created_at']=strftime("%Y-%m-%d %H:%M:%S");
 		$item['updated_at']=strftime("%Y-%m-%d %H:%M:%S");
-		$columns=array_intersect(array_keys($item), $this->getProdCols());
+		$item['website_id']=$this->getWebsiteId($item['website']);
+		$grpid=isset($item['group_id'])?$item['group_id']:'MAGMI_notset';
+		if(!is_int($grpid))
+		{
+			$item['group_id']=$this->getCustomerGroupId($item);
+		}
+		$columns=array_intersect(array_keys($item), $this->getCustCols());
 		$values=$this->filterkvarr($item, $columns);
 		$sql="INSERT INTO `$tname` (".implode(",",$columns).") VALUES (".$this->arr2values($columns).")";
 		$lastid=$this->insert($sql,array_values($values));
@@ -414,188 +455,26 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	 * Updateds product update time
 	 * @param unknown_type $pid : entity_id of product
 	 */
-	public function touchProduct($pid)
+	public function touchCustomer($cid)
 	{
-		$tname=$this->tablename('catalog_product_entity');
-		$this->update("UPDATE $tname SET updated_at=? WHERE entity_id=?",array(strftime("%Y-%m-%d %H:%M:%S"),$pid));
+		$tname=$this->tablename('customer_entity');
+		$this->update("UPDATE $tname SET updated_at=? WHERE entity_id=?",array(strftime("%Y-%m-%d %H:%M:%S"),$cid));
 	}
 
-	/**
-	 * Get Option id for select attributes based on value
-	 * @param int $attid : attribute id to find option id from value
-	 * @param mixed $optval : value to get option id for
-	 * @return : array of lines (should be as much as values found),"opvd"=>option_id for value on store 0,"opvs" option id for value on current store
-	 */
-	function getOptionsFromValues($attid,$store_id,$optvals)
+	function setCustomerGroups($item)
 	{
-		$ovstr=substr(str_repeat("?,",count($optvals)),0,-1);
-		$t1=$this->tablename('eav_attribute_option');
-		$t2=$this->tablename('eav_attribute_option_value');
-		$sql="SELECT optvals.option_id as opvs,optvals.value FROM $t2 as optvals";
-		$sql.=" JOIN $t1 as opt ON opt.option_id=optvals.option_id AND opt.attribute_id=?";
-		$sql.=" WHERE optvals.store_id=? AND optvals.value IN ($ovstr)";
-		return $this->selectAll($sql,array_merge(array($attid,$store_id),$optvals));
+
 	}
 
 
-	/* create a new option entry for an attribute */
-	function createOption($attid)
-	{
-		$t=$this->tablename('eav_attribute_option');
-		$optid=$this->insert("INSERT INTO $t (attribute_id) VALUES (?)",$attid);
-		return $optid;
-	}
-	/**
-	 * Creates a new option value for an option entry for a store
-	 * @param int $optid : option entry id
-	 * @param int $store_id : store id to add value for
-	 * @param mixed $optval : new option value to add
-	 * @return : option id for new created value
-	 */
-	function  createOptionValue($optid,$store_id,$optval)
-	{
-		$t=$this->tablename('eav_attribute_option_value');
-		$optval_id=$this->insert("INSERT INTO $t (option_id,store_id,value) VALUES (?,?,?)",array($optid,$store_id,$optval));
-		return $optval_id;
-	}
-
-
-	function getOptionIds($attid,$storeid,$values)
-	{
-		$optids=array();
-		$svalues=array();
-		$avalues=array();
-		//Matching refstore value
-		foreach($values as $val)
-		{
-			if(preg_match("|^(.*)::\[(.*)\]$|",$val,$matches))
-			{
-				$svalues[]=$matches[2];
-				$avalues[]=$matches[1];
-			}
-			else
-			{
-				$svalues[]=$val;
-				$avalues[]=$val;
-			}
-		}
-		$existing=$this->getOptionsFromValues($attid,0,$avalues);
-		$exvals=array();
-		foreach($existing as $optdesc)
-		{
-			$exvals[]=$optdesc["value"];
-		}
-		$new=array_merge(array_diff($avalues,$exvals));
-		if($storeid==0)
-		{
-			foreach($new as $nval)
-			{
-				$row=array("opvs"=>$this->createOption($attid),"value"=>$nval);
-				$this->createOptionValue($row["opvs"],$storeid,$nval);
-				$existing[]=$row;
-			}
-			$this->cacheOptIds($attid,$existing);
-
-		}
-		else
-		{
-
-			$brows=$this->getCachedOptIds($attid);
-			foreach($existing as $ex)
-			{
-				array_shift($brows);
-			}
-			for($i=0;$i<count($new);$i++)
-			{
-				$row=$brows[$i];
-				if(!isset($row["opvs"]))
-				{
-					$row["opvs"]=$this->createOption($attid);
-					$this->createOptionValue($row["opvs"],0,$new[$i]);
-				}
-				$this->createOptionValue($row["opvs"],$storeid,$new[$i]);
-				$existing[]=$row;
-			}
-		}
-		$optids=array();
-		foreach($existing as $row)
-		{
-			$optids[]=$row["opvs"];
-		}
-		unset($existing);
-		unset($exvals);
-		return $optids;
-
-	}
-
-	function cacheOptIds($attid,$row)
-	{
-		$this->_optidcache[$attid]=$row;
-	}
-
-	function getCachedOptIds($attid)
-	{
-		return $this->_optidcache[$attid];
-	}
-
-
-	/**
-	 * returns tax class id for a given tax class value
-	 * @param $tcvalue : tax class value
-	 */
-	public function getTaxClassId($tcvalue)
-	{
-		$t=$this->tablename('tax_class');
-		$txid=$this->selectone("SELECT class_id FROM $t WHERE class_name=?",array($tcvalue),"class_id");
-		//bugfix for tax class id, if not found set it to none
-		if(!isset($txid))
-		{
-			$txid=0;
-		}
-		return $txid;
-	}
-
-
-
-	/**
-	 *
-	 * Return affected store ids for a given item given an attribute scope
-	 * @param array $item : item to get store for scope
-	 * @param string $scope : scope to get stores from.
-	 */
-	public function getItemStoreIds($item,$scope)
-	{
-		switch($scope){
-			//global scope
-			case 1:
-				$bstore_ids=$this->getStoreIdsForStoreScope("admin");
-				break;
-				//store scope
-			case 0:
-				$bstore_ids=$this->getStoreIdsForStoreScope($item["store"]);
-				break;
-				//website scope
-			case 2:
-				$bstore_ids=$this->getStoreIdsForWebsiteScope($item["store"]);
-				break;
-		}
-
-		$itemstores=array_unique(array_merge($this->_dstore,$bstore_ids));
-		sort($itemstores);
-		return $itemstores;
-	}
 
 	/**
 	 * Create product attribute from values for a given product id
 	 * @param $pid : product id to create attribute values for
 	 * @param $item : attribute values in an array indexed by attribute_code
 	 */
-	public function createAttributes($pid,&$item,$attmap,$isnew)
+	public function createAttributes($cid,&$item,$attmap,$isnew)
 	{
-		/**
-		 * get all store ids
-		 */
-		$this->_extra_attrs=array();
 		/* now is the interesring part */
 		/* iterate on attribute backend type index */
 		foreach($attmap as $tp=>$a)
@@ -607,7 +486,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			}
 
 			//table name for backend type data
-			$cpet=$this->tablename("catalog_product_entity_$tp");
+			$cpet=$this->tablename("customer_entity_$tp");
 			//data table for inserts
 			$data=array();
 			//inserts to perform on backend type eav
@@ -632,93 +511,69 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 				}
 				//get the item value
 				$ivalue=$item[$attrcode];
-				//get item store id for the current attribute
-				$store_ids=$this->getItemStoreIds($item,$attrdesc["is_global"]);
-
 
 				//do not handle empty generic int values in create mode
 				if($ivalue=="" && $this->mode!="update" && $tp=="int")
 				{
 					continue;
 				}
-				//for all store ids
-				foreach($store_ids as $store_id)
+
+				//base output value to be inserted = base source value
+				$ovalue=$ivalue;
+				//check for attribute handlers for current attribute
+				foreach($this->_attributehandlers as $match=>$ah)
 				{
-
-					//base output value to be inserted = base source value
-					$ovalue=$ivalue;
-					//check for attribute handlers for current attribute
-					foreach($this->_attributehandlers as $match=>$ah)
+					$matchinfo=explode(":",$match);
+					$mtype=$matchinfo[0];
+					$mtest=$matchinfo[1];
+					unset($matchinfo);
+					unset($hvalue);
+					if(preg_match("/$mtest/",$attrdesc[$mtype]))
 					{
-						$matchinfo=explode(":",$match);
-						$mtype=$matchinfo[0];
-						$mtest=$matchinfo[1];
-						unset($matchinfo);
-						unset($hvalue);
-						if(preg_match("/$mtest/",$attrdesc[$mtype]))
+						//if there is a specific handler for attribute, use it
+						if(method_exists($ah,$atthandler))
 						{
-							//if there is a specific handler for attribute, use it
-							if(method_exists($ah,$atthandler))
-							{
-								$hvalue=$ah->$atthandler($pid,$item,$store_id,$attrcode,$attrdesc,$ivalue);
-							}
-							else
-							//use generic type attribute
-							if(method_exists($ah,$typehandler))
-							{
-								$hvalue=$ah->$typehandler($pid,$item,$store_id,$attrcode,$attrdesc,$ivalue);
-							}
-							//if handlers returned a value that is not "__MAGMI_UNHANDLED__" , we have our output value
-							if(isset($hvalue) && $hvalue!="__MAGMI_UNHANDLED__")
-							{
-								$ovalue=$hvalue;
-								break;
-							}
+							$hvalue=$ah->$atthandler($cid,$item,$attrcode,$attrdesc,$ivalue);
 						}
-					}
-					//if __MAGMI_UNHANDLED__ ,don't insert anything
-					if($ovalue=="__MAGMI_UNHANDLED__")
-					{
-						$ovalue=false;
-					}
-					//if handled value is a "DELETE"
-					if($ovalue=="__MAGMI_DELETE__")
-					{
-						$deletes[]=$attid;
-					}
-					else
-					//if we have something to do with this value
-					if($ovalue!==false)
-					{
-
-						$data[]=$this->prod_etype;
-						$data[]=$attid;
-						$data[]=$store_id;
-						$data[]=$pid;
-						$data[]=$ovalue;
-						$insstr="(?,?,?,?,?)";
-						$inserts[]=$insstr;
-					}
-
-					//if one of the store in the list is admin
-					if($store_id==0)
-					{
-						$sids=$store_ids;
-						//remove all values bound to the other stores for this attribute,so that they default to "use admin value"
-						array_pop($sids);
-						if(count($sids)>0)
+						else
+						//use generic type attribute
+						if(method_exists($ah,$typehandler))
 						{
-							$sidlist=implode(",",$sids);
-							$ddata=array($this->prod_etype,$attid,$pid);
-							$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id IN ($sidlist) AND entity_id=?";
-							$this->delete($sql,$ddata);
-							unset($ddata);
+							$hvalue=$ah->$typehandler($cid,$item,$attrcode,$attrdesc,$ivalue);
 						}
-						unset($sids);
-						break;
+						//if handlers returned a value that is not "__MAGMI_UNHANDLED__" , we have our output value
+						if(isset($hvalue) && $hvalue!="__MAGMI_UNHANDLED__")
+						{
+							$ovalue=$hvalue;
+							break;
+						}
 					}
 				}
+				//if __MAGMI_UNHANDLED__ ,don't insert anything
+				if($ovalue=="__MAGMI_UNHANDLED__")
+				{
+					$ovalue=false;
+				}
+				//if handled value is a "DELETE"
+				if($ovalue=="__MAGMI_DELETE__")
+				{
+					$deletes[]=$attid;
+				}
+				else
+				//if we have something to do with this value
+				if($ovalue!==false)
+				{
+
+					$data[]=$this->_etypes['customer'];
+					$data[]=$attid;
+					$data[]=$cid;
+					$data[]=$ovalue;
+					$insstr="(?,?,?,?)";
+					$inserts[]=$insstr;
+				}
+
 			}
+				
 
 
 
@@ -727,7 +582,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 				//now perform insert for all values of the the current backend type in one
 				//single insert
 				$sql="INSERT INTO $cpet
-			(`entity_type_id`, `attribute_id`, `store_id`, `entity_id`, `value`)
+			(`entity_type_id`, `attribute_id`, `entity_id`, `value`)
 			VALUES ";
 				$sql.=implode(",",$inserts);
 				//this one taken from mysql log analysis of magento import
@@ -740,7 +595,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			{
 				$sidlist=implode(",",$store_ids);
 				$attidlist=implode(",",$deletes);
-				$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id IN ($attidlist) AND store_id IN ($sidlist) AND entity_id=?";
+				$sql="DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id IN ($attidlist)  AND entity_id=?";
 				$this->delete($sql,array($this->prod_etype,$pid));
 			}
 
@@ -748,7 +603,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			{
 				if(!$this->_same)
 				{
-					$this->log("No $tp Attributes created for sku ".$item["sku"],"warning");
+					$this->log("No $tp Attributes created for email ".$item["email"],"warning");
 				}
 			}
 			unset($store_ids);
@@ -761,204 +616,6 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 
 
 
-	/**
-	 * update product stock
-	 * @param int $pid : product id
-	 * @param array $item : attribute values for product indexed by attribute_code
-	 */
-	public function updateStock($pid,$item,$isnew)
-	{
-
-		$scols=$this->getStockCols();
-		#take only stock columns that are in item
-		$itstockcols=array_intersect(array_keys($item),$scols);
-		#no stock columns set, item exists, no stock update needed.
-		if(count($itstockcols)==0 && !$isnew)
-		{
-			return;
-		}
-		$csit=$this->tablename("cataloginventory_stock_item");
-		$css=$this->tablename("cataloginventory_stock_status");
-		#calculate is_in_stock flag
-		if(isset($item["qty"]))
-		{
-			if(!isset($item["manage_stock"]))
-			{
-				$item["manage_stock"]=1;
-				$item["use_config_manage_stock"]=0;
-			}
-
-			$mqty=(isset($item["min_qty"])?$item["min_qty"]:0);
-			$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>$mqty?1:0);
-			if(!$is_in_stock && $item["qty"]>$mqty)
-			{
-				$is_in_stock=1;
-			}
-			$item["is_in_stock"]=$is_in_stock;
-		}
-		#take only stock columns that are in  item after item update
-		$common=array_intersect(array_keys($item),$scols);
-
-		#create stock item line if needed
-		$stock_id=(isset($item["stock_id"])?$item["stock_id"]:1);
-		$sql="INSERT IGNORE INTO `$csit` (product_id,stock_id) VALUES (?,?)";
-		$this->insert($sql,array($pid,$stock_id));
-
-		if(count($common)>0)
-		{
-			$cols=$this->arr2columns($common);
-			$stockvals=$this->filterkvarr($item,$common);
-
-			#fill with values
-			$svstr=$this->arr2update($stockvals);
-			$relqty=NULL;
-			//test for relative qty
-			if($item["qty"][0]=="+" || $item["qty"][0]=="-")
-			{
-				$relqty=getRelative($item["qty"]);
-			}
-			//if relative qty
-			if($relqty!=NULL)
-			{
-				//update UPDATE statement value affectation
-				$svstr=preg_replace("/(^|,)qty=\?/","$1qty=qty$relqty?",$svstr);
-				$stockvals["qty"]=$item["qty"];
-				$svstr=str_replace("is_in_stock=?","is_in_stock=(qty>min_qty)",$svstr);
-				unset($stockvals["is_in_stock"]);
-			}
-
-			$sql="UPDATE `$csit` SET $svstr WHERE product_id=? AND stock_id=?";
-			$this->update($sql,array_merge(array_values($stockvals),array($pid,$stock_id)));
-		}
-
-		$data=array();
-		$wsids=$this->getItemWebsites($item);
-		$csscols=array("website_id","product_id","stock_id","qty","stock_status");
-		$cssvals=$this->filterkvarr($item,$csscols);
-		$stock_id=(isset($cssvals["stock_id"])?$cssvals["stock_id"]:1);
-		$stock_status=(isset($cssvals["stock_status"])?$cssvals["stock_status"]:1);
-		//new auto synchro on lat inserted stock item values for stock status.
-		//also works for multiple stock ids.
-		$sql="INSERT INTO `$css` SELECT csit.product_id,ws.website_id,cis.stock_id,csit.qty,? as stock_status
-				FROM `$csit` as csit 
-				JOIN ".$this->tablename("core_website")." as ws ON ws.website_id IN (".$this->arr2values($wsids).") 
-				JOIN ".$this->tablename("cataloginventory_stock")." as cis ON cis.stock_id=?
-				WHERE product_id=?
-				ON DUPLICATE KEY UPDATE stock_status=VALUES(`stock_status`),qty=VALUES(`qty`)";
-		$data[]=$stock_status;
-		$data=array_merge($data,$wsids);
-		$data[]=$stock_id;
-		$data[]=$pid;
-		$this->insert($sql,$data);
-		unset($data);
-	}
-	/**
-	 * assign categories for a given product id from values
-	 * categories should already be created & csv values should be as the ones
-	 * given in the magento export (ie:  comma separated ids, minus 1,2)
-	 * @param int $pid : product id
-	 * @param array $item : attribute values for product indexed by attribute_code
-	 */
-	public function assignCategories($pid,$item)
-	{
-		$cce=$this->tablename("catalog_category_entity");
-		$ccpt=$this->tablename("catalog_category_product");
-		#handle assignment reset
-		if(!isset($item["category_reset"]) || $item["category_reset"]==1)
-		{
-			$sql="DELETE $ccpt.*
-			FROM $ccpt
-			JOIN $cce ON $cce.entity_id=$ccpt.category_id
-			WHERE product_id=?";
-			$this->delete($sql,$pid);
-		}
-
-
-		$inserts=array();
-		$data=array();
-		$ddata=array();
-		$catids=csl2arr($item["category_ids"]);
-		foreach($catids as $catid)
-		{
-			$rel=getRelative($catid);
-			if($rel=="-")
-			{
-				$ddata[]=$catid;
-			}
-			else
-			{
-				$inserts[]="(?,?)";
-				$data[]=$catid;
-				$data[]=$pid;
-			}
-		}
-
-		#peform deletion of removed category affectation
-		if(count($ddata)>0)
-		{
-			$sql="DELETE FROM $ccpt WHERE category_id IN (".$this->arr2values($ddata).") AND product_id=?";
-			$ddata[]=$pid;
-			$this->delete($sql,$ddata);
-			unset($ddata);
-		}
-
-		#create new category assignment for products, if multi store with repeated ids
-		#ignore duplicates
-		if(count($inserts)>0)
-		{
-			$sql="INSERT IGNORE INTO $ccpt (`category_id`,`product_id`)
-				 VALUES	 ";
-			$sql.=implode(",",$inserts);
-			$this->insert($sql,$data);
-			unset($data);
-		}
-		unset($deletes);
-		unset($inserts);
-	}
-
-
-	public function getItemWebsites($item,$default=false)
-	{
-		$k=$item["store"];
-		
-		if(!isset($this->_wsids[$k]))
-		{
-				$this->_wsids[$k]=array();
-				$cs=$this->tablename("core_store");
-				if(trim($k)!="admin")
-				{
-					$scodes=csl2arr($k);
-					$qcolstr=$this->arr2values($scodes);
-					$rows=$this->selectAll("SELECT website_id FROM $cs WHERE code IN ($qcolstr) AND store_id!=0 GROUP BY website_id",$scodes);
-				}
-				else
-				{
-					$rows=$this->selectAll("SELECT website_id FROM $cs WHERE store_id!=0 GROUP BY website_id ");
-				}
-				foreach($rows as $row)
-				{
-					$this->_wsids[$k][]=$row['website_id'];
-				}
-			}
-			return $this->_wsids[$k];
-	
-	}
-
-	/**
-	 * set website of product if not exists
-	 * @param int $pid : product id
-	 * @param array $item : attribute values for product indexed by attribute_code
-	 */
-	public function updateWebSites($pid,$item)
-	{
-		$wsids=$this->getItemWebsites($item);
-		$qcolstr=$this->arr2values($wsids);
-		$cpst=$this->tablename("catalog_product_website");
-		$cws=$this->tablename("core_website");
-		//associate product with all websites in a single multi insert (use ignore to avoid duplicates)
-		$sql="INSERT IGNORE INTO `$cpst` (`product_id`, `website_id`) SELECT ?,website_id FROM $cws WHERE website_id IN ($qcolstr)";
-		$this->insert($sql,array_merge(array($pid),$wsids));
-	}
 
 
 
@@ -968,7 +625,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 		$this->_optidcache=array();
 	}
 
-	public function onNewSku($sku,$existing)
+	public function onNewEmail($email,$existing)
 	{
 		$this->clearOptCache();
 		//only assign values to store 0 by default in create mode for new sku
@@ -984,21 +641,21 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 		$this->_same=false;
 	}
 
-	public function onSameSku($sku)
+	public function onSameEmail($email)
 	{
 		unset($this->_dstore);
 		$this->_dstore=array();
 		$this->_same=true;
 	}
 
-	
+
 	public function getItemIds($item)
 	{
-		$sku=$item["sku"];
-		if($sku!=$this->_curitemids["sku"])
+		$email=$item["email"];
+		if($email!=$this->_curitemids["email"])
 		{
 			//try to find item ids in db
-			$cids=$this->getProductIds($sku);
+			$cids=$this->getCustomerIds($email);
 			if($cids!==false)
 			{
 				//if found use it
@@ -1007,15 +664,15 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			else
 			{
 				//only sku & attribute set id from datasource otherwise.
-				$this->_curitemids=array("pid"=>null,"sku"=>$sku,"asid"=>isset($item["attribute_set"])?$this->getAttributeSetId($item["attribute_set"]):null);
+				$this->_curitemids=array("cid"=>null,"email"=>$email,"asid"=>isset($item["attribute_set"])?$this->getAttributeSetId($item["attribute_set"]):0);
 			}
-			//do not reset values for existing if non admin	
-			$this->onNewSku($sku,($cids!==false));
+			//do not reset values for existing if non admin
+			$this->onNewEmail($email,($cids!==false));
 			unset($cids);
 		}
 		else
 		{
-			$this->onSameSku($sku);
+			$this->onSameEmail($email);
 		}
 		return $this->_curitemids;
 	}
@@ -1031,73 +688,8 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			}
 		}
 	}
-	public function findItemStores($pid)
-	{
-		$sql="SELECT cs.code FROM ".$this->tablename("catalog_product_website")." AS cpw".
-		" JOIN ".$this->tablename("core_store")." as cs ON cs.website_id=cpw.website_id".
-		" WHERE cpw.product_id=?";
-		$result=$this->selectAll($sql,array($pid));
-		$scodes=array();
-		foreach($result as $row)
-		{
-			$scodes[]=$row["code"];
-		}
-		return implode(",",$scodes);
-	}
 
-	public function checkItemStores($scodes)
-	{
-		if($scodes=="admin")
-		{
-			return $scodes;
-		}
 
-		$scarr=explode(",",$scodes);
-		trimarray($scarr);
-		$rscode=array();
-		$sql="SELECT code FROM ".$this->tablename("core_store")." WHERE code IN (".$this->arr2values($scarr).")";
-		$result=$this->selectAll($sql,$scarr);
-		$rscodes=array();
-		foreach($result as $row)
-		{
-			$rscodes[]=$row["code"];
-		}
-		$diff=array_diff($scarr, $rscodes);
-		$out="";
-		if(count($diff)>0)
-		{
-			$out="Invalid store code(s) found:".implode(",",$diff);
-		}
-		if($out!="")
-		{
-			if(count($rscodes)==0)
-			{
-				$out.=", NO VALID STORE FOUND";
-			}
-			$this->log($out,"warning");
-		}
-
-		return implode(",",$rscodes);
-	}
-
-	public function checkstore(&$item,$pid,$isnew)
-	{
-		//we have store column set , just check
-		if(isset($item["store"]) && trim($item["store"])!="")
-		{
-			$scodes=$this->checkItemStores($item["store"]);
-		}
-		else
-		{
-			$scodes="admin";
-		}
-		if($scodes=="")
-		{
-			return false;
-		}
-		$item["store"]=$scodes;
-		return true;
-	}
 	/**
 	 * full import workflow for item
 	 * @param array $item : attribute values for product indexed by attribute_code
@@ -1117,50 +709,51 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			return false;
 		}
 		//check if sku has been reset
-		if(!isset($item["sku"]) || trim($item["sku"])=='')
+		if(!isset($item["email"]) || trim($item["email"])=='')
 		{
-			$this->log('No sku info found for record #'.$this->_current_row,"error");
-			return false;	
+			$this->log('No email info found for record #'.$this->_current_row,"error");
+			return false;
 		}
 		//handle "computed" ignored columns
 		$this->handleIgnore($item);
 		$itemids=$this->getItemIds($item);
-		$pid=$itemids["pid"];
+		$cid=$itemids["cid"];
 		$asid=$itemids["asid"];
 		$isnew=false;
-		if(isset($pid) && $this->mode=="xcreate")
+		if(isset($cid) && $this->mode=="xcreate")
 		{
-			$this->log("skipping existing sku:{$item["sku"]} - xcreate mode set","skip");
+			$this->log("skipping existing email:{$item["email"]} - xcreate mode set","skip");
 			return false;
 		}
-		if(!isset($pid))
+		if(!isset($cid))
 		{
 
 			if($this->mode!=='update')
 			{
 				if(!isset($asid))
 				{
-					$this->log("cannot create product sku:{$item["sku"]}, no attribute_set defined","error");
+					$this->log("cannot create customer:{$item["email"]}, no attribute_set defined","error");
 					return false;
 				}
-				$pid=$this->createProduct($item,$asid);
-				$this->_curitemids["pid"]=$pid;
+				$cid=$this->createCustomer($item,$asid);
+				$this->_curitemids["cid"]=$cid;
 				$isnew=true;
 			}
 			else
 			{
 				//mode is update, do nothing
-				$this->log("skipping unknown sku:{$item["sku"]} - update mode set","skip");
+				$this->log("skipping unknown email:{$item["email"]} - update mode set","skip");
 				return false;
 			}
 		}
 		else
 		{
-			$this->updateProduct($item,$pid);
+			$this->updateCustomer($item,$cid);
+				
 		}
 		try
 		{
-			if(!$this->callPlugins("itemprocessors","processItemAfterId",$item,array("product_id"=>$pid,"new"=>$isnew,"same"=>$this->_same,"asid"=>$asid)))
+			if(!$this->callPlugins("itemprocessors","processItemAfterId",$item,array("customer_id"=>$cid,"new"=>$isnew,"same"=>$this->_same)))
 			{
 				return false;
 			}
@@ -1174,40 +767,21 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			//handle "computed" ignored columns from afterImport
 			$this->handleIgnore($item);
 
-			if(!$this->checkstore($item,$pid,$isnew))
-			{
-				$this->log("invalid store value, skipping item sku:".$item["sku"]);
-				return false;
-			}
+				
 			//create new ones
 			$attrmap=$this->attrbytype;
 			do
 			{
-				$attrmap=$this->createAttributes($pid,$item,$attrmap,$isnew);
+				$attrmap=$this->createAttributes($cid,$item,$attrmap,$isnew);
 			}
 			while(count($attrmap)>0);
 
-			if(!testempty($item,"category_ids"))
-			{
-				//assign categories
-				$this->assignCategories($pid,$item);
-			}
 
-			//update websites
-			if($this->mode!="update")
-			{
-				$this->updateWebSites($pid,$item);
-			}
+				
 
-			if(!$this->_same)
-			{
-				//update stock
-				$this->updateStock($pid,$item,$isnew);
-			}
-
-			$this->touchProduct($pid);
+			$this->touchCustomer($cid);
 			//ok,we're done
-			if(!$this->callPlugins("itemprocessors","processItemAfterImport",$item,array("product_id"=>$pid,"new"=>$isnew,"same"=>$this->_same)))
+			if(!$this->callPlugins("itemprocessors","processItemAfterImport",$item,array("product_id"=>$cid,"new"=>$isnew,"same"=>$this->_same)))
 			{
 				return false;
 			}
@@ -1246,21 +820,23 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 
 
 
-	public function updateProduct($item,$pid)
+	public function updateCustomer($item,$cid)
 	{
-		$tname=$this->tablename('catalog_product_entity');
-		if(isset($item[$item['type']]))
-		{
-			$item['type_id']=$item['type'];
-		}
-		$item['entity_type_id']=$this->prod_etype;
+		$tname=$this->tablename('customer_entity');
 		$item['updated_at']=strftime("%Y-%m-%d %H:%M:%S");
-		$columns=array_intersect(array_keys($item), $this->getProdCols());
+		$grpid=isset($item['group_id'])?$item['group_id']:'MAGMI_notset';
+		if(!is_int($grpid))
+		{
+			$item['group_id']=$this->getCustomerGroupId($item);
+		}
+		//do not update email
+		unset($item['email']);
+		$columns=array_intersect(array_keys($item), $this->getCustCols());
 		$values=$this->filterkvarr($item, $columns);
 
 		$sql="UPDATE  `$tname` SET ".$this->arr2update($values). " WHERE entity_id=?";
 
-		$this->update($sql,array_merge(array_values($values),array($pid)));
+		$this->update($sql,array_merge(array_values($values),array($cid)));
 
 	}
 
@@ -1268,7 +844,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	{
 		return $this->prod_etype;
 	}
-	
+
 	public function getCurrentRow()
 	{
 		return $this->_current_row;
@@ -1292,7 +868,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	public function engineInit($params)
 	{
 		$this->_profile=$this->getParam($params,"profile","default");
-		$this->initPlugins($this->_profile);
+		$this->initPlugins();
 		$this->mode=$this->getParam($params,"mode","update");
 
 	}
@@ -1335,7 +911,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 	{
 		$this->handleIgnore($item);
 	}
-	
+
 	public function exitImport()
 	{
 		$this->callPlugins("datasources,general,itemprocessors","endImport");
@@ -1350,7 +926,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			$this->_skustats["nsku"]++;
 			if($res["ok"])
 			{
-				$this->_skustats["ok"]++;	
+				$this->_skustats["ok"]++;
 			}
 			else
 			{
@@ -1410,26 +986,26 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			unset($item);
 			$res["last"]=1;
 		}
-		
+
 		unset($item);
 		$this->updateSkuStats($res);
-		
+
 		return $res;
 
 	}
 
 	public function resetSkuStats()
 	{
-		 $this->_skustats=array("nsku"=>0,"ok"=>0,"ko"=>0);
+		$this->_skustats=array("nsku"=>0,"ok"=>0,"ko"=>0);
 	}
-	
-	
+
+
 	public function engineRun($params,$forcebuiltin=array())
 	{
 		$this->log("Import Mode:$this->mode","startup");
 		$this->log("MAGMI by dweeves - version:".Magmi_Version::$version,"title");
 		$this->log("step:".$this->getProp("GLOBAL","step",0.5)."%","step");
-		$this->createPlugins($this->_profile,$params);
+		$this->createPlugins($params);
 		$this->datasource=$this->getDataSource();
 		$this->callPlugins("datasources,general","beforeImport");
 		$nitems=$this->lookup();
@@ -1438,6 +1014,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 		if($nitems>0)
 		{
 			$this->resetSkuStats();
+			$this->initEntityTypes();
 			//intialize store id cache
 			$this->callPlugins("datasources,itemprocessors","startImport");
 			//initializing item processors
@@ -1445,7 +1022,6 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			$this->log(count($cols),"columns");
 			$this->callPlugins("itemprocessors","processColumnList",$cols);
 			$this->log("Ajusted processed columns:".count($cols),"startup");
-			$this->initProdType();
 			//initialize attribute infos & indexes from column names
 			if($this->mode!="update")
 			{
@@ -1467,12 +1043,12 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			$lastdbtime=0;
 			while(($item=$this->datasource->getNextRecord())!==false)
 			{
-				 $res=$this->processDataSourceLine($item, $rstep,$tstart,$tdiff,$lastdbtime,$lastrec);
-				 //break on "forced" last
-				 if($res["last"])
-				 {
-				 	break;
-				 }
+				$res=$this->processDataSourceLine($item, $rstep,$tstart,$tdiff,$lastdbtime,$lastrec);
+				//break on "forced" last
+				if($res["last"])
+				{
+					break;
+				}
 			}
 			$this->callPlugins("datasources,general,itemprocessors","endImport");
 			$this->reportStats($this->_current_row,$tstart,$tdiff,$lastdbtime,$lastrec);
@@ -1487,7 +1063,7 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 			$this->log("No Records returned by datasource","warning");
 		}
 		$this->callPlugins("datasources,general,itemprocessors","afterImport");
-		
+
 		$this->log("Import Ended","end");
 		Magmi_StateManager::setState("idle");
 	}

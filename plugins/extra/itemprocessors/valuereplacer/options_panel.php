@@ -7,9 +7,9 @@ when leaving the field, new fields will be inserted for filling new column names
 
 <ul class="formline">
 	<li class="label">Replaced attributes</li>
-	<li class="value"><input type="text" id="VREP:columnlist" name="VREP:columnlist" size="80" value="<?php echo $clist?>" onblur="vrep_mf.buildparamlist()"></input></li>
+	<li class="value"><input type="text" id="VREP_columnlist" name="VREP:columnlist" size="80" value="<?php echo $clist?>" onblur="vrep_mf.buildparamlist()"></input></li>
 </ul>
-<div id="VREP:columnsetup" >
+<div id="VREP_columnsetup" >
 </div>
 
 <div class="formline ifield" >
@@ -46,9 +46,8 @@ when leaving the field, new fields will be inserted for filling new column names
 	</div>
 </div>
 <script type="text/javascript">
-window.afterajax=function(){
 var vr_vals=<?php echo tdarray_to_js($this,'VREP:columnlist','VREP')?>;
 var vr_linetpl='<ul class="formline"><li class="label">New value for {fieldname}</li><li class="value"><input type="text" name="VREP:{fieldname.enc}" value="{value}"></input></li></ul>';
-vrep_mf=new magmi_multifield('VREP:columnlist','VREP:columnsetup',vr_linetpl,vr_vals);
-vrep_mf.buildparamlist();});
+window.vrep_mf=new magmi_multifield('VREP_columnlist','VREP_columnsetup',vr_linetpl,vr_vals);
+window.vrep_mf.buildparamlist();
 </script>
