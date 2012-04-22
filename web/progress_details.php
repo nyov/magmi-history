@@ -10,12 +10,12 @@
 	 
 	 if($('trace_'+traceid).visible())
 	 {
-		 $('trace_'+traceid).update('');
+		 $('trace_'+traceid).html('');
 		 $('trace_'+traceid).hide();
 	}
 	else
 	{ 
-		 new Ajax.Updater('trace_'+traceid,'trace_details.php',{parameters:{'traceid':traceid},onComplete:function(){$('trace_'+traceid).show()}});
+		 loaddiv('#trace_'+traceid,'trace_details.php','traceid='+traceid,function(){$('#trace_'+traceid).show()});
  	}
  }
 </script>

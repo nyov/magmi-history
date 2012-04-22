@@ -76,3 +76,26 @@ var magmi_multifield=function(listfield,dyncontainer,linetpl,vlist)
 	  $(dyncont).html(content);
 	};
 }
+
+loadDetails=function(dtype,sessid)
+{
+	var detdiv='#log_'+dtype+'_details';
+	if($(detdiv).hasClass("loaded"))
+	{
+		$(detdiv).hide();
+		$(detdiv).removeClass("loaded");
+		$('#'+dtype+'_link').html("Show Details");
+	}
+	else
+	{
+		var paramq={key:dtype,PHPSESSID:sessid};
+		
+		loaddiv(detdiv,'progress_details.php',$.param(paramq),function()
+				{
+					$(detdiv).addClass("loaded");
+					$('#'+dtype+'_link').html("Hide Details");
+					$(detdiv).show();
+					
+				})
+	}
+};
