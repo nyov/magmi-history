@@ -6,6 +6,7 @@ class CustomerAdressProcessor extends Magmi_ItemProcessor
 	protected $_colsbytype=array("billing"=>array(),"shipping"=>array());
     protected $_attrinfo=array();
     protected $_caetype;
+    protected $_countrycache=array();
     
 	public function getPluginInfo()
     {
@@ -151,16 +152,23 @@ class CustomerAdressProcessor extends Magmi_ItemProcessor
 		
 		
 	}
-	public function getCountryId($country)
+	public function getCountryId($item,$country)
 	{
 		$country=trim($country);
-		if(strlen($country)==2)
+		$clen=strlen($country);
+		$field=$clen==2?"iso2_code":($clen==3?"iso3_code":null);
+		if($field!=null)
 		{
-			return strtoupper($country);
+			if(!isset($this->_countrycache[$country]))
+			{
+				$sql="SELECT country_id FROM ".$this->tablename('directory_country')." WHERE $field=?";
+				$countryid=$this->selectone($sql,array($country),'country_id');
+			}
 		}
+		return $countryid;
 	}
 	
-	public function getRegionId($region,$country_id)
+	public function getRegionId($item,$region,$country_id)
 	{
 		if(!isset($this->_regids[$region]))
 		{
@@ -168,7 +176,7 @@ class CustomerAdressProcessor extends Magmi_ItemProcessor
 			$this->_regids[$region]=$this->selectone($sql,array($region,$region,$country_id),'region_id');
 			if($this->_regids[$region]==NULL)
 			{
-				$this->log("Invalid region found");
+				$this->log($item["email"].":Invalid region found","warning");
 				$this->_regids[$region]=0;
 			}
 		}
@@ -193,8 +201,19 @@ class CustomerAdressProcessor extends Magmi_ItemProcessor
 					}
 					unset($item[$col]);
 				}
-				$item[$colaggrname]=implode('\n',$aval);
+				$item[$colaggrname]=implode(chr(10),$aval);
 			}
+		}
+
+		$countryid=$this->getCountryId($item,$item[$addrtype.'_country']);
+		$item[$addrtype.'_country_id']=$countryid;
+		if($countryid==null)
+		{
+			$this->log($item['email'].":Invalid country -  cannot create/update $addrtype address","error");
+		}
+		else
+		{
+			$item[$addrtype.'_region_id']=$this->getRegionId($item,$item[$addrtype.'_region'],$item[$addrtype.'_country_id']);
 		}
 		//process adress attributes
 		foreach($this->_colsbytype[$addrtype] as $tp=>$colnames)
@@ -202,8 +221,6 @@ class CustomerAdressProcessor extends Magmi_ItemProcessor
 			$tname=$this->tablename("customer_address_entity_$tp");
 			$ins=array();
 			$ins_v=array();
-			$item[$addrtype.'_country_id']=$this->getCountryId($item[$addrtype.'_country']);
-			$item[$addrtype.'_region_id']=$this->getRegionId($item[$addrtype.'_region'],$item[$addrtype.'_country_id']);
 			//force add region id
 			$colnames=array_unique(array_merge($colnames,array($addrtype.'_region_id')));
 			for($i=0;$i<count($colnames);$i++)
@@ -221,8 +238,7 @@ class CustomerAdressProcessor extends Magmi_ItemProcessor
 			$sql="INSERT INTO $tname (entity_type_id,attribute_id,entity_id,value) VALUES ".implode(',',$ins_v)."
 			ON DUPLICATE KEY UPDATE value=values(value)";
 			$this->insert($sql,$ins);
-		}
-		
+		}		
 	}
 	
 	public function getDefinedAdressTypes($item)
