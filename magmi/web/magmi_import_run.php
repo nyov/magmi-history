@@ -2,11 +2,12 @@
 	ini_set('magic_gpc_quotes',0);
 	$profile=isset($_REQUEST["profile"])?$_REQUEST["profile"]:'default';
 	$engclass=isset($_REQUEST["engineclass"])?$_REQUEST["engineclass"]:'magmi_productimportengine:Magmi_ProductImportEngine';
+	$logfile=isset($_REQUEST["logfile"])?$_REQUEST["logfile"]:"magmi_progress.txt";
 	$_SESSION["last_runned_profile"]=$profile;
 	session_write_close();
 	?>
 	<script type="text/javascript">
-	var imp_params={engineclass:'<?php echo $engclass?>'};
+	var imp_params={engineclass:'<?php echo $engclass?>',logfile:'<?php echo $logfile?>'};
 	<?php 
 		foreach($_REQUEST as $k=>$v)
 		{
@@ -30,8 +31,7 @@
 		</div>
 		<div class='grid_12 log_info' style="display:none" id='endimport_div'></div>
 	</div>
-	<script type="text/javascript" src=">
-</script>
+
 <script type="text/javascript">
 	var pcall=0;
 
@@ -41,59 +41,53 @@
 	};
 	
 	endImport=function(t)
-	{
-		if(window.upd!=null)
-		{
-			$('cancel_button').hide();
-			window.upd.stop();
-			window.upd=null;
-			updateTime('endimport_div','Import Ended');
-			if(window._sr!=null)
-			{		
-				window._sr.transport.abort();
-				window._sr=null;
-			}
-		}
+	{		
+		updateTime('#endimport_div','Import Ended');
 	};
-
-	updateprogress=functi
-	startProgress=function(imp_params)
+	
+	updateProgress=function()
 	{
-		//window.upd=new Ajax.PeriodicalUpdater("runlog","magmi_progress.php",{frequency:1,evalScripts:true,parameters:{
-		//logfile:imp_params['logfile']}});
-		window.setInterval(updateProgress,
-		window.upd=loaddiv('runlog','magmi_progress.php'
-	};
+		loaddiv('#runlog','magmi_progress.php',imp_params);
+	}
+		
 	
 	startImport=function(imp_params)
 	{
 		
 		if(window._sr==null)
 		{
-			updateTime('startimport_div','Import Started');
-			var rq=new Ajax.Request('magmi_run.php',{method:'post',
-								 parameters:imp_params,
-								onCreate:function(r){window._sr=r;},
-								onLoading:function(r){
-													 startProgress(imp_params).delay(0.2);
-													}});
+			updateTime('#startimport_div','Import Started');
+			window._sr=$.ajax({type:'POST',
+							  url:'magmi_run.php',
+								 data:$.param(imp_params),
+								 dataType:"text",
+								 beforeSend:function(jqXhr){
+										window.loop=window.setInterval(updateProgress,1000);
+													},
+								complete:function(){
+									updateProgress();
+									clearInterval(window.loop);
+								}}
+													);
 		}
 	};
 	
 	setProgress=function(pc)
 	{
-		$('import_current').setStyle({width:''+pc+'%'});
-		$('import_progress').update(''+pc+'%');
+		$('#import_current').css('width',''+pc+'%');
+		$('#import_progress').html(''+pc+'%');
 	};
 
 	cancelImport=function()
 	{
-		var rq=new Ajax.Request("magmi_cancel.php",{method:'get'});
-		if(window._sr!=null)
+		geturl("magmi_cancel.php");
+		if(window._rq!=null)
 		{
-			window._sr.transport.abort();
-			window._sr=null;
+			window._rq.abort();
+			window._rq=null;
 		}
+		clearInterval(window.loop);
+		
 	};
 
 	if(imp_params.mode!==null)

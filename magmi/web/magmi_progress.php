@@ -38,29 +38,6 @@ else
 	die("NO FILE");
 }
 ?>	
-<script type="text/javascript">
-	loadDetails=function(dtype)
-	{
-		var detdiv='log_'+dtype+'_details';
-		if($(detdiv).hasClassName("loaded"))
-		{
-			$(detdiv).hide();
-			$(detdiv).removeClassName("loaded");
-			$(dtype+'_link').update("Show Details");
-		}
-		else
-		{
-			new Ajax.Updater(detdiv,'progress_details.php',
-					{parameters:{'key':dtype,'PHPSESSID':'<?php echo session_id()?>'},
-					 onComplete:function(f){var sb = new ScrollBox($(detdiv),{auto_hide:true});
-						$(detdiv).addClassName("loaded");
-						$(dtype+'_link').update("Hide Details");
-						$(detdiv).show();
-						},evalScripts:true});
-	
-		}
-	};
-</script>
 		
 <div class="col"><h3>Plugins</h3>
 <?php foreach($parser->getData("plugins") as $pinfo):?>
@@ -136,7 +113,7 @@ else
 	   if(count($arr)>0){?>
 		<div class="log_<?php echo $gtype?>">
 		<?php echo count($arr)." $gtype(s) found"?>
-			<a href="javascript:loadDetails('<?php echo $gtype?>');" id="<?php echo $gtype?>_link">Show Details</a>
+			<a href="javascript:loadDetails('<?php echo $gtype?>','<?php echo session_id()?>');" id="<?php echo $gtype?>_link">Show Details</a>
 		</div>
 		<div id="log_<?php echo $gtype?>_details">
 		</div>
