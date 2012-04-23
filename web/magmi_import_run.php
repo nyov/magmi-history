@@ -4,6 +4,7 @@
 	$engclass=getWebParam('engineclass','magmi_productimportengine:Magmi_ProductImportEngine');
 	$logfile=getWebParam("logfile","magmi_progress.txt");
 	$wp=getWebParams();
+	$wp['PHPSESSID']=session_id();
 	session_write_close();
 	?>
 	<script type="text/javascript">
@@ -43,6 +44,8 @@
 	endImport=function(t)
 	{		
 		updateTime('#endimport_div','Import Ended');
+		setProgress(100);
+		$('#cancel_button').hide();
 	};
 	
 	updateProgress=function()
