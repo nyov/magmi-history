@@ -1,24 +1,5 @@
 <?php 
-if(isset($_REQUEST["profile"]))
-{
-	$profile=$_REQUEST["profile"];
-}
-else
-{
-	
-	if(isset($_SESSION["last_runned_profile"]))
-	{
-		$profile=$_SESSION["last_runned_profile"];
-	}
-}
-if($profile=="")
-{
-	$profile="default";
-}
-if(isset($_REQUEST["engineclass"]))
-{
-	$engclass=$_REQUEST["engineclass"];
-}
+$engclass=getWebParam("engineclass");
 $profilename=($profile!="default"?$profile:"Default");
 require_once("magmi_pluginhelper.php");
 $ph=Magmi_PluginHelper::getInstance($profile);
@@ -51,6 +32,7 @@ else{?>
 <div class="grid_12 col">
 	<form action="magmi_chooseprofile.php" method="POST" id="chooseprofile" >
 	<input type="hidden" name="engineclass" value="<?php echo $engclass?>"/>
+	<input type="hidden" name="PHPSESSID" value="<?php echo session_id()?>"/>
 	<h3>Profile to configure</h3>
 	<ul class="formline">
 		<li class="label">Current Magmi Profile:</li>
@@ -73,9 +55,8 @@ else{?>
 	<?php
 	require_once("magmi_pluginhelper.php");
 	$order=array("datasources","general","itemprocessors");
-	Magmi_PluginHelper::getInstance('main')->setEngineClass($engclass);
 	
-	$plugins=Magmi_PluginHelper::getInstance('main')->getEnginePluginClasses();
+	$plugins=$ph->getEnginePluginClasses();
 	$pcats=array();
 	foreach($plugins as $k=>$pclasslist)
 	{
@@ -104,6 +85,7 @@ else{?>
 <form action="" method="POST" id="saveprofile_form">
 	<input type="hidden" name="engine" id="engine" value="<?php echo $engclass?>">
 	<input type="hidden" name="profile" id="curprofile" value="<?php echo $profile?>">
+	<input type="hidden" name="PHPSESSID" value="<?php echo session_id()?>">
 	<?php foreach($order as $k)
 	{?>
 	<input type="hidden" id="plc_<?php echo strtoupper($k)?>" value="<?php echo implode(",",$eplconf->getEnabledPluginClasses($k))?>" name="PLUGINS_<?php echo strtoupper($k)?>:classes"></input>

@@ -1,7 +1,6 @@
 <?php
- session_start();
- $key=$_REQUEST["key"];
- $data=$_SESSION["log_$key"];
+ $key=getWebParam("key");
+ $data=getWebParam("log_$key");
  session_write_close();
  ?>
 <script type="text/javascript">

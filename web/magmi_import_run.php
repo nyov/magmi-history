@@ -1,15 +1,15 @@
 	<?php 
 	ini_set('magic_gpc_quotes',0);
-	$profile=isset($_REQUEST["profile"])?$_REQUEST["profile"]:'default';
-	$engclass=isset($_REQUEST["engineclass"])?$_REQUEST["engineclass"]:'magmi_productimportengine:Magmi_ProductImportEngine';
-	$logfile=isset($_REQUEST["logfile"])?$_REQUEST["logfile"]:"magmi_progress.txt";
-	$_SESSION["last_runned_profile"]=$profile;
+	$profile=getWebParam("profile",'default');
+	$engclass=getWebParam('engineclass','magmi_productimportengine:Magmi_ProductImportEngine');
+	$logfile=getWebParam("logfile","magmi_progress.txt");
+	$wp=getWebParams();
 	session_write_close();
 	?>
 	<script type="text/javascript">
 	var imp_params={engineclass:'<?php echo $engclass?>',logfile:'<?php echo $logfile?>'};
 	<?php 
-		foreach($_REQUEST as $k=>$v)
+		foreach($wp as $k=>$v)
 		{
 			echo "imp_params['$k']='$v';\n";	
 		}

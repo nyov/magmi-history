@@ -1,10 +1,10 @@
 <?php
 ini_set("magic_quotes_gpc",0);
-$profile=$_REQUEST["profile"];
-$dslist=$_REQUEST["PLUGINS_DATASOURCES:class"];
-$genlist=$_REQUEST["PLUGINS_GENERAL:classes"];
-$iplist=$_REQUEST["PLUGINS_ITEMPROCESSORS:classes"];
-$eng=$_REQUEST["engine"];
+$profile=getWebParam("profile");
+$dslist=getWebParam("PLUGINS_DATASOURCES:class");
+$genlist=getWebParam("PLUGINS_GENERAL:classes");
+$iplist=getWebParam("PLUGINS_ITEMPROCESSORS:classes");
+$eng=getWebParam("engine");
 if(!isset($iplist))
 {
 	$iplist="";
@@ -48,12 +48,13 @@ if($epc->save())
 //saving plugins params
 foreach($pflist as $pclass=>$pfamily)
 {
+	$pparams=getWebParams();
 	if($pclass!="")
 	{
-		$plinst=$ph->createInstance($pfamily,$pclass,$_REQUEST);
+		$plinst=$ph->createInstance($pfamily,$pclass,$pparams);
 		$paramlist=$plinst->getPluginParamNames();
-		$sarr=$plinst->getPluginParams($_REQUEST);
-		$parr=$plinst->getPluginParamsNoCurrent($_REQUEST);
+		$sarr=$plinst->getPluginParams($pparams);
+		$parr=$plinst->getPluginParamsNoCurrent($pparams);
 		
 		foreach($paramlist as $pname)
 		{

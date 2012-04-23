@@ -1,13 +1,10 @@
 <?php
 require_once("../inc/magmi_config.php");
 require_once("../inc/magmi_pluginhelper.php");
-$currentprofile=$_REQUEST["profile"];
-if($currentprofile=="default")
-{
-	$currentprofile=null;
-}
-$eng=$_REQUEST["engineclass"];
-$newprofile=$_REQUEST["newprofile"];
+require_once("magmi_web_utils.php");
+$currentprofile=getWebParam("profile","default");
+$eng=getWebParam("engineclass");
+$newprofile=getWebParam("newprofile","");
 
 if($newprofile!="")
 {
@@ -32,5 +29,8 @@ else
 {
 	$newprofile=$currentprofile;
 }
-header("Location:magmi.php?configstep=2&profile=$newprofile&engineclass=$eng");
+$_SESSION["engineclass"]=$eng;
+$_SESSION["profile"]=$newprofile;
+session_write_close();
+header("Location:magmi.php");
 
