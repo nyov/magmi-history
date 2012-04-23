@@ -1,4 +1,5 @@
 <?php
+require_once ("magmi_web_utils.php");
  $key=getWebParam("key");
  $data=getWebParam("log_$key");
  session_write_close();
