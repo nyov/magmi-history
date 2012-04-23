@@ -1,6 +1,6 @@
 <?php
 require_once("../inc/magmi_statemanager.php");
-$tid=$_REQUEST["traceid"];
+$tid=getWebParam("traceid");
 $tracefile=Magmi_StateManager::getTraceFile();
 $f=fopen($tracefile,"r");
 $display=false;

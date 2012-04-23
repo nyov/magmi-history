@@ -2,7 +2,7 @@
 require_once("../inc/magmi_statemanager.php");
 require_once("progress_parser.php");
 
-$logfile=$_REQUEST["logfile"];
+$logfile=getWebParam("logfile");
 if(!isset($logfile))
 {
 	$logfile=Magmi_StateManager::getProgressFile();

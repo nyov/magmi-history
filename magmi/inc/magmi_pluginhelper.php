@@ -115,6 +115,26 @@ class Magmi_PluginHelper
 		return self::getPluginsInfo($eng->getPluginFamilies(),"class");
 	}
 	
+	public function getEngineList()
+	{
+		$path=dirname(dirname(__FILE__))."/engines/*.php";
+		$eflist=glob($path);
+		$elist=array();
+		foreach($eflist as $efile)
+		{
+			$k=substr(basename($efile),0,-4);
+			$ct=file_get_contents($efile);
+			if(preg_match_all("|class\s+(.*?)\s+extends\s+Magmi_Engine|mi",$ct,$matches,PREG_SET_ORDER))
+			{
+				require_once($efile);
+				$cname=$matches[0][1];
+				$eng=new $cname();
+				$elist["$k::$cname"]=$eng->getEngineInfo();
+			}
+		}
+		return $elist;
+	}
+	
 	public function getPluginsInfo($pltypes,$filter=null)
 	{
 		if(self::$_plugins_cache==null)

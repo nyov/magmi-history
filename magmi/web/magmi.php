@@ -43,15 +43,18 @@
 	if(count($badrights)==0)
 	{
 		$state=Magmi_StateManager::getState();
+		$mode=getWebParam("run");
 		
-		if($state=="running" || (isset($_REQUEST["run"]) && $_REQUEST["run"]=="import"))
+		if($state=="running" || (isset($mode) && $mode=="import"))
 		{
 			require_once("magmi_import_run.php");		
 		}
 		else
 		{
 			Magmi_StateManager::setState("idle",true);
-			require_once("magmi_config_setup.php");		
+			require_once("magmi_config_setup.php");
+			require_once("magmi_choose_engine.php");		
+			require_once("magmi_run_profile.php");
 			require_once("magmi_profile_config.php");		
 		}		
 		
