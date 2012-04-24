@@ -1,5 +1,6 @@
 <?php
 ini_set("magic_quotes_gpc",0);
+require_once("magmi_web_utils.php");
 $profile=getWebParam("profile");
 $dslist=getWebParam("PLUGINS_DATASOURCES:class");
 $genlist=getWebParam("PLUGINS_GENERAL:classes");
