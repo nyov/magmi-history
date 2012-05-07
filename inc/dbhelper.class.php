@@ -1,6 +1,6 @@
 <?php
 /**
- * 
+ *
  * This class is a Database Operation Helper based on PDO library
  * It provides shortcuts for common DB CRUD operations and some advanced templated requests operations
  * @author dweeves
@@ -36,20 +36,20 @@ class DBHelper
 		{
 			$pdostr="mysql:unix_socket=$socket;dbname=$dbname;charset=utf8";
 		}
-		
+
 		$this->_db=new PDO($pdostr, $user, $pass,array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
 		//use exception error mode
 		$this->_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 		$this->_db->setAttribute(PDO::ATTR_ORACLE_NULLS ,PDO::NULL_NATURAL);
 		$this->_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
-		
+
 		//set database debug mode to trace if necessary
 		$this->_debug=$debug;
 		$this->prepared=array();
 
 	}
 	/**
-	 * 
+	 *
 	 * store output in some debug file
 	 * @param unknown_type $data
 	 */
@@ -65,15 +65,15 @@ class DBHelper
 		}
 	}
 	/**
-	 * 
+	 *
 	 * Sets or unsets the usage of internal prepared statement cache for reuse
-	 * @param boolean $uc true:use cache,false:do not use cache 
+	 * @param boolean $uc true:use cache,false:do not use cache
 	 */
 	public function usestmtcache($uc)
 	{
-		$this->_use_stmt_cache=$uc;		
+		$this->_use_stmt_cache=$uc;
 	}
-	
+
 	/**
 	 * releases database connection
 	 */
@@ -81,11 +81,11 @@ class DBHelper
 	{
 		//clear PDO resource
 		$this->_db=NULL;
-			
+
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * Helper method to try to guess mysql socket based on some tricky phpinfo analysis
 	 * @throws Exception if something got wrong during detection
 	 */
@@ -96,7 +96,7 @@ class DBHelper
 		try
 		{
 			$mysqlsock=ini_get("mysql.default_socket");
-			
+
 			if(isset($mysqlsock) && !@file_exists($mysqlsock))
 			{
 				if(error_get_last()!==null)
@@ -117,7 +117,7 @@ class DBHelper
 			{
 				$mysqlsock="";
 			}
-			
+
 		}
 		catch(Exception $e)
 		{
@@ -125,13 +125,13 @@ class DBHelper
 			if(error_get_last()!==null)
 			{
 				$mysqlsock=false;
-			}	
+			}
 		ini_set('track_errors',$old_track);
 		return $mysqlsock;
 	}
-	 
+
 	/**
-	 * 
+	 *
 	 * Initializes database requests stats counters
 	 */
 	public function initDbqStats()
@@ -141,7 +141,7 @@ class DBHelper
 	}
 
 	/**
-	 * 
+	 *
 	 * Enter description here ...
 	 * @param unknown_type $nbreq
 	 */
@@ -149,10 +149,10 @@ class DBHelper
 	{
 		return $this->_nreq;
 	}
-	
+
 	/**
 	 * cache sorting comparison method
-	 * 
+	 *
 	 * @param unknown_type $a
 	 * @param unknown_type $b
 	 */
@@ -160,13 +160,13 @@ class DBHelper
 	{
 		return $b[1]-$a[1];
 	}
-	
+
 	/**
 	 * Garbages statement cache if above 500 , removes less used statements
 	 * Enter description here ...
 	 */
 	public function garbageStmtCache()
-	{	
+	{
 		if(count($this->prepared)>=500)
 		{
 			uasort($this->prepared,array($this,"cachesort"));
@@ -184,7 +184,7 @@ class DBHelper
 	{
 		$this->_nreq++;
 		$t0=microtime(true);
-		
+
 		if($this->_use_stmt_cache && strpos($sql,"'")==false)
 		{
 			//if sql not in statement cache
@@ -227,7 +227,7 @@ class DBHelper
 					}
 				}
 				$stmt->execute();
-			}	
+			}
 		}
 		else
 		{
@@ -353,11 +353,11 @@ class DBHelper
 		}
 		return $arrout;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * transforms an array in a comma separated list of enclosed column names for request
-	 * @param array $arr list of names to enclose 
+	 * @param array $arr list of names to enclose
 	 */
 	public function arr2columns($arr)
 	{
@@ -370,20 +370,20 @@ class DBHelper
 		unset($arrout);
 		return $colstr;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * transform an array of values into equivalent comma separated list of unnamed placeholders.
-	 * @param array $arr 
+	 * @param array $arr
 	 */
 	public function arr2values($arr)
 	{
 		$str=substr(str_repeat("?,",count($arr)),0,-1);
 		return $str;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * transform a list of values into static select to use it as SQL static resultset
 	 * @param array $arr list of values to use as SQL dataset
 	 * @param string $cname sql column name to use to represent dataset
@@ -394,9 +394,9 @@ class DBHelper
 		$subsel=substr($rpt,0,-1*strlen(" UNION SELECT "));
 		return "(SELECT $subsel)";
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * transform a associative array into a list of update prepared placeholders
 	 * @param array $arr associative array to prepare for update , array keys used as column to update
 	 */
@@ -405,15 +405,15 @@ class DBHelper
 		$arrout=array();
 		foreach($arr as $k=>$v)
 		{
-			$arrout[]="$k=?";	
+			$arrout[]="$k=?";
 		}
 		$updstr=implode(",",$arrout);
 		unset($arrout);
 		return $updstr;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * Enter description here ...
 	 * @param unknown_type $kvarr
 	 * @param unknown_type $keys
@@ -427,7 +427,7 @@ class DBHelper
 		}
 		return $out;
 	}
-	
+
 	/**
 	 * begins a transaction
 	 */
@@ -436,7 +436,7 @@ class DBHelper
 		$this->_db->beginTransaction();
 		$this->_intrans=true;
 		$this->logdebug("-- TRANSACTION BEGIN --");
-		
+
 	}
 
 	/**
@@ -447,7 +447,7 @@ class DBHelper
 		$this->_db->commit();
 		$this->_intrans=false;
 		$this->logdebug("-- TRANSACTION COMMIT --");
-		
+
 	}
 
 	/**
@@ -460,32 +460,32 @@ class DBHelper
 			$this->_db->rollBack();
 			$this->_intrans=false;
 			$this->logdebug("-- TRANSACTION ROLLBACK --");
-			
+
 		}
-		
+
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * Sets debug management
 	 * @param bool $debug debug flag
 	 * @param string $debugfname debug file name to use
 	 */
 	public function setDebug($debug,$debugfname)
 	{
-		$this->_debug=$debug;	
+		$this->_debug=$debug;
 		$this->_debugfile=$debugfname;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * Replaces named params in a descriptive parameterized request
 	 * Descriptive parameterized request have parameters defined as
 	 * [namespace:name/label/default value] , this parameters may represent table names or any request parameter
 	 * namespace is optional, as label & default value
 	 * - NameSpaces:
 	 * tn : tablename, this namespace ensures replacement of given name with defined DB prefix so, parameterized request can use generic names to define their ops
-	 * 
+	 *
 	 * @param unknown_type $stmt
 	 * @param unknown_type $rparams
 	 */
@@ -497,7 +497,7 @@ class DBHelper
 		{
 			$pdefs=$matches[0];
 			$params=$matches[1];
-			
+
 		}
 		for($i=0;$i<count($params);$i++)
 		{
@@ -527,18 +527,18 @@ class DBHelper
 			}
 		}
 	}
-		
+
 	/**
-	 * 
+	 *
 	 * Checks wether an array is associative
 	 * @param mixed $var array or variable to test
 	 */
 	public function is_assoc($var) {
     	return is_array($var) && array_keys($var)!==range(0,sizeof($var)-1);
 	}
-	 
+
 	/**
-	 * 
+	 *
 	 * This method handled mutiple statements in a single SQL (PDO cannot do it by itself)
 	 * Statements have to be separed by ; & line return.
 	 * @param string $sql multiple statements
@@ -556,13 +556,13 @@ class DBHelper
  				$subs=explode(";\n","--".$sqlline);
  				foreach($subs as $sub)
  				{
- 					
+
  					if(trim($sub)!="" && substr($sub,0,2)!="--")
  					{
  						$stmts[]=$sub;
  					}
  				}
- 			}	
+ 			}
  		}
  		$results=array();
  		foreach($stmts as $stmt)
@@ -578,12 +578,12 @@ class DBHelper
  				}
  			}
  			$this->exec_stmt($stmt,$zparams);
- 		}	
+ 		}
  		if($return)
  		{
  			return $results;
  		}
 	}
-	
-	
+
+
 }

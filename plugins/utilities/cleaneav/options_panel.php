@@ -15,4 +15,4 @@ checkValues=function()
 					    profile:'<?php echo $this->getConfig()->getProfile()?>',
 					    engine:'magmi_utilityengine:Magmi_UtilityEngine'}});
 }
-</script> 
+</script>

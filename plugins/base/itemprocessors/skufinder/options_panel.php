@@ -9,5 +9,5 @@ this column <b>MUST</b> be an attribute code
 	<li class="value">
 		<input type="text" name="SKUF:matchfield" value="<?php $this->getParam("SKUF:matchfield","")?>">
 	</li>
-	
+
 </ul>

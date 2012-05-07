@@ -22,7 +22,7 @@ when leaving the field, new fields will be inserted for filling new column names
 	<ul>
 		<li>{item.[some item field]}  and {{some expression}} are supported.</li>
 		<li>[some item field] has to be present either as datasource column or default value setter/column mapper added column</li>
-		<li>examples below assume sku=sku0 &amp; cost=8.00 &amp; margin=15 (here margin may not even be an attribute)</li>		
+		<li>examples below assume sku=sku0 &amp; cost=8.00 &amp; margin=15 (here margin may not even be an attribute)</li>
 	</ul>
 	<hr/>
 	<ul>

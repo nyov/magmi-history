@@ -2,27 +2,27 @@
 class Magmi_Mixin
 {
 	protected $_callers;
-	
+
 	public function bind($caller)
 	{
 		$this->_callers[]=$caller;
-		$this->_callers=array_unique($this->_callers);	
+		$this->_callers=array_unique($this->_callers);
 	}
-	
+
 	public function unbind($caller)
 	{
-		
+
 		$ks=array_keys($this->_callers,$caller);
 		if(count($ks)>0)
 		{
 			foreach($ks as $k)
-			{	
+			{
 				unset($this->_callers[$k]);
 			}
 		}
-		
+
 	}
-	
+
 	public function __call($data,$arg)
 	{
 		if(substr($data,0,8)=="_caller_")

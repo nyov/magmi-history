@@ -3,13 +3,13 @@
  * Class SampleItemProcessor
  * @author dweeves
  *
- * This class is a sample for item processing   
-*/ 
+ * This class is a sample for item processing
+*/
 class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 {
 
 	protected $_dcols=array();
-	
+
     public function getPluginInfo()
     {
         return array(
@@ -19,17 +19,17 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
         	"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Column_mapper"
         );
     }
-	
+
 	/**
 	 * you can add/remove columns for the item passed since it is passed by reference
 	 * @param Magmi_Engine $mmi : reference to magmi engine(convenient to perform database operations)
 	 * @param unknown_type $item : modifiable reference to item before import
 	 * the $item is a key/value array with column names as keys and values as read from csv file.
-	 * @return bool : 
+	 * @return bool :
 	 * 		true if you want the item to be imported after your custom processing
 	 * 		false if you want to skip item import after your processing
 	 */
-	
+
 	public function processColumnList(&$cols,$params=null)
 	{
 		$icols=$cols;
@@ -48,7 +48,7 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 					$this->log("Replacing Column $cname by $ncol","startup");
 				}
 				if(count($mlist)>0)
-				{					
+				{
 					$scols=array_merge($scols,$mlist);
 					$this->log("Replicating Column $cname to ".implode(",",$mlist),"startup");
 				}
@@ -62,7 +62,7 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 		$cols=$ocols;
 		return true;
 	}
-	
+
 	public function processItemBeforeId(&$item,$params=null)
 	{
 		foreach($this->_dcols as $oname=>$mnames)
@@ -82,7 +82,7 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 		}
 		return true;
 	}
-	
+
 	public function initialize($params)
 	{
 		foreach($params as $k=>$v)
@@ -94,7 +94,7 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 			}
 		}
 	}
-	
+
 	public function getPluginParams($params)
 	{
 		$pp=array();
@@ -104,10 +104,10 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 			{
 				$pp[$k]=$v;
 			}
-		}	
+		}
 		return $pp;
 	}
-	
+
 	static public function getCategory()
 	{
 		return "Input Data Preprocessing";

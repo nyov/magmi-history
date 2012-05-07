@@ -10,6 +10,6 @@ class Magmi_ImportUrlPlugin extends Magmi_GeneralImportPlugin
 	}
 	public function initialize($params)
 	{
-		
+
 	}
 }

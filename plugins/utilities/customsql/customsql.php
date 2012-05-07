@@ -2,27 +2,27 @@
 
 class CustomSQLUtility extends Magmi_UtilityPlugin
 {
-	
+
 	protected $_magdbh;
-	
+
 	public function getPluginInfo()
 	{
 		return array("name"=>"Custom Magento SQL Utility",
 					 "author"=>"Dweeves",
 					 "version"=>"1.0.3");
 	}
-	
+
 	public function getShortDescription()
 	{
 		return "This Utility enables to perform custom parameterized sql scripts on magento DB";
 	}
-	
+
 	public function getRequestFileList()
 	{
 		$files=glob(dirname(__file__)."/prequests/*.sql");
 		return $files;
 	}
-	
+
 	public function getRequestParameters($file,$noprefix=false)
 	{
 		$params=array();
@@ -31,7 +31,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 		if($hasp)
 		{
 			$params=$matches[1];
-			
+
 		}
 		$outparams=array();
 		foreach($params as $param)
@@ -49,7 +49,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 		}
 		return $outparams;
 	}
-	
+
 	public function fillPrefixedParameters($stmt,&$params)
 	{
 		$pparams=array();
@@ -65,12 +65,12 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 				}
 			}
 		}
-	
+
 		$hasp=preg_match_all('|\[\[(tn:.*?)\]\]|msi',$stmt,$matches);
 		if($hasp)
 		{
-			$pparams=$matches[1];			
-		}	
+			$pparams=$matches[1];
+		}
 		foreach($pparams as $pparam)
 		{
 			$info=explode(":",$pparam);
@@ -91,7 +91,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 			return basename($file);
 		}
 	}
-	
+
 	public function getPluginParams($params)
 	{
 		$pp=array();
@@ -104,7 +104,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 		}
 		return $pp;
 	}
-	
+
 	public function runUtility()
 	{
 		$this->connectToMagento();
@@ -118,7 +118,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 		{
 			$rpname=substr($pname,strlen("UTCSQL:"));
 			$rparams[$rpname]=$pval;
-			
+
 		}
 		$this->fillPrefixedParameters($sql,$rparams);
 		$results=$this->multipleParamRequests($sql,$rparams,true);
@@ -136,7 +136,7 @@ class CustomSQLUtility extends Magmi_UtilityPlugin
 				foreach($res[$i] as $k=>$v)
 				{
 					$str.="$k=$v;";
-				}				
+				}
 				$this->log($str,"info");
 			}
 			}

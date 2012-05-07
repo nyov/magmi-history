@@ -3,8 +3,8 @@
  * Class SampleItemProcessor
  * @author dweeves
  *
- * This class is a sample for item processing   
-*/ 
+ * This class is a sample for item processing
+*/
 class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 {
 
@@ -19,8 +19,8 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Value_Replacer"
         );
     }
-	
-	
+
+
     public function parseval($pvalue,$item,$params)
 	{
 		$matches=array();
@@ -44,13 +44,13 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 				$attrinfo=$this->getAttrInfo($attcode);
 				if($attrinfo)
 			}
-		
+
 		}*/
-		
-		
-		
-		
-		
+
+
+
+
+
 		while(preg_match("|\{item\.(.*?)\}|",$pvalue,$matches))
 		{
 			foreach($matches as $match)
@@ -71,7 +71,7 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 		}
 		unset($matches);
 		$meta=$params;
-		
+
 		while(preg_match("|\{meta\.(.*?)\}|",$pvalue,$matches))
 		{
 			foreach($matches as $match)
@@ -91,7 +91,7 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 			}
 		}
 		unset($matches);
-	
+
 		//replacing expr values
 		while(preg_match("|\{\{\s*(.*?)\s*\}\}|",$pvalue,$matches))
 		{
@@ -104,11 +104,11 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 					//escape potential "{{xxx}}" values in interpreted target
 					//so that they won't be reparsed in next round
 					$rep=preg_replace("|\{\{\s*(.*?)\s*\}\}|", "____$1____", $rep);
-					$pvalue=str_replace($matches[0],$rep,$pvalue);							
-				}				
+					$pvalue=str_replace($matches[0],$rep,$pvalue);
+				}
 			}
 		}
-		
+
 		//unsecape matches
 		$pvalue=preg_replace("|____(.*?)____|",'{{$1}}',$pvalue);
 		//replacing single values not in complex values
@@ -130,22 +130,22 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 				}
 			}
 		}
-		
+
 		unset($matches);
 		return $pvalue;
 	}
-	
+
 	public function processItemBeforeId(&$item,$params=null)
 	{
 		//only check for "before" compatible fields
 		for($i=0;$i<count($this->_before);$i++)
-		{	
+		{
 			$attname=$this->_before[$i];
 			if(isset($this->_rvals[$attname]))
 			{
 				$item[$attname]=$this->parseval($this->_rvals[$attname],$item,$params);
 			}
-		}	
+		}
 		return true;
 	}
 
@@ -161,7 +161,7 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 		}
 		return true;
 	}
-	
+
 	public function initialize($params)
 	{
 		foreach($params as $k=>$v)
@@ -173,13 +173,13 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 			}
 		}
 	}
-	
-	//auto add columns if not set 
+
+	//auto add columns if not set
 	public function processColumnList(&$cols)
 	{
 		$cols=array_unique(array_merge($cols,explode(",",$this->getParam("VREP:columnlist"))));
 	}
-	
+
 	public function getPluginParams($params)
 	{
 		$pp=array();
@@ -189,10 +189,10 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 			{
 				$pp[$k]=$v;
 			}
-		}	
+		}
 		return $pp;
-	}	
-	
+	}
+
 	static public function getCategory()
 	{
 		return "Input Data Preprocessing";

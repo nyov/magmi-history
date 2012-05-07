@@ -10,21 +10,21 @@ class Magmi_PluginConfig extends ProfileBasedConfig
 		$this->_prefix=$pname;
 		parent::__construct("$this->_prefix.conf",$profile);
 	}
-	
+
 	public function getConfDir()
 	{
 		return dirname($this->_confname);
 	}
-	
+
 	public function load($name=null)
 	{
 		$cname=($name==null?$this->_confname:$name);
 		if(file_exists($cname))
 		{
 			parent::load($cname);
-		}	
+		}
 	}
-	
+
 	public function getIniStruct($arr)
 	{
 		$conf=array();
@@ -40,8 +40,8 @@ class Magmi_PluginConfig extends ProfileBasedConfig
 		}
 		return $conf;
 	}
-		
-	
+
+
 	public function getConfig()
 	{
 		return parent::getsection($this->_prefix);
@@ -58,9 +58,9 @@ class Magmi_PluginOptionsPanel
 		$this->_plugin=$pinst;
 		$this->_file=($file==null?"options_panel.php":$file);
 		$this->initDefaultHtml();
-		
+
 	}
-	
+
 	public function getFile()
 	{
 		return 	$this->_file;
@@ -72,10 +72,10 @@ class Magmi_PluginOptionsPanel
 		ob_start();
 		require($panelfile);
 		$this->_defaulthtml = ob_get_contents();
-		ob_end_clean();		
-		
+		ob_end_clean();
+
 	}
-	
+
 	public function getHtml()
 	{
 		$plugin=$this->_plugin;
@@ -95,7 +95,7 @@ class Magmi_PluginOptionsPanel
 		}
 		return $content;
 	}
-	
+
 	public function __call($data,$arg)
 	{
 		 return call_user_func_array(array($this->_plugin,$data), $arg);
@@ -113,18 +113,18 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 	public function __construct()
 	{
 	}
-	
+
 	public function getParam($pname,$default=null)
 	{
 		return (isset($this->_params[$pname]) && $this->_params[$pname]!="")?$this->_params[$pname]:$default;
-		
+
 	}
-	
+
 	public function setParam($pname,$value)
 	{
 		$this->_params[$pname]=$value;
 	}
-	
+
 	public function fixListParam($pvalue)
 	{
 		$iarr=explode(",",$pvalue);
@@ -145,36 +145,36 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 	{
 		return array();
 	}
-	
+
 	public function getPluginInfo()
 	{
 		return array("name"=>$this->getPluginName(),
 					 "version"=>$this->getPluginVersion(),
 					 "author"=>$this->getPluginAuthor(),
-					 "url"=>$this->getPluginUrl());		
+					 "url"=>$this->getPluginUrl());
 	}
-	
+
 	public function getPluginUrl()
 	{
 		return null;
 	}
-	
+
 	public function getPluginVersion()
 	{
-		return null;		
+		return null;
 	}
-	
+
 	public function getPluginName()
 	{
 		return null;
 	}
 
-	
+
 	public function getPluginAuthor()
 	{
 		return null;
 	}
-	
+
 	public function log($data,$type='std',$useprefix=true)
 	{
 		$pinf=$this->getPluginInfo();
@@ -184,7 +184,7 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 		}
 		$this->_caller_log($data,"plugin;$this->_class;$type");
 	}
-	
+
 	public function pluginHello()
 	{
 		$info=$this->getPluginInfo();
@@ -195,46 +195,46 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 		$hellostr=implode("-",$hello);
 		$base=get_parent_class($this);
 		$this->log("$hellostr ","pluginhello",false);
-		
+
 	}
 
 	public function initialize($params)
 	{
-		
+
 	}
-	
+
 	public function getConfig()
 	{
 		return $this->_config;
 	}
-	
+
 	public function getMagmiConfig()
 	{
 		return $this->_magmiconfig;
 	}
-	
+
 	public final function pluginInit($mmi,$meta,$params=null,$doinit=true,$profile=null)
-	{		
+	{
 		$this->bind($mmi);
 		$this->_pluginmeta=$meta;
 		$this->_class=get_class($this);
-		$this->_config=new Magmi_PluginConfig(get_class($this),$profile);	
+		$this->_config=new Magmi_PluginConfig(get_class($this),$profile);
 		$this->_config->load();
 		$this->_magmiconfig=Magmi_Config::getInstance();
-		
+
 		$this->_params=($params!=null?array_merge($this->_config->getConfig(),$params):$this->_config->getConfig());
 
 		if(isset($mmi))
 		{
-			$this->pluginHello();		
+			$this->pluginHello();
 		}
-		
+
 		if($doinit)
 		{
 			$this->initialize($this->_params);
 		}
 	}
-	
+
 
 	public function getPluginParamsNoCurrent($params)
 	{
@@ -249,7 +249,7 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 			else
 			{
 				$arr[$pk]=0;
-			}	
+			}
 		}
 		return $arr;
 	}
@@ -269,11 +269,11 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 				{
 						$arr[$pk]=$this->_params[$pk];
 				}
-			}	
+			}
 		}
 		return $arr;
 	}
-	
+
 	public function persistParams($plist)
 	{
 		if(count($plist)>0)
@@ -288,14 +288,14 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 	{
 		return new Magmi_PluginOptionsPanel($this,$file);
 	}
-	
+
 	public function getShortDescription()
 	{
 		$panel=$this->getOptionsPanel()->getHtml();
 		$info=null;
 		if(preg_match('|<div class="plugin_description">(.*?)</div>|smi',$panel,$match))
 		{
-			
+
 			$info=$match[1];
 			$delims=array(".",":");
 			foreach($delims as $delim)
@@ -307,35 +307,35 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 					break;
 				}
 			}
-			
+
 		}
 		return $info;
 	}
-	
+
 	static public function getCategory()
 	{
 		return "common";
 	}
-	
+
 	public function getPluginDir()
 	{
 		return $this->_pluginmeta["dir"];
 	}
-	
+
 	public function getPluginMeta()
 	{
 		return $this->_pluginmeta;
 	}
-	
+
 	public function getPluginClass()
 	{
 		return $this->_class;
 	}
-	
+
 	public function isRunnable()
 	{
 		return array(true,"");
 	}
-	
+
 
 }

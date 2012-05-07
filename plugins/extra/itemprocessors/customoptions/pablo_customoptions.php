@@ -9,7 +9,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 {
 	private $_containerMap=array("Product Info Column"=>"container1",
 								 "Block after Info Column"=>"container2");
-	
+
 	protected $_optids=array();
 	protected $_opttypeids=array();
 	protected $_multivals=array('drop_down','multiple','radio','checkbox');
@@ -32,21 +32,21 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 	{
 		return $this->_optids[$field];
 	}
-	
+
 	public function setOptId($field,$val)
 	{
 		$this->_optids[$field]=$val;
 	}
-	
+
 	public function getOptTypeIds($field)
 	{
 		return $this->_opttypeids[$field];
 	}
-	
+
 	public function setOptTypeIds($field,$arr)
 	{
 		$this->_opttypeids[$field]=$arr;
-		
+
 	}
 	public function createOption($pid,$sids,$opt)
 	{
@@ -123,7 +123,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		$tpvals=array();
 		$tpins=array();
 		$optid=$this->getOptId($field);
-		
+
 		$optionTypeIds=$this->getOptTypeIds($field);
 		$optionTypeId=null;
 		for($i=0;$i<count($valarr);$i++)
@@ -161,7 +161,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		}
 
 		$this->setOptTypeIds($field,$optionTypeIds);
-		
+
 		$sql="INSERT IGNORE INTO $t5 (option_type_id, store_id, title) VALUES ".implode(",",$ttins);
 		$this->insert($sql,$ttvals);
 
@@ -176,7 +176,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		$mv=in_array($type,$this->_multivals);
 		return $mv;
 	}
-	
+
 	public function BuildCustomOption($field,$value)
 	{
 		$fieldParts=explode(":",$field);
@@ -199,8 +199,8 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 		);
 
 		$values = explode('|',$value);
-		
-	
+
+
 		foreach($values as $v)
 		{
 			$ovalues=array();
@@ -219,16 +219,16 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 			{
 				$opt['title']=($parts[0]!=''?$parts[0]:$title);
 			}
-			
-			
+
+
 			$c=count($parts);
 			$price_type=($c>1)?($parts[1]!=''?$parts[1]:'fixed'):'fixed';
 			$price=($c>2)?$parts[2]:0;
 			$sku=($c>3)?$parts[3]:'';
 			$sort_order=($c>4)?$parts[4]:0;
-			
+
 			switch($type) {
-				
+
 				case 'file':
 					if($c>5){
 						$opt['file_extension']=$parts[5];
@@ -338,13 +338,13 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 			{
 				$sids=array_unique(array_merge(array(0),$sids));
 			}
-			
+
 			foreach($custom_options as $option)
 			{
 				$opt=$this->createOption($pid,$sids,$option);
 				$this->createOptionValues($option['__field'],$sids,$option["values"]);
 			}
-				
+
 		}
 		unset($custom_options);
 		return true;
@@ -360,7 +360,7 @@ class CustomOptionsItemProcessor extends Magmi_ItemProcessor
 	{
 		return "This plugins enable to import custom options using specific column syntax";
 	}
-	
+
 	public function initialize($params)
 	{
 		return true;

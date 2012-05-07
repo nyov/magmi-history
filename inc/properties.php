@@ -5,11 +5,11 @@ if(!defined("DS"))
 }
 class FileNotFoundException extends Exception
 {
-	
+
 }
 class InvalidPropertiesException extends Exception
 {
-	
+
 }
 class Properties
 {
@@ -23,32 +23,32 @@ class Properties
 		$this->inifile=null;
 		$this->_props=array();
 	}
-	
+
 	public function setPropsFromFlatArray($flatarr)
 	{
-		
+
 		$this->_props=$this->getIniStruct($flatarr);
 	}
-	
+
 	public function setProps($proparr)
 	{
 		$this->_props=$proparr;
 	}
-	
+
 	public function load($file)
 	{
 		if(!file_exists($file))
 		{
 			return;
 			//throw new FileNotFoundException();
-			
+
 		}
 		try
 		{
 			$this->inifile=$file;
 			$this->_props=parse_ini_file($this->inifile,true);
 			foreach($this->_props as $sec=>$data)
-			{	
+			{
 				foreach($data as $k=>$v)
 				{
 					foreach($this->_specialchars as $spch=>$alias)
@@ -92,7 +92,7 @@ class Properties
 		}
 		return $this->write_ini_file($this->_props,$fname,true);
 	}
-	
+
 	public function esc($str)
 	{
 		foreach($this->_specialchars as $spch=>$alias)
@@ -101,53 +101,53 @@ class Properties
 		}
 		return $str;
 	}
-	
-	public function write_ini_file($assoc_arr, $path, $has_sections=FALSE) { 
-    $content = ""; 
+
+	public function write_ini_file($assoc_arr, $path, $has_sections=FALSE) {
+    $content = "";
     if(count($assoc_arr)>0)
     {
-    if ($has_sections) { 
-        foreach ($assoc_arr as $key=>$elem) { 
-            $content .= "[".$key."]\n"; 
-            foreach ($elem as $key2=>$elem2) { 
-                if(is_array($elem2)) 
-                { 
-                    for($i=0;$i<count($elem2);$i++) 
-                    { 
-                        $content .= $key2."[] = \"".$this->esc($elem2[$i])."\"\n"; 
-                    } 
-                } 
-                else if($elem2=="") $content .= $key2." = \n"; 
-                else $content .= $key2." = \"".$this->esc($elem2)."\"\n"; 
-            } 
-        } 
-    } 
-    else { 
-        foreach ($assoc_arr as $key=>$elem) { 
-            if(is_array($elem)) 
-            { 
-                for($i=0;$i<count($elem);$i++) 
-                { 
-                    $content .= $key2."[] = \"".$this->esc($elem[$i])."\"\n"; 
-                } 
-            } 
-            else if($elem=="") $content .= $key2." = \n"; 
-            else $content .= $key2." = \"".$this->esc($elem)."\"\n"; 
-        } 
+    if ($has_sections) {
+        foreach ($assoc_arr as $key=>$elem) {
+            $content .= "[".$key."]\n";
+            foreach ($elem as $key2=>$elem2) {
+                if(is_array($elem2))
+                {
+                    for($i=0;$i<count($elem2);$i++)
+                    {
+                        $content .= $key2."[] = \"".$this->esc($elem2[$i])."\"\n";
+                    }
+                }
+                else if($elem2=="") $content .= $key2." = \n";
+                else $content .= $key2." = \"".$this->esc($elem2)."\"\n";
+            }
+        }
     }
-    } 
+    else {
+        foreach ($assoc_arr as $key=>$elem) {
+            if(is_array($elem))
+            {
+                for($i=0;$i<count($elem);$i++)
+                {
+                    $content .= $key2."[] = \"".$this->esc($elem[$i])."\"\n";
+                }
+            }
+            else if($elem=="") $content .= $key2." = \n";
+            else $content .= $key2." = \"".$this->esc($elem)."\"\n";
+        }
+    }
+    }
 
-    if (!$handle = fopen($path, 'w')) { 
-        return false; 
-    } 
-    if (!fwrite($handle, $content)) { 
-        return false; 
-    } 
+    if (!$handle = fopen($path, 'w')) {
+        return false;
+    }
+    if (!fwrite($handle, $content)) {
+        return false;
+    }
     @chmod($path,0664);
-    fclose($handle); 
-    return true; 
+    fclose($handle);
+    return true;
 }
-	
+
 	public function set($secname,$pname,$val)
 	{
 		$this->_props[$secname][$pname]=$val;
@@ -172,7 +172,7 @@ class Properties
 			return $default;
 		}
 	}
-	
+
 	public function getsection($secname)
 	{
 		if(isset($this->_props[$secname]))
@@ -184,12 +184,12 @@ class Properties
 			return array();
 		}
 	}
-	
+
 	public function hasSection($secname)
 	{
 		return isset($this->_props[$secname]);
 	}
-	
+
 	public function removeSection($secname)
 	{
 		if($this->hasSection($secname))
@@ -197,6 +197,6 @@ class Properties
 			unset($this->_props[$secname]);
 		}
 	}
-	
-	
+
+
 }

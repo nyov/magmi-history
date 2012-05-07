@@ -6,7 +6,7 @@ function extractZipDir($zip,$bdir,$zdir)
 	$files=array();
 	for($i = 0; $i < $zip->numFiles; $i++) {
         $entry = $zip->getNameIndex($i);
-		if (preg_match("|^$zdir/(.*)|",$entry,$matches)) 
+		if (preg_match("|^$zdir/(.*)|",$entry,$matches))
 		{
 		  if($matches[1]=='')
 		  {
@@ -20,7 +20,7 @@ function extractZipDir($zip,$bdir,$zdir)
 	      }
         }
 	}
-   
+
 	if(count($files)>0)
 	{
         $ok=$zip->extractTo($bdir,$files);
@@ -38,14 +38,14 @@ $res = $zip->open($_FILES["magmi_package"]["tmp_name"]);
 try
 {
 	$info=$zip->statName('magmi/conf/magmi.ini.default');
-	
-	if ($res === TRUE && $info!==FALSE) 
+
+	if ($res === TRUE && $info!==FALSE)
     {
          $ok=extractZipDir($zip, dirname(dirname(__FILE__)), "magmi");
          $zip->close();
-		
+
 	    $_SESSION["magmi_install"]=array("info","Magmi updated");
-	} 
+	}
     else
     {
     	$zip->close();

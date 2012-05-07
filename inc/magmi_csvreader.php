@@ -4,7 +4,7 @@ require_once("magmi_utils.php");
 
 class Magmi_CSVException extends Exception
 {
-	
+
 }
 
 class Magmi_CSVReader extends Magmi_Mixin
@@ -19,31 +19,31 @@ class Magmi_CSVReader extends Magmi_Mixin
 	protected $_curline;
 	protected $_nhcols;
 	protected $_ignored=array();
-	
-	
-	
-	
+
+
+
+
 	public function initialize()
 	{
 		$this->_filename=$this->getParam("CSV:filename");
 		$this->_csep=$this->getParam("CSV:separator",",");
 		$this->_dcsep=$this->_csep;
-		
+
 		if($this->_csep=="\\t")
 		{
 			$this->_csep="\t";
 		}
-		
+
 		$this->_cenc=$this->getParam("CSV:enclosure",'"');
 		$this->_buffersize=$this->getParam("CSV:buffer",0);
 		$this->_ignored=explode(",",$this->getParam("CSV:ignore"));
-		
+
 	}
-	
-	
-	
-	
-	
+
+
+
+
+
 	public function getLinesCount()
 	{
 		//open csv file
@@ -78,11 +78,11 @@ class Magmi_CSVReader extends Magmi_Mixin
 		else
 		{
 			$this->log("Could not read $this->_filename , check permissions","error");
-		}	
+		}
 		return $count;
 	}
-	
-		
+
+
 	public function checkCSV()
 	{
 		$this->_curline=0;
@@ -97,15 +97,15 @@ class Magmi_CSVReader extends Magmi_Mixin
 		}
 		$this->log("Importing CSV : $this->_filename using separator [ $this->_dcsep ] enclosing [ $this->_cenc ]","startup");
 	}
-	
-	
+
+
 	public function openCSV()
 	{
-	
+
 		//open csv file
 		$this->_fh=fopen($this->_filename,"rb");
 	}
-	
+
 	public function getColumnNames($prescan=false)
 	{
 		if($prescan==true)
@@ -113,18 +113,18 @@ class Magmi_CSVReader extends Magmi_Mixin
 			$this->_fh=fopen($this->getParam("CSV:filename"),"rb");
 			$this->_csep=$this->getParam("CSV:separator",",");
 			$this->_dcsep=$this->_csep;
-		
+
 			if($this->_csep=="\\t")
 			{
 				$this->_csep="\t";
 			}
-		
+
 			$this->_cenc=$this->getParam("CSV:enclosure",'"');
 			$this->_buffersize=$this->getParam("CSV:buffer",0);
 		}
-		
+
 		$line=1;
-		
+
 		while($line<$this->getParam("CSV:headerline",1))
 		{
 			$line++;
@@ -142,7 +142,7 @@ class Magmi_CSVReader extends Magmi_Mixin
 			{
 				$cols[]="col".$c;
 			}
-			//reset file pointer	
+			//reset file pointer
 			fseek($this->_fh,0);
 		}
 		$this->_cols=$cols;
@@ -163,16 +163,16 @@ class Magmi_CSVReader extends Magmi_Mixin
 		}
 		return $this->_cols;
 	}
-	
+
 	public function closeCSV()
 	{
-		fclose($this->_fh);	
+		fclose($this->_fh);
 	}
 
 	public function isemptyline($row) {
   		return ( !isset($row[1]) && empty($row[0]) );
 	}
-	
+
 	public function getNextRecord()
 	{
 		$row=null;
@@ -182,7 +182,7 @@ class Magmi_CSVReader extends Magmi_Mixin
 			$row=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
 			if($row !==false)
 			{
-				$this->_curline++;			
+				$this->_curline++;
 				//skip empty lines
 				if($this->isemptyline($row))
 				{
@@ -190,8 +190,8 @@ class Magmi_CSVReader extends Magmi_Mixin
 				}
 				$rcols=count($row);
 				if(!$allowtrunc && $rcols!=$this->_nhcols)
-				{			
-					//if strict matching, warning & continue	
+				{
+					//if strict matching, warning & continue
 					$this->log("warning: line $this->_curline , wrong column number : $rcols found over $this->_nhcols, line skipped","warning");
 					continue;
 				}
@@ -209,14 +209,14 @@ class Magmi_CSVReader extends Magmi_Mixin
 			}
 			else
 			{
-				
+
 				//relax mode, recompose keys from read columns , others will be left unset
 				$ncols=count($row);
 				$cols=array_slice($this->_cols,0,$ncols);
 				$record=array_combine($cols,$row);
 			}
-			
-				
+
+
 		}
 		else
 		{
@@ -225,6 +225,6 @@ class Magmi_CSVReader extends Magmi_Mixin
 		unset($row);
 		return $record;
 	}
-	
+
 
 }

@@ -22,9 +22,9 @@ class CategoryImporter extends Magmi_ItemProcessor
 			}
 		}
 		$this->_tsep=$this->getParam("CAT:treesep","/");
-			
+
 	}
-	
+
 	public function initCats()
 	{
 		// zioigor - 20110426 missing call to tablename method for table_prfix
@@ -34,7 +34,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$ccev=$t."_varchar";
 		$ea=$this->tablename("eav_attribute");
 		$result=$this->selectAll("SELECT cs.store_id,csg.website_id,cce.entity_type_id,cce.path,ccev.value as name
-								FROM $cs as cs 
+								FROM $cs as cs
 								JOIN $csg as csg on csg.group_id=cs.group_id
 								JOIN $t as cce ON cce.entity_id=csg.root_category_id
 								JOIN $ea as ea ON ea.attribute_code='name' AND ea.entity_type_id=cce.entity_type_id
@@ -50,10 +50,10 @@ class CategoryImporter extends Magmi_ItemProcessor
 				$this->_cat_eid=$row["entity_type_id"];
 			}
 		}
-		
+
 	}
-	
-	
+
+
 	public function getCatAttributeInfos($attcode)
 	{
 		$t=$this->tablename("eav_attribute");
@@ -62,7 +62,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return $info[0];
 	}
 
-	
+
 	public function getCache($cdef,$bp)
 	{
 		$ck="$bp::$cdef";
@@ -73,14 +73,14 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$ck="$bp::$cdef";
 		return isset($this->_idcache[$ck]);
 	}
-	
+
 	public function putInCache($cdef,$bp,$idarr)
 	{
 		$ck="$bp::$cdef";
 		$this->_idcache[$ck]=$idarr;
-		
+
 	}
-	
+
 	public function getPluginInfo()
 	{
 		return array(
@@ -90,8 +90,8 @@ class CategoryImporter extends Magmi_ItemProcessor
 			"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_category_creator/importer"
             );
 	}
-	
-	
+
+
 	public function getExistingCategory($parentpath,$cattr)
 	{
 		$cet=$this->tablename("catalog_category_entity");
@@ -103,7 +103,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$catid=$this->selectone($sql,array($this->_cattrinfos["varchar"]["name"]["attribute_id"],$cattr["name"],$parentid),"entity_id");
 		return $catid;
 	}
-	
+
 	public function getCategoryId($parentpath,$cattrs)
 	{
 		//get exisiting cat id
@@ -128,10 +128,10 @@ class CategoryImporter extends Magmi_ItemProcessor
 		//insert new category
 		$sql="INSERT INTO $cet 	(entity_type_id,attribute_set_id,parent_id,position,level,path,children_count) VALUES (?,?,?,?,?,?,?)";
 		//insert empty path until we get category id
-		$data=array($info["entity_type_id"],$info["attribute_set_id"],$parentid,$info["position"],$info["level"],"",0);		
+		$data=array($info["entity_type_id"],$info["attribute_set_id"],$parentid,$info["position"],$info["level"],"",0);
 		//insert in db,get cat id
 		$catid=$this->insert($sql,$data);
-		
+
 		unset($data);
 		//set category path with inserted category id
 		$sql="UPDATE $cet SET path=?,created_at=NOW(),updated_at=NOW() WHERE entity_id=?";
@@ -144,7 +144,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 			$inserts=array();
 			$data=array();
 			$tb=$this->tablename("catalog_category_entity_$tp");
-			
+
 			foreach($attinfo as $attrcode=>$attdata)
 			{
 				if(isset($attdata["attribute_id"]))
@@ -157,7 +157,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 					$data[]=$cattrs[$attrcode];
 				}
 			}
-			
+
 			$sql="INSERT INTO $tb (entity_type_id,attribute_id,store_id,entity_id,value) VALUES ".implode(",",$inserts).
 			" ON DUPLICATE KEY UPDATE value=VALUES(`value`)";
 			$this->insert($sql,$data);
@@ -166,7 +166,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		}
 		return $catid;
 	}
-	
+
 	public function extractCatAttrs(&$catdef)
 	{
 		$cdefs=explode($this->_tsep,$catdef);
@@ -189,11 +189,11 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$catdef=implode($this->_tsep,$odefs);
 		return $clist;
 	}
-	
+
 	public function getCategoryIdsFromDef($catdef,$basepath)
 	{
-		
-		
+
+
 		//if full def is in cache, use it
 		if($this->isInCache($catdef,$basepath))
 		{
@@ -201,15 +201,15 @@ class CategoryImporter extends Magmi_ItemProcessor
 		}
 		else
 		{
-			//category ids 
+			//category ids
 			$catids=array();
 			$lastcached=array();
 			//get cat tree branches names
 			$catparts=explode($this->_tsep,$catdef);
 			//path as array , basepath is always "/" separated
 			$basearr=explode("/",$basepath);
-			//for each cat tree branch		
-			$pdef=array();	
+			//for each cat tree branch
+			$pdef=array();
 			foreach($catparts as $catpart)
 			{
 				//add it to the current tree level
@@ -218,11 +218,11 @@ class CategoryImporter extends Magmi_ItemProcessor
 				//test for tree level in cache
 				if($this->isInCache($ptest,$basepath))
 				{
-					//if yes , set current known cat ids to corresponding cached branch 
+					//if yes , set current known cat ids to corresponding cached branch
 					$catids=$this->getCache($ptest,$basepath);
 					//store last cached branch
 					$lastcached=$pdef;
-				}				
+				}
 				else
 				//no more tree info in cache,stop further retrieval, we need to create missing levels
 				{
@@ -230,11 +230,11 @@ class CategoryImporter extends Magmi_ItemProcessor
 				}
 
 			}
-			//add store tree root to category path 
+			//add store tree root to category path
 			$curpath=array_merge($basearr,$catids);
 			//get categories attributes
 			$catattributes=$this->extractCatAttrs($catdef);
-			
+
 			//iterate on missing levels.
 			for($i=count($catids);$i<count($catparts);$i++)
 			{
@@ -245,21 +245,21 @@ class CategoryImporter extends Magmi_ItemProcessor
 				//add newly created level to current paths
 				$curpath[]=$catid;
 				//cache newly created levels
-				$lastcached[]=$catparts[$i];				
+				$lastcached[]=$catparts[$i];
 				$this->putInCache(implode($this->_tsep,$lastcached),$basepath,$catids);
-			
+
 			}
 		}
 		return $catids;
 	}
-	
+
 	public function processColumnList(&$cols,$params)
 	{
 		$cols[]="category_ids";
 		$cols=array_unique($cols);
 		return true;
 	}
-	
+
 	public function getStoreRootPaths(&$item)
 	{
 		$rootpaths=array();
@@ -303,12 +303,12 @@ class CategoryImporter extends Magmi_ItemProcessor
 		}
 		return $rootpaths;
 	}
-	
+
 	public function processItemAfterId(&$item,$params=null)
 	{
 		if(isset($item["categories"]))
 		{
-			
+
 			$rootpaths=$this->getStoreRootPaths($item);
 			if(count($rootpaths)==0)
 			{
@@ -344,18 +344,18 @@ class CategoryImporter extends Magmi_ItemProcessor
 		}
 		return true;
 	}
-	
+
 	public function getPluginParamNames()
 	{
 		return array('CAT:baseroot','CAT:lastonly','CAT:urlending','CAT:treesep');
 	}
-	
+
 	public function afterImport()
 	{
 		//automatically update all children_count for catalog categories
 		$cce=$this->tablename("catalog_category_entity");
 		$sql="UPDATE  $cce as cce
-		LEFT JOIN 
+		LEFT JOIN
 			(SELECT s1.entity_id as cid, COALESCE( COUNT( s2.entity_id ) , 0 ) AS cnt
 				FROM $cce AS s1
 				LEFT JOIN $cce AS s2 ON s2.parent_id = s1.entity_id

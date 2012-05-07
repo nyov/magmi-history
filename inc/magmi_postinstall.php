@@ -22,7 +22,7 @@ function magmi_post_install()
 				    $out.="deleting $fname (new dir struct)<br>";
 					unlink($fname);
 				}
-				else 
+				else
 				{
 				    $out.="moving $fname to migrated (custom script)<br>";
 				    @mkdir("../integration/scripts/migrated/");
@@ -35,7 +35,7 @@ function magmi_post_install()
 		{
 		  $out="nothing to do";
 		}
-		
+
 	}
 	return array("OK"=>$out);
 }

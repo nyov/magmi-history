@@ -11,7 +11,7 @@ while(!feof($f))
 
 	if(preg_match("/--- TRACE :\s+(\d+).*?/",$line,$match))
 	{
-		
+
 		$trid=$match[1];
 		if($trid==$tid)
 		{

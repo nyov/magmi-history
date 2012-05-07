@@ -1,19 +1,19 @@
-<?php 
+<?php
   header('Pragma: public');   // required
   header('Expires: 0');    // no cache
   header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
   header('Last-Modified: '.gmdate ('D, d M Y H:i:s', filemtime ($file_name)).' GMT');
   header('Cache-Control: private',false);
-    
+
     require_once("header.php");
 	require_once("magmi_config.php");
 	require_once("magmi_statemanager.php");
-	
+
 	require_once("fshelper.php");
 	require_once("magmi_web_utils.php");
 	$badrights=array();
 	//checking post install procedure
-	
+
 	$postinst="../inc/magmi_postinstall.php";
 	if(file_exists($postinst))
 	{
@@ -21,7 +21,7 @@
 	 	if(function_exists("magmi_post_install"))
 	 	{
 	 		$result=magmi_post_install();
-	
+
 	if($result["OK"]!=""){?>
 	<div class="container_12" >
 	<div class="grid_12 subtitle"><span>Post install procedure</span></div>
@@ -43,23 +43,23 @@
 	if(count($badrights)==0)
 	{
 		$state=Magmi_StateManager::getState();
-		
+
 		if($state=="running" || (isset($_REQUEST["run"]) && $_REQUEST["run"]=="import"))
 		{
-			require_once("magmi_import_run.php");		
+			require_once("magmi_import_run.php");
 		}
 		else
 		{
 			Magmi_StateManager::setState("idle",true);
-			require_once("magmi_config_setup.php");		
-			require_once("magmi_profile_config.php");		
-		}		
-		
+			require_once("magmi_config_setup.php");
+			require_once("magmi_profile_config.php");
+		}
+
 	}
 	else
 	{
 		?>
-	
+
 	<div class="container_12" >
 	<div class="grid_12">
 		<div class="magmi_error" style="margin-top:5px">
@@ -74,7 +74,7 @@
 		</div>
 	</div>
 	</div>
-		<?php 
+		<?php
 	}
 ?>
 <?php require_once("footer.php");?>

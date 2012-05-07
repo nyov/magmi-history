@@ -53,9 +53,9 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 							$item[$k]=preg_replace("|$re|",$value,$item[$k]);
 							$mapped=true;
 							break;
-						}			
+						}
 					}
-					
+
 				}
 			}
 			#if not found,try common mappings
@@ -66,7 +66,7 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 				{
 					$item[$k]=$mpd[$item[$k]];
 				}
-			}	
+			}
 		}
 		return true;
 	}
@@ -76,7 +76,7 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 	public function initialize($params)
 	{
 		$this->_mapping=array();
-		
+
 		$dlist=glob(dirname(__file__)."/mappings/default/*.csv");
 		if($dlist==false)
 		{
@@ -114,7 +114,7 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
 			}
 		}
 	}
-	
+
 	static public function getCategory()
 	{
 		return "Input Data Preprocessing";

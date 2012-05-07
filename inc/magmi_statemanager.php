@@ -8,8 +8,8 @@ class Magmi_StateManager
 	private static $_statefile=null;
 	private static $_script=__FILE__;
 	private static $_state="idle";
-	
-	
+
+
 	public static function getStateFile()
 	{
 		return self::getStateDir().DS."magmistate";
@@ -18,27 +18,27 @@ class Magmi_StateManager
 	public static function getTraceFile()
 	{
 		return self::getStateDir().DS."trace.txt";
-		
+
 	}
-	
+
 	public static function getStateDir()
 	{
 		return dirname(dirname(self::$_script)).DS."state";
 	}
-	
+
 	public static function getProgressFile($full=false)
 	{
 		$fullname=self::getStateDir().DS."progress.txt";
 		$pfname=($full?$fullname:"progress.txt");
 		return $pfname;
 	}
-	
+
 	public static function setState($state,$force=false)
 	{
-	
+
 		if(self::$_state==$state && !$force)
 		{
-			return;	
+			return;
 		}
 
 		self::$_state=$state;
@@ -50,10 +50,10 @@ class Magmi_StateManager
 		{
 			$f=fopen(self::getTraceFile(),"w");
 			fclose($f);
-			@chmod(self::getTraceFile(),0664);	
+			@chmod(self::getTraceFile(),0664);
 		}
 	}
-	
+
 	public static function getState($cached=false)
 	{
 		if(!$cached)
@@ -62,7 +62,7 @@ class Magmi_StateManager
 			{
 				self::setState("idle",true);
 			}
-			$state=file_get_contents(self::getStateFile());		
+			$state=file_get_contents(self::getStateFile());
 		}
 		else
 		{
@@ -70,5 +70,5 @@ class Magmi_StateManager
 		}
 		return $state;
 	}
-	
+
 }

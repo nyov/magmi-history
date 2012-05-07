@@ -2,7 +2,7 @@
 <ul class="formline">
 <li class="label">SQL file</li>
 <li class="value">
-<?php 
+<?php
 
 $dr=$this->getParam("UTCSQL:queryfile");?>
 <?php $sqlfiles=$this->getRequestFileList();?>
@@ -14,7 +14,7 @@ if(!isset($dr))
 }
 ?>
 <select name="UTCSQL:queryfile" id="UTCSQL:queryfile">
-	<?php foreach($sqlfiles as $curfile):?>	
+	<?php foreach($sqlfiles as $curfile):?>
 	<option <?php if($curfile==$dr){?>selected=selected<?php }?> value="<?php echo $curfile?>" ><?php echo $this->getRequestInfo($curfile)?></option>
 	<?php endforeach?>
 </select>

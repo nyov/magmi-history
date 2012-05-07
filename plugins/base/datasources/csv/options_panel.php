@@ -40,17 +40,17 @@ This plugin enables magmi import from csv files (using Dataflow format + magmi e
  </ul>
  <input type="checkbox" id="CSV:remoteauth" name="CSV:remoteauth" <?php  if($this->getParam("CSV:remoteauth",false)==true){?>checked="checked"<?php }?>>authentication needed
  <div id="remoteauth" <?php  if($this->getParam("CSV:remoteauth",false)==false){?>style="display:none"<?php }?>>
- 
+
  <div class="remoteuserpass">
  	<ul class="formline">
  		<li class="label">User</li>
  		<li class="value"><input type="text" name="CSV:remoteuser" id="CSV:remoteuser" value="<?php echo $this->getParam("CSV:remoteuser","")?>"></li>
- 		
- 	</ul> 
+
+ 	</ul>
  	<ul class="formline">
  		<li class="label">Password</li>
  		<li class="value"><input type="text" name="CSV:remotepass" id="CSV:remotepass" value="<?php echo $this->getParam("CSV:remotepass","")?>"></li>
- 	</ul> 
+ 	</ul>
  	</div>
 
 
@@ -81,14 +81,14 @@ $malformed=($hdline!="" && $hdline!=1)?>
 	{
 		if($('CSV:remoteauth').checked)
 		{
-			$('remoteauth').show();	
+			$('remoteauth').show();
 		}
 		else
 		{
 			$('remoteauth').hide();
 		}
 	}
-	
+
 	$('CSV:basedir').observe('blur',function()
 			{
 			new Ajax.Updater('csvds_filelist','ajax_pluginconf.php',{
@@ -101,7 +101,7 @@ $malformed=($hdline!="" && $hdline!=1)?>
 	$('malformedcb').observe('click',function(ev){
 		if($('malformedcb').checked)
 		{
-			$('malformed').show();	
+			$('malformed').show();
 		}
 		else
 		{

@@ -1,4 +1,4 @@
-	<?php 
+	<?php
 	ini_set('magic_gpc_quotes',0);
 	$profile=isset($_REQUEST["profile"])?$_REQUEST["profile"]:'default';
 	$_SESSION["last_runned_profile"]=$profile;
@@ -6,10 +6,10 @@
 	?>
 	<script type="text/javascript">
 	var imp_params={engine:'magmi_productimportengine:Magmi_ProductImportEngine'};
-	<?php 
+	<?php
 		foreach($_REQUEST as $k=>$v)
 		{
-			echo "imp_params['$k']='$v';\n";	
+			echo "imp_params['$k']='$v';\n";
 		}
 	?>
 	</script>
@@ -37,7 +37,7 @@
 		new Ajax.Updater(tdiv,'ajax_gettime.php',{parameters:{prefix:xprefix},
 			onComplete:function(){$(tdiv).show();}});
 	};
-	
+
 	endImport=function(t)
 	{
 		if(window.upd!=null)
@@ -47,7 +47,7 @@
 			window.upd=null;
 			updateTime('endimport_div','Import Ended');
 			if(window._sr!=null)
-			{		
+			{
 				window._sr.transport.abort();
 				window._sr=null;
 			}
@@ -59,10 +59,10 @@
 		window.upd=new Ajax.PeriodicalUpdater("runlog","magmi_progress.php",{frequency:1,evalScripts:true,parameters:{
 		logfile:imp_params['logfile']}});
 	};
-	
+
 	startImport=function(imp_params)
 	{
-		
+
 		if(window._sr==null)
 		{
 			updateTime('startimport_div','Import Started');
@@ -74,7 +74,7 @@
 													}});
 		}
 	};
-	
+
 	setProgress=function(pc)
 	{
 		$('import_current').setStyle({width:''+pc+'%'});

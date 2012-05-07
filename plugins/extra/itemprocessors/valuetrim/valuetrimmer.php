@@ -3,14 +3,14 @@
  * Class SampleItemProcessor
  * @author dweeves
  *
- * This class is a sample for item processing   
-*/ 
+ * This class is a sample for item processing
+*/
 class ValueTrimItemProcessor extends Magmi_ItemProcessor
 {
 
 	protected $_totrim=array();
 	protected $_scanned=false;
-	
+
     public function getPluginInfo()
     {
         return array(
@@ -20,18 +20,18 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Value_Trimmer_for_select/multiselect"
         );
     }
-	
+
 	/**
 	 * you can add/remove columns for the item passed since it is passed by reference
 	 * @param Magmi_Engine $mmi : reference to magmi engine instance (convenient to perform database operations)
 	 * @param unknown_type $item : modifiable reference to item before import
 	 * the $item is a key/value array with column names as keys and values as read from csv file.
-	 * @return bool : 
+	 * @return bool :
 	 * 		true if you want the item to be imported after your custom processing
 	 * 		false if you want to skip item import after your processing
 	 */
-	
-	
+
+
     public function getTrimmableCols($item)
     {
     	if(!$this->_scanned)
@@ -51,7 +51,7 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 		}
 		return $this->_totrim;
 	}
-	
+
 	public function processItemBeforeId(&$item,$params=null)
 	{
 		//get list of trimmable columns
@@ -78,19 +78,19 @@ class ValueTrimItemProcessor extends Magmi_ItemProcessor
 		}
 		return true;
 	}
-	
-	
+
+
 	public function initialize($params)
 	{
 		$this->_scanned=false;
 		$this->_totrim=array();
 		return true;
-		
+
 	}
 
 	static public function getCategory()
 	{
 		return "Input Data Preprocessing";
 	}
-	
+
 }

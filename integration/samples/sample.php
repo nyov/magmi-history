@@ -1,8 +1,8 @@
 <?php
 require_once("../../inc/magmi_defs.php");
  require_once("../inc/magmi_datapump.php");
- 
- 
+
+
  /** Define a logger class that will receive all magmi logs **/
  class TestLogger
  {
@@ -27,7 +27,7 @@ require_once("../../inc/magmi_defs.php");
   * - mode : create
   * - logger :  an instance of the class defined above
   */
- 
+
  /**
   * FOR THE SAMPLE TO WORK CORRECTLY , YOU HAVE TO DEFINE A test_ptj profile with :
   * UPSELL/CROSS SELL, ITEM RELATER, CATEGORIES IMPORTER/CREATOR selected
@@ -35,13 +35,13 @@ require_once("../../inc/magmi_defs.php");
   * Reindexer needed also to have products show up on front : select all but "catalog_category_product" & "url_rewrite" (both are handled by on the fly indexer)
   */
  $dp->beginImportSession("test_ptj","create",new TestLogger());
- 
+
  /* Create 5000 items , with  every 100 :
-  * 
+  *
   * 	upsell on last 100 even
-  *     cross sell on last 100 odd 
+  *     cross sell on last 100 odd
   *     related on last 100 every 5
-  *     cross sell on last 100 every 10 
+  *     cross sell on last 100 every 10
   *     categories named catX/even or catX/odd with X is thousand of item (using categories plugin) */
  for($sku=0;$sku<5000;$sku++)
  {
@@ -58,7 +58,7 @@ require_once("../../inc/magmi_defs.php");
  	}
  	//create item to import
  	// sku :  XXXXX , 5 numbers , padded left with current loop counter as sku
- 	// name : itemXXXXX 
+ 	// name : itemXXXXX
  	// description : testXXXXX
  	// price : random between $1 & $500
  	// categories : the ones built above
@@ -73,7 +73,7 @@ require_once("../../inc/magmi_defs.php");
  		$xre=array();
  		for($i=$sku-99;$i<$sku;$i++)
  		{
- 			//related item sku 
+ 			//related item sku
  			$rsku=str_pad($i,5,"0",STR_PAD_LEFT);
 			//add upselling on each odd item in the 100 before the current
  			if($i%2==1)
@@ -85,7 +85,7 @@ require_once("../../inc/magmi_defs.php");
  			{
  				$csell[]=$rsku;
  			}
- 			
+
  			//on each 10 before, cross relate
  			if($i%10==0)
  			{
@@ -99,7 +99,7 @@ require_once("../../inc/magmi_defs.php");
  					$re[]=$rsku;
  				}
  			}
- 		}		
+ 		}
  		//fill upsell with the computed skus from rules above
  		$item["us_skus"]=implode(",",$upsell);
  		//fill cross sell with the computed skus from rules above
@@ -114,4 +114,3 @@ require_once("../../inc/magmi_defs.php");
  }
  /* end import session, will run post import plugins */
  $dp->endImportSession();
- 

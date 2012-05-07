@@ -8,7 +8,7 @@ class Magmi_OptimizerPlugin extends Magmi_GeneralImportPlugin
 					 "version"=>"1.0.5",
 					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Magmi_Optimizer");
 	}
-	
+
 	public function beforeImport()
 	{
 		$tbls=array("eav_attribute_option_value"=>array("value","MAGMI_EAOV_OPTIMIZATION_IDX"),
@@ -33,10 +33,10 @@ class Magmi_OptimizerPlugin extends Magmi_GeneralImportPlugin
 		}
 		return true;
 	}
-	
-		
+
+
 	public function initialize($params)
 	{
-		
+
 	}
 }

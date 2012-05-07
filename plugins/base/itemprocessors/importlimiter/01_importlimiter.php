@@ -4,7 +4,7 @@ class ImportLimiter extends Magmi_ItemProcessor
 	protected $_recranges;
 	protected $_rmax=-1;
 	protected $_filters;
-	
+
 	public function getPluginInfo()
 	{
 		return array("name"=>"Magmi Import Limiter",
@@ -12,8 +12,8 @@ class ImportLimiter extends Magmi_ItemProcessor
 					 "version"=>"0.0.5",
 					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Magmi_Import_Limiter");
 	}
-	
-	
+
+
 	public function filtermatch($item,$fltdef)
 	{
 		$negate=0;
@@ -44,12 +44,12 @@ class ImportLimiter extends Magmi_ItemProcessor
 	{
 		$crow=$this->getCurrentRow();
 		$ok=(count($this->_recranges)==0);
-		
+
 		if(!$ok)
 		{
 			if($this->_rmax>-1 && $crow==$this->_rmax)
 			{
-				$this->setLastItem($item);	
+				$this->setLastItem($item);
 			}
 			foreach($this->_recranges as $rr)
 			{
@@ -60,8 +60,8 @@ class ImportLimiter extends Magmi_ItemProcessor
 				}
 			}
 		}
-	
-		
+
+
 		if($ok)
 		{
 			foreach($this->_filters as $fltdef)
@@ -80,23 +80,23 @@ class ImportLimiter extends Magmi_ItemProcessor
 		}
 		return $ok;
 	}
-	
+
 	public function parseFilters($fltstr)
 	{
 		$this->_filters=array();
 		if($fltstr=="")
-		{	
+		{
 			return;
 		}
 		$fltlist=explode(";;",$fltstr);
 		foreach($fltlist as $fltdef)
 		{
 			$fltinf=explode("::",$fltdef);
-			$this->_filters[]=$fltinf;			
+			$this->_filters[]=$fltinf;
 		}
-		
+
 	}
-	
+
 	public function parseRanges($rangestr)
 	{
 		$this->_recranges=array();
@@ -138,20 +138,20 @@ class ImportLimiter extends Magmi_ItemProcessor
 			$this->_recranges[]=array($rmin,$rmax);
 		}
 	}
-	
+
 	public function initialize($params)
 	{
 		$this->parseRanges($this->getParam("LIMITER:ranges",""));
 		$this->parseFilters($this->getParam("LIMITER:filters",""));
 		return true;
-		
+
 	}
-	
+
 	public function getPluginParamNames()
 	{
 		return array('LIMITER:ranges','LIMITER:filters');
 	}
-	
+
 	static public function getCategory()
 	{
 		return "Input Data Preprocessing";

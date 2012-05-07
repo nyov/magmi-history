@@ -7,7 +7,7 @@ class ClearProductUtility extends Magmi_UtilityPlugin
 					 "author"=>"Dweeves",
 					 "version"=>"1.0.3");
 	}
-	
+
 	public function runUtility()
 	{
 		$sql="SET FOREIGN_KEY_CHECKS = 0";
@@ -30,7 +30,7 @@ class ClearProductUtility extends Magmi_UtilityPlugin
 					  "catalog_product_option_title",
 					  "catalog_product_option_type_price",
 					  "catalog_product_option_type_title",
-					  "catalog_product_option_type_value",		
+					  "catalog_product_option_type_value",
 					  "catalog_product_super_attribute_label",
 					  "catalog_product_super_attribute_pricing",
 					  "catalog_product_super_attribute",
@@ -38,7 +38,7 @@ class ClearProductUtility extends Magmi_UtilityPlugin
 					  "catalog_product_link",
 					  "catalog_product_link_attribute_varchar",
 					  "catalog_product_link_attribute_int",
-		
+
 					  "catalog_product_relation",
 					  "catalog_product_enabled_index",
 					  "catalog_product_website",
@@ -46,14 +46,14 @@ class ClearProductUtility extends Magmi_UtilityPlugin
 					  "catalog_category_product",
 					  "cataloginventory_stock_item",
 					  "cataloginventory_stock_status");
-		
+
 		//clear flat catalogs index
 		$stmt=$this->exec_stmt("SHOW TABLES LIKE '".$this->tablename('catalog_product_flat')."%'",NULL,false);
 		while($row=$stmt->fetch(PDO::FETCH_NUM))
 		{
 			$this->exec_stmt("TRUNCATE TABLE ".$row[0]);
 		}
-		
+
 		foreach($tables as $table)
 		{
 			$this->exec_stmt("TRUNCATE TABLE `".$this->tablename($table)."`");
@@ -64,13 +64,13 @@ class ClearProductUtility extends Magmi_UtilityPlugin
 		$this->exec_stmt($sql);
 		echo "Catalog cleared";
 	}
-	
+
 	public function getWarning()
 	{
 		return "Are you sure?, it will destroy all existing items in catalog!!!";
 	}
 	public function getShortDescription()
 	{
-		return "This Utility clears the catalog";	
+		return "This Utility clears the catalog";
 	}
 }

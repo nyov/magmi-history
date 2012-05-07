@@ -1,9 +1,9 @@
-<?php 
+<?php
 	$params=$_REQUEST;
 	ini_set("display_errors",1);
 	require_once("../inc/magmi_defs.php");
 	require_once("../inc/magmi_statemanager.php");
-	
+
 	try
 	{
 		$engdef=explode(":",$params["engine"]);
@@ -18,7 +18,7 @@
 	class FileLogger
 	{
 		protected $_fname;
-		
+
 		public function __construct($fname)
 		{
 			$this->_fname=$fname;
@@ -32,7 +32,7 @@
 
 		public function log($data,$type)
 		{
-			
+
 			$f=fopen($this->_fname,"a");
 			if($f==false)
 			{
@@ -42,9 +42,9 @@
 			fwrite($f,"$type:$data\n");
 			fclose($f);
 		}
-		
+
 	}
-	
+
 	class EchoLogger
 	{
 		public function log($data,$type)
@@ -53,7 +53,7 @@
 			$type=$info[0];
 			echo('<p class="logentry log_'.$type.'">'.$data."</p>");
 		}
-		
+
 	}
 	if(Magmi_StateManager::getState()!=="running")
 	{
@@ -63,18 +63,18 @@
 		$logfile=isset($params["logfile"])?$params["logfile"]:null;
 		if(isset($logfile) && $logfile!="")
 		{
-			$fname=Magmi_StateManager::getStateDir().DS.$logfile;			
+			$fname=Magmi_StateManager::getStateDir().DS.$logfile;
 			$mmi_imp->setLogger(new FileLogger($fname));
-		}	
+		}
 		else
 		{
 			$mmi_imp->setLogger(new EchoLogger());
-		
+
 		}
-		
+
 		$mmi_imp->run($params);
-		
-		
+
+
 	}
 	else
 	{

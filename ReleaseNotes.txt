@@ -17,7 +17,7 @@
 
 * ProductImportEngine
 
-- added relative category affectation. 
+- added relative category affectation.
 - added store column check warnings
 - added support for no store column, defaulting to "admin"
 - getAttrInfo can now perform DB lookup if not cached instead of returning empty
@@ -66,7 +66,7 @@ Base:
 
 
 Extra
------ 
+-----
 
 * Categories
  - added support for custom tree branch separator
@@ -77,12 +77,12 @@ Extra
  -  bugfix for file kept open on remote urls
  * On the fly indexer
  - fix problem when reindexing item that was "logically cancelled" by processing.
- 
+
  * Value Replacer
   - added support for {meta.xxx} value that will get some info on item status (new,same,product_id)
-  
-  
- 
+
+
+
 * Value Replacer
 
 Utilities

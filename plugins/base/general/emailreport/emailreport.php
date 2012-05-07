@@ -7,7 +7,7 @@ class EmailReportPlugin extends Magmi_GeneralImportPlugin
 	{
 		$this->_attach=array();
 	}
-	
+
 public function getPluginInfo()
 	{
 		return array(
@@ -104,7 +104,7 @@ public function getPluginInfo()
 			if($this->getParam("EMAILREP:attachcsv",false)==true)
 			{
 				$ds=$eng->getPluginInstanceByClassName("datasources","Magmi_CSVDataSource");
-				if($ds!=null)	
+				if($ds!=null)
 				{
 					$csvfile=$ds->getParam("CSV:filename");
 					$this->addAttachment($csvfile);

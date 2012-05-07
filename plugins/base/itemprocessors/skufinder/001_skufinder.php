@@ -2,7 +2,7 @@
 class SkuFinderItemProcessor extends Magmi_ItemProcessor
 {
 	private $_compchecked=FALSE;
-	
+
  	public function getPluginInfo()
     {
         return array(
@@ -12,10 +12,10 @@ class SkuFinderItemProcessor extends Magmi_ItemProcessor
         	"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=SKU_Finder"
         );
     }
-    
+
     public function processItemBeforeId(&$item,$params=null)
 	{
-		
+
 		$matchfield=trim($this->getParam("SKUF:matchfield"));
 		//protection from tricky testers ;)
 		if($matchfield=="sku")
@@ -42,17 +42,17 @@ class SkuFinderItemProcessor extends Magmi_ItemProcessor
 			{
 				$this->log("$matchfield is ".$attinfo["backend_type"].", it cannot be used as sku matching field.","error");
 				$item["__MAGMI_LAST__"]=1;
-				return false;				
-			} 
+				return false;
+			}
 			if($attinfo["frontend_input"]=="select" || $attinfo["frontend_input"]=="multiselect" )
 			{
 				$this->log("$matchfield is ".$attinfo["frontend_input"].", it cannot be used as sku matching field.","error");
 				$item["__MAGMI_LAST__"]=1;
-				return false;		
+				return false;
 			}
 			$this->_compchecked=true;
 		}
-		
+
 		//no item data for selected matching field, skipping
 		if(!isset($item[$matchfield]) && trim($item["matchfield"])!=='')
 		{
@@ -87,7 +87,7 @@ class SkuFinderItemProcessor extends Magmi_ItemProcessor
 		//found a single sku ! item sku is in place, continue with processor chain
 		return true;
 	}
-	
+
 	static public function getCategory()
 	{
 		return "Input Data Preprocessing";

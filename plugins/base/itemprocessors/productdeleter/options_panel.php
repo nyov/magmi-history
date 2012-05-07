@@ -5,5 +5,5 @@ This plugins should be used to delete existing products
 	<li>
 		<input type="checkbox" name="PDEL:delsimples" <?php if($this->getParam("PDEL:delsimples",false)==true){?> checked="checked" <?php }?>>Delete children products
 	</li>
-	
+
 </ul>

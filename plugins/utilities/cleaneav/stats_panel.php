@@ -16,7 +16,7 @@ $stats=$this->getStatistics();
 		</tr>
 	</thead>
 	<tbody>
-<?php 
+<?php
 foreach($stats as $type=>$data)
 {?>
 	<?php $style="";
@@ -40,8 +40,8 @@ foreach($stats as $type=>$data)
 		<td><?php echo $data["empty"]?></td>
 		<td><?php echo $data["total"]?></td>
 		<td><?php echo $data["pc"]?></td>
-	</tr>	
-<?php 
+	</tr>
+<?php
 }?>
 </tbody>
 </table>

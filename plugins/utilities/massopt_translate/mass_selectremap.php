@@ -12,7 +12,7 @@ class MassOptionRemapper extends Magmi_UtilityPlugin
 					 "author"=>"Dweeves",
 					 "version"=>"1.0.0");
 	}
-	
+
 	public function getStoreId($sc)
 	{
 		if(!isset($this->_storeids[$sc]))
@@ -23,7 +23,7 @@ class MassOptionRemapper extends Magmi_UtilityPlugin
 		}
 		return $this->_storeids[$sc];
 	}
-	
+
 	public function getOptAttributeInfos($attrcode)
 	{
 		if(!isset($this->_attrinfos[$attrcode]))
@@ -33,7 +33,7 @@ class MassOptionRemapper extends Magmi_UtilityPlugin
 			$attrinfos=$this->selectAll($sql,$attrcode);
 			if(count($attrinfos)==0)
 			{
-			    
+
 				$attrinfos=array();
 			}
 			else
@@ -42,10 +42,10 @@ class MassOptionRemapper extends Magmi_UtilityPlugin
 			}
 			$this->_attrinfos[$attrcode]=$attrinfos;
 		}
-		
+
 		return $this->_attrinfos[$attrcode];
 	}
-	
+
 	public function remapAttrVal($attid,$from,$to,$cs=true)
 	{
 		$cpei=$this->tablename("catalog_product_entity_int");
@@ -57,27 +57,27 @@ class MassOptionRemapper extends Magmi_UtilityPlugin
 		}
 		if(!preg_match("re::(.*)",$from,$matches))
 		{
-			$where="(SELECT eao.option_id FROM 
-			$eao as eao 
+			$where="(SELECT eao.option_id FROM
+			$eao as eao
 			JOIN $eaov as eaov ON eaov.option_id=eao.option_id
 			WHERE eao.attribute_id=? and eaov.value REGEXP '?' $cs)";
 			$from=$matches[1];
 		}
 		else
 		{
-			$where="(SELECT eao.option_id FROM 
-			$eao as eao 
+			$where="(SELECT eao.option_id FROM
+			$eao as eao
 			JOIN $eaov as eaov ON eaov.option_id=eao.option_id
 			WHERE eao.attribute_id=? and eaov.value='?' $cs)";
 		}
-		$sql="UPDATE $cpei SET value=(SELECT eao.option_id 
-			FROM $eao as eao 
+		$sql="UPDATE $cpei SET value=(SELECT eao.option_id
+			FROM $eao as eao
 			JOIN $eaov as eaov ON eaov.option_id=eao.option_id
 			WHERE eao.attribute_id=? and eaov.value='?' COLLATE utf8_bin)
 			WHERE value IN $where";
 		$this->update($sql,array($attid,$to,$attid,$from));
 	}
-	
+
 	public function runUtility()
 	{
 		$params=$this->getPluginParams($this->_params);
@@ -100,23 +100,23 @@ class MassOptionRemapper extends Magmi_UtilityPlugin
 			$this->log("invalid csv : column names must be src_value & dest_value");
 			return false;
 		}
-		
+
 		while($item=$this->_csvreader->getNextRecord())
 		{
-			
-			$this->remapAttrVal($attinfos["attribute_id"],$item["src_value"],$item["dest_value"]);	
+
+			$this->remapAttrVal($attinfos["attribute_id"],$item["src_value"],$item["dest_value"]);
 		}
 		$this->_csvreader->closeCSV();
 		$this->_csvreader->unbind($this);
 	}
-	
+
 	public function getAbsPath($path)
 	{
-		
+
 		return abspath($path,$this->getScanDir());
-		
+
 	}
-	
+
 	public function getScanDir($resolve=true)
 	{
 		$scandir=$this->getParam("CSV:basedir","var/import");
@@ -124,27 +124,27 @@ class MassOptionRemapper extends Magmi_UtilityPlugin
 		{
 			$scandir=abspath($scandir,Magmi_Config::getInstance()->getMagentoDir(),$resolve);
 		}
-		return $scandir;	
+		return $scandir;
 	}
-	
+
 	public function getCSVList()
 	{
 		$scandir=$this->getScanDir();
 		$files=glob("$scandir/*.csv");
 		return $files;
 	}
-	
+
 	public function getPluginParamNames()
 	{
 		return array('CSV:filename','CSV:enclosure','CSV:separator','CSV:basedir','CSV:headerline','CSV:noheader','CSV:allowtrunc','SREMAP:attrcode');
 	}
-	
-	
-	
-	
+
+
+
+
 	public function getShortDescription()
 	{
 		return "This Utility performs mass replacement attribute values with another ones that already exist";
 	}
-	
+
 }

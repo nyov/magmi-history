@@ -1,7 +1,7 @@
 <?php
 class RelatedProducts extends Magmi_ItemProcessor
 {
-	
+
  public function getPluginInfo()
  {
  	return array(
@@ -11,8 +11,8 @@ class RelatedProducts extends Magmi_ItemProcessor
  			"url"=>"https://sourceforge.net/apps/mediawiki/magmi/index.php?title=Product_relater"
             );
  }
- 
- 
+
+
  public function checkRelated(&$rinfo)
  {
   if(count($rinfo["direct"])>0)
@@ -22,7 +22,7 @@ class RelatedProducts extends Magmi_ItemProcessor
   	WHERE testid.sku NOT LIKE '%re::%'
   	HAVING esku IS NULL";
   	$result=$this->selectAll($sql,$rinfo["direct"]);
-  
+
   	$to_delete=array();
   	foreach($result as $row)
   	{
@@ -32,9 +32,9 @@ class RelatedProducts extends Magmi_ItemProcessor
   	$rinfo["direct"]=array_diff($rinfo["direct"],$to_delete);
   }
   return count($rinfo["direct"])+count($rinfo["re"]);
-  
+
   }
- 
+
  public function processItemAfterId(&$item,$params=null)
  {
  	$related=isset($item["re_skus"])?$item["re_skus"]:null;
@@ -42,7 +42,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  	$srelated=isset($item["*re_skus"])?$item["*re_skus"]:null;
 	$pid=$params["product_id"];
 	$new=$params["new"];
- 
+
 	if(isset($related) && trim($related)!="")
  	{
  		$rinf=$this->getRelInfos($related);
@@ -61,7 +61,7 @@ class RelatedProducts extends Magmi_ItemProcessor
 		}
 		$this->setXRelatedItems($item,$rinf["add"]);
  	}
- 	
+
   	if(isset($srelated) && trim($srelated)!="")
  	{
  		$rinf=$this->getRelInfos($srelated);
@@ -72,7 +72,7 @@ class RelatedProducts extends Magmi_ItemProcessor
 		$this->setXRelatedItems($item,$rinf["add"],true);
  	}
  }
- 
+
  public function deleteRelatedItems($item,$inf)
  {
  	$joininfo=$this->buildJoinCond($item,$inf,"cpe2.sku");
@@ -85,12 +85,12 @@ class RelatedProducts extends Magmi_ItemProcessor
  		  JOIN ".$this->tablename("catalog_product_link")." as cpl ON cpl.product_id=cpe.entity_id AND cpl.link_type_id=cplt.link_type_id
  		  JOIN ".$this->tablename("catalog_product_link_attribute_int")." as cplai ON cplai.link_id=cpl.link_id
 		  JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND $j2
-		  
+
 		  WHERE cpe.sku=?";
 	$this->delete($sql,array_merge($joininfo["data"]["cpe2.sku"],array($item["sku"])));
  	}
  }
- 
+
  public function deleteXRelatedItems($item,$inf,$fullcross=false)
  {
  	$joininfo=$this->buildJoinCond($item,$inf,"cpe2.sku,cpe.sku");
@@ -98,7 +98,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  	$j=$joininfo["join"]["cpe.sku"];
  	if($j2!="")
  	{
- 
+
  	$sql="DELETE cplai.*,cpl.*
  		  FROM ".$this->tablename("catalog_product_entity")." as cpe
  		  JOIN ".$this->tablename("catalog_product_link")." as cpl ON cpl.product_id=cpe.entity_id
@@ -109,7 +109,7 @@ class RelatedProducts extends Magmi_ItemProcessor
 	$this->delete($sql,array_merge(array($item["sku"]),$joininfo["data"]["cpe2.sku"],array($item["sku"]),$joininfo["data"]["cpe.sku"]));
  	}
  }
- 
+
  public function getDirection(&$inf)
  {
  	$dir="+";
@@ -119,7 +119,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  		$inf=substr($inf,1);
  	}
  	return $dir;
- 	
+
  }
  public function getRelInfos($relationdef)
  {
@@ -140,7 +140,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  				$relskusdel["direct"][]=$rinf[0];
 			}
  		}
- 		
+
  		if(count($rinf)==2)
  		{
  			$dir=$this->getDirection($rinf[0]);
@@ -163,11 +163,11 @@ class RelatedProducts extends Magmi_ItemProcessor
  				}
  			}
  		}
- 	}	
- 	
+ 	}
+
  	return array("add"=>$relskusadd,"del"=>$relskusdel);
  }
- 
+
  public function buildJoinCond($item,$rinfo,$keys)
  {
 	$joinconds=array();
@@ -179,7 +179,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  		$joinconds[$key]=array();
  		if(count($rinfo["direct"])>0)
  		{
- 			$joinconds[$key][]="$key IN (".$this->arr2values($rinfo["direct"]).")";	
+ 			$joinconds[$key][]="$key IN (".$this->arr2values($rinfo["direct"]).")";
  			$data[$key]=array_merge($data[$key],$rinfo["direct"]);
  		}
  		if(count($rinfo["re"])>0)
@@ -195,23 +195,23 @@ class RelatedProducts extends Magmi_ItemProcessor
  		{
  			$joins[$key]="({$joins[$key]})";
  		}
- 		
+
  	}
  	return array("join"=>$joins,"data"=>$data);
  }
- 
- 
+
+
  public function setRelatedItems($item,$rinfo)
  {
  	if($this->checkRelated($rinfo)>0)
- 	
+
  	{
  	$joininfo=$this->buildJoinCond($item,$rinfo,"cpe2.sku");
  	$jinf=$joininfo["join"]["cpe2.sku"];
  	if($jinf!="")
  	{
   		//insert into link table
- 		$bsql="SELECT cplt.link_type_id,cpe.entity_id as product_id,cpe2.entity_id as linked_product_id 
+ 		$bsql="SELECT cplt.link_type_id,cpe.entity_id as product_id,cpe2.entity_id as linked_product_id
 			FROM ".$this->tablename("catalog_product_entity")." as cpe
 			JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.sku!=cpe.sku AND $jinf
 			JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
@@ -223,7 +223,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  	}
  	}
  }
- 
+
  public function setXRelatedItems($item,$rinfo,$fullrel=false)
  {
  	if($this->checkRelated($rinfo)>0)
@@ -234,7 +234,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  		if($j2!="")
  		{
   			//insert into link table
- 			$bsql="SELECT cplt.link_type_id,cpe.entity_id as product_id,cpe2.entity_id as linked_product_id 
+ 			$bsql="SELECT cplt.link_type_id,cpe.entity_id as product_id,cpe2.entity_id as linked_product_id
 				FROM ".$this->tablename("catalog_product_entity")." as cpe
 				JOIN ".$this->tablename("catalog_product_entity")." as cpe2 ON cpe2.entity_id!=cpe.entity_id AND (cpe2.sku=? OR $j2)
 				JOIN ".$this->tablename("catalog_product_link_type")." as cplt ON cplt.code='relation'
@@ -254,7 +254,7 @@ class RelatedProducts extends Magmi_ItemProcessor
  		}
  	}
  }
- 
+
  public function updateLinkAttributeTable($sku,$joininfo)
  {
  	 	//insert into attribute link attribute int table,reusing the same relations
@@ -265,8 +265,8 @@ class RelatedProducts extends Magmi_ItemProcessor
  	 {
  	 	$addcond="OR ".$joininfo["join"]["cpe.sku"];
  	 	$data=array_merge($data,$joininfo["data"]["cpe.sku"]);
- 	 } 	 
- 	//this enable to mass add 
+ 	 }
+ 	//this enable to mass add
  	$bsql="SELECT cpl.link_id,cpla.product_link_attribute_id,0 as value
 	   	   FROM ".$this->tablename("catalog_product_entity")." AS cpe
 		   JOIN ".$this->tablename("catalog_product_entity")." AS cpe2 ON cpe2.entity_id!=cpe.entity_id
@@ -274,26 +274,26 @@ class RelatedProducts extends Magmi_ItemProcessor
 		   JOIN ".$this->tablename("catalog_product_link_attribute")." AS cpla ON cpla.product_link_attribute_code='position' AND cpla.link_type_id=cplt.link_type_id
 		   JOIN ".$this->tablename("catalog_product_link") ." AS cpl ON cpl.link_type_id=cplt.link_type_id AND cpl.product_id=cpe.entity_id AND cpl.linked_product_id=cpe2.entity_id
 		   WHERE cpe.sku=? $addcond";
- 			
+
  	$sql="INSERT IGNORE INTO ".$this->tablename("catalog_product_link_attribute_int")." (link_id,product_link_attribute_id,value) $bsql";
- 	$this->insert($sql,$data);	
+ 	$this->insert($sql,$data);
  }
- 
+
  public function afterImport()
  {
- 	//remove maybe inserted doubles 
+ 	//remove maybe inserted doubles
  	$cplai=$this->tablename("catalog_product_link_attribute_int");
- 	$sql="DELETE cplaix FROM $cplai as cplaix 
- 		  WHERE cplaix.value_id IN 
- 		  (SELECT s1.value_id FROM 
- 		  	(SELECT cplai.link_id,cplai.value_id,MAX(cplai.value_id) as latest 
- 		  		FROM $cplai as cplai 
+ 	$sql="DELETE cplaix FROM $cplai as cplaix
+ 		  WHERE cplaix.value_id IN
+ 		  (SELECT s1.value_id FROM
+ 		  	(SELECT cplai.link_id,cplai.value_id,MAX(cplai.value_id) as latest
+ 		  		FROM $cplai as cplai
  		  		GROUP BY cplai.link_id
-				HAVING cplai.value_id!=latest) 
+				HAVING cplai.value_id!=latest)
 			as s1)";
  	$this->delete($sql);
  }
- 
+
 	static public function getCategory()
 	{
 		return "Related Products";

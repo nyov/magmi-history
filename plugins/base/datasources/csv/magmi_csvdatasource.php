@@ -5,22 +5,22 @@ require_once("magmi_csvreader.php");
 class Magmi_CSVDataSource extends Magmi_Datasource
 {
 	protected $_csvreader;
-	
+
 	public function initialize($params)
 	{
 		$this->_csvreader=new Magmi_CSVReader();
 		$this->_csvreader->bind($this);
 		$this->_csvreader->initialize();
-		
+
 	}
-	
+
 	public function getAbsPath($path)
 	{
-		
+
 		return abspath($path,$this->getScanDir());
-		
+
 	}
-	
+
 	public function getScanDir($resolve=true)
 	{
 		$scandir=$this->getParam("CSV:basedir","var/import");
@@ -28,16 +28,16 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		{
 			$scandir=abspath($scandir,Magmi_Config::getInstance()->getMagentoDir(),$resolve);
 		}
-		return $scandir;	
+		return $scandir;
 	}
-	
+
 	public function getCSVList()
 	{
 		$scandir=$this->getScanDir();
 		$files=glob("$scandir/*.csv");
 		return $files;
 	}
-	
+
 	public function getPluginParams($params)
 	{
 		$pp=array();
@@ -50,24 +50,24 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		}
 		return $pp;
 	}
-	
+
 	public function getPluginInfo()
 	{
 		return array("name"=>"CSV Datasource",
 					 "author"=>"Dweeves",
 					 "version"=>"1.2");
 	}
-	
+
 	public function getRecordsCount()
 	{
 		return $this->_csvreader->getLinesCount();
 	}
-	
+
 	public function getAttributeList()
 	{
-		
+
 	}
-	
+
   public function getRemoteFile($url,$creds=null,$authmode=null)
   {
 	$ch = curl_init($url);
@@ -79,7 +79,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		@mkdir($csvdldir);
 		@chmod($csvdldir, Magmi_Config::getInstance()->getDirMask());
 	}
-	
+
 		$outname=$csvdldir."/".basename($url);
   //open file for writing
 		if(file_exists($outname))
@@ -94,14 +94,14 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	if(substr($url,0,4)=="http")
 	{
 		$lookup=1;
-                
+
   	  $lookup_opts= array(CURLOPT_RETURNTRANSFER=>true,
 							     CURLOPT_HEADER=>true,
 							     CURLOPT_NOBODY=>true,
 							     CURLOPT_FOLLOWLOCATION=>true,
 							     CURLOPT_FILETIME=>true,
 							     CURLOPT_CUSTOMREQUEST=>"HEAD");
-							  
+
     	$dl_opts=array(CURLOPT_FILE=>$fp,
 		                         CURLOPT_CUSTOMREQUEST=>"GET",
 	  						     CURLOPT_HEADER=>false,
@@ -109,7 +109,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 							     CURLOPT_FOLLOWLOCATION=>true,
 							     CURLOPT_UNRESTRICTED_AUTH=>true,
 							     CURLOPT_HTTPHEADER=> array('Expect:'));
-	
+
 	}
 	else
 	{
@@ -119,7 +119,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 			$dl_opts=array(CURLOPT_FILE=>$fp);
 		}
 	}
-	
+
 	if($creds!="")
 	{
 	if($lookup!=0)
@@ -138,9 +138,9 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 	}
 	$dl_opts[CURLOPT_USERPWD]="$creds";
 	}
-	
+
 	if($lookup)
-	{	
+	{
 		//lookup , using HEAD request
 		$ok=curl_setopt_array($ch,$lookup_opts);
 		$res=curl_exec($ch);
@@ -152,7 +152,7 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 				$resp = explode("\n\r\n", $res);
 				$this->log("http header:<pre>".$resp[0]."</pre>","error");
 				throw new Exception("Cannot fetch $url");
-				
+
 			}
 		}
 		else
@@ -161,14 +161,14 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		}
 
 	}
-	
+
 	$res=array("should_dl"=>true,"reason"=>"");
 
 	if($res["should_dl"])
 	{
 	    //clear url options
 		$ok=curl_setopt_array($ch, array());
-		
+
 		//Download the file , force expect to nothing to avoid buffer save problem
 	    curl_setopt_array($ch,$dl_opts);
 		curl_exec($ch);
@@ -180,12 +180,12 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		else
 		{
 			$lm=curl_getinfo($ch);
-			
+
 			$this->log("CSV Fetched in ".$lm['total_time']. "secs","startup");
 		}
 		curl_close($ch);
 		fclose($fp);
-		
+
 	}
 	else
 	{
@@ -216,32 +216,32 @@ class Magmi_CSVDataSource extends Magmi_Datasource
 		}
 		return $this->_csvreader->checkCSV();
 	}
-	
+
 	public function afterImport()
 	{
-		
+
 	}
-	
+
 	public function startImport()
 	{
 		$this->_csvreader->openCSV();
 	}
-	
+
 	public function getColumnNames($prescan=false)
 	{
 		return $this->_csvreader->getColumnNames($prescan);
 	}
-	
+
 	public function endImport()
 	{
 		$this->_csvreader->closeCSV();
 	}
 
-	
+
 	public function getNextRecord()
 	{
 		return $this->_csvreader->getNextRecord();
 	}
-	
+
 
 }

@@ -7,14 +7,14 @@
 <script type="text/javascript">
  showtrace=function(traceid)
  {
-	 
+
 	 if($('trace_'+traceid).visible())
 	 {
 		 $('trace_'+traceid).update('');
 		 $('trace_'+traceid).hide();
 	}
 	else
-	{ 
+	{
 		 new Ajax.Updater('trace_'+traceid,'trace_details.php',{parameters:{'traceid':traceid},onComplete:function(){$('trace_'+traceid).show()}});
  	}
  }
@@ -36,12 +36,12 @@
  <?php if($errnum!=null){
  	?>
  		<a name="trace_<?php echo $errnum?>" href="#trace_<?php echo $errnum?>" onclick="showtrace('<?php echo $errnum?>')"><?php echo $errnum?></a>
- 	<?php 
+ 	<?php
  }?><span><?php echo $xdata?></span>
  <?php if($errnum!=null){?>
  	<div style="display:none" class="trace" id="trace_<?php echo $errnum?>"></div>
  </li>
- <?php 
+ <?php
  }
  }?>
  </ul>

@@ -16,17 +16,17 @@ $pflist=array();
 
 foreach(explode(",",$dslist) as $pclass)
 {
-	$pflist[$pclass]="datasources";		
+	$pflist[$pclass]="datasources";
 }
 
 foreach(explode(",",$genlist) as $pclass)
 {
-	$pflist[$pclass]="general";		
+	$pflist[$pclass]="general";
 }
 
 foreach(explode(",",$iplist) as $pclass)
 {
-	$pflist[$pclass]="itemprocessors";		
+	$pflist[$pclass]="itemprocessors";
 }
 
 
@@ -39,7 +39,7 @@ $epc->setPropsFromFlatArray(array("PLUGINS_DATASOURCES:class"=>$dslist,
 								  "PLUGINS_ITEMPROCESSORS:classes"=>$iplist));
 if($epc->save())
 {
-	
+
 
 //saving plugins params
 foreach($pflist as $pclass=>$pfamily)
@@ -50,7 +50,7 @@ foreach($pflist as $pclass=>$pfamily)
 		$paramlist=$plinst->getPluginParamNames();
 		$sarr=$plinst->getPluginParams($_REQUEST);
 		$parr=$plinst->getPluginParamsNoCurrent($_REQUEST);
-		
+
 		foreach($paramlist as $pname)
 		{
 			if(!isset($parr[$pname]))

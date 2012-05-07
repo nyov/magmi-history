@@ -5,12 +5,12 @@ class Magmi_DSEngine extends Magmi_Engine
 {
  public function engineInit($params)
  {
- 	
- }	
- 
+
+ }
+
  public function engineRun($params)
  {
- 	
+
  }
 }
 
@@ -24,16 +24,16 @@ class Magmi_MagentoDatasource extends Magmi_Datasource
 
 	public function buildSQL()
 	{
-		
+
 	}
-	
+
 	public function getPluginInfo()
 	{
 		return array("name"=>"Magento Products Datasource",
 					 "author"=>"Dweeves",
 					 "version"=>"1.0.0");
 	}
-	
+
 	public function getPluginParamNames()
 	{
 		return array("MAGDS:fields");
@@ -42,9 +42,9 @@ class Magmi_MagentoDatasource extends Magmi_Datasource
 	public function startImport()
 	{
 	}
-	
-	
-	
+
+
+
 	public function getRecordsCount()
 	{
 		$sql=null;
@@ -62,7 +62,7 @@ class Magmi_MagentoDatasource extends Magmi_Datasource
 		return $cl;
 	}
 
-	
+
 
 	public function getNextRecord()
 	{
@@ -80,11 +80,11 @@ class Magmi_MagentoDatasource extends Magmi_Datasource
 
 	public function endImport()
 	{
-		
+
 	}
 	public function afterImport()
 	{
-		
+
 	}
-	
+
 }

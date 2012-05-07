@@ -1,4 +1,4 @@
-<?php 
+<?php
 require_once("magmi_config.php");
 require_once("magmi_statemanager.php");
 require_once("dbhelper.class.php");
@@ -6,7 +6,7 @@ $conf=Magmi_Config::getInstance();
 $conf->load();
 $conf_ok=1;
 ?>
-<?php 
+<?php
 $profile="";
 if(isset($_REQUEST["profile"]))
 {
@@ -14,7 +14,7 @@ if(isset($_REQUEST["profile"]))
 }
 else
 {
-	
+
 	if(isset($_SESSION["last_runned_profile"]))
 	{
 		$profile=$_SESSION["last_runned_profile"];
@@ -46,11 +46,11 @@ if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 		<?php if(isset($_SESSION["magmi_install"])){
 		$type=$_SESSION["magmi_install"][0];
 		$msg=$_SESSION["magmi_install"][1];
-		?>	
+		?>
 		<div class="mgupload_<?php echo $type?>">
 				<?php echo $msg;?>
 		</div>
-		<?php 
+		<?php
 			unset($_SESSION["magmi_install"]);
 		}?>
 	</div>
@@ -74,7 +74,7 @@ if(!$eplconf->hasSection("PLUGINS_DATASOURCES"))
 </div>
 </form>
 <?php } else {?>
-<div class="grid_12 col"><h3>Update Disabled</h3>	
+<div class="grid_12 col"><h3>Update Disabled</h3>
 <div class="error">
 Zip library not available, Upgrade/Upload function are not enabled
 </div>
@@ -92,7 +92,7 @@ Zip library not available, Upgrade/Upload function are not enabled
 	<input type="hidden" name="run" value="import"></input>
 	<input type="hidden" name="logfile" value="<?php echo Magmi_StateManager::getProgressFile()?>"></input>
 	<div class="container_12">
-		<div class="grid_12 col" id="directrun">	
+		<div class="grid_12 col" id="directrun">
 			<h3>Directly run magmi with existing profile</h3>
 			<div class="formline">
 				<span class="label">Run Magmi With Profile:</span>
@@ -127,17 +127,17 @@ Saved:<?php echo $conf->getLastSaved("%c")?>
 </span>
 </div>
 </div>
-<?php 
+<?php
 $cansock=true;
  $dmysqlsock=DBHelper::getMysqlSocket();
  $cansock=!($dmysqlsock===false);
-?>	
+?>
 <div class="clear"></div>
 <form method="post" action="magmi_saveconfig.php" id="commonconf_form">
 <div class="container_12" id="common_config">
 	<div class="grid_4 col">
 	<h3>Database</h3>
-	
+
 	<?php $curconn=$conf->get("DATABASE","connectivity","net");?>
 	<ul class="formline">
 		<li class="label">Connectivity</li>
@@ -148,9 +148,9 @@ $cansock=true;
 			<?php }?>
 		</select></li>
 	</ul>
-		
+
 	<div id="connectivity:net" class="connectivity" <?php if($curconn!="net"){?>style="display:none"<?php }?>>
-	<ul class="formline">				
+	<ul class="formline">
 		<li class="label">Host:</li>
 		<li class="value"><input type="text" name="DATABASE:host" value="<?php echo $conf->get("DATABASE","host","localhost")?>" ></input></li>
 	</ul><ul class="formline">
@@ -162,7 +162,7 @@ $cansock=true;
 	<div id="connectivity:socket" class="connectivity" <?php if($curconn!="socket"){?>style="display:none"<?php  }?>>
 	<ul class="formline">
 		<li class="label">Unix Socket:</li>
-		
+
 		<?php
 		   $mysqlsock= $conf->get("DATABASE","unix_socket",$dmysqlsock);
 		   if(!file_exists($mysqlsock))
@@ -173,14 +173,14 @@ $cansock=true;
 		<li class="value"><input type="text" name="DATABASE:unix_socket" value="<?php echo $mysqlsock?>" ></input></li>
 	</ul>
 	</div>
-	<?php }?>	
+	<?php }?>
 	<hr/>
 
 	<ul class="formline">
 		<li class="label">DB Name:</li>
 		<li class="value"><input type="text" name="DATABASE:dbname" value="<?php echo $conf->get("DATABASE","dbname")?>" ></input></li>
 	</ul>
-	
+
 	<ul class="formline">
 		<li class="label">Username:</li>
 		<li class="value"><input type="text" name="DATABASE:user" value="<?php echo $conf->get("DATABASE","user")?>" ></input></li>
@@ -208,7 +208,7 @@ $cansock=true;
 		<li class="label">Filesystem Path to magento directory:</li>
 		<li class="value"><input type="text" name="MAGENTO:basedir" value="<?php echo $conf->get("MAGENTO","basedir")?>" ></input></li>
 	</ul>
-	
+
 	</div>
 	<div class="grid_4 col omega">
 	<h3>Global</h3>
@@ -252,14 +252,14 @@ $('save_commonconf').observe('click',function()
 				 "magmi_saveconfig.php",
 				 {parameters:$('commonconf_form').serialize('true'),
 				  onSuccess:function(){$('commonconf_msg').show();}
-	  			});							
+	  			});
 });
 <?php if($conf_ok){?>
 $('runprofile').observe('change',function(ev)
 		{
 			document.location='magmi.php?profile='+Event.element(ev).value;
 		});
-<?php }?>	
+<?php }?>
 
 $('DATABASE:connectivity').observe('change',function(ev)
 		{
@@ -276,6 +276,6 @@ $('DATABASE:connectivity').observe('change',function(ev)
 							el.hide();
 						}
 					});
-			
+
 		});
 </script>

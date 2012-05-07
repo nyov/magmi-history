@@ -13,7 +13,7 @@ function falseifempty($val)
 //test for empty string
 function testempty($arr,$val)
 {
-	
+
 	return !isset($arr[$val]) || strlen(trim($arr[$val]))==0;
 }
 
@@ -27,7 +27,7 @@ function csl2arr($cslarr,$sep=",")
 	$arr=explode($sep,$cslarr);
 	for($i=0;$i<count($arr);$i++)
 	{
-		$arr[$i]=trim($arr[$i]);		
+		$arr[$i]=trim($arr[$i]);
 	}
 	return $arr;
 }
@@ -36,9 +36,9 @@ function trimarray(&$arr)
 {
 	for($i=0;$i<count($arr);$i++)
 	{
-		$arr[$i]=trim($arr[$i]);		
+		$arr[$i]=trim($arr[$i]);
 	}
-	
+
 }
 
 function getRelative(&$val)
@@ -49,7 +49,7 @@ function getRelative(&$val)
 		$val=substr($val,1);
 		$dir="-";
 	}
-	else 
+	else
 	if($val[0]=="+")
 	{
 		$val=substr($val,1);
@@ -72,7 +72,7 @@ function abspath($path,$basepath="",$resolve=true)
 	{
 		$abs=preg_replace('|\w+/\.\.\/|', '',$cpath );
 		$abs=preg_replace('|\./|','',$abs);
-	
+
 	}
 	return $abs;
 }
@@ -94,9 +94,9 @@ class Slugger
     'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o', 'ö'=>'o', 'ø'=>'o', 'ù'=>'u',
     'ú'=>'u', 'û'=>'u', 'ý'=>'y', 'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y', 'ƒ'=>'f'
 		);
-	
+
 	public static function stripAccents($text){
-		
+
 		return strtr($text,self::$_translit);
 	}
 

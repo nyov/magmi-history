@@ -13,7 +13,7 @@
 			plugintype:'utilities',
 			profile:'__utilities__'};
 		getPluginParams(params,pparams);
-		
+
 		new Ajax.Updater("pluginoptions:"+pclass,"ajax_pluginconf.php",{parameters:params});
 	};
 
@@ -21,15 +21,15 @@
 	{
 		Object.extend(pcontainer,$(pclass+"_params").serialize(true));
 	}
-	
+
 	runUtility=function(pclass)
 	{
 		var pparams={
 				engine:'magmi_utilityengine:Magmi_UtilityEngine',
-				pluginclass:pclass,	
+				pluginclass:pclass,
 				};
 		getPluginParams(pclass,pparams);
-		
+
 		new Ajax.Updater("plugin_run:"+pclass+"_res",
 						 "magmi_run.php",
 						 {parameters:pparams,
@@ -39,7 +39,7 @@
 			  				updatePanel(pclass);}
 						});
 	};
-	
+
 	togglePanel=function(pclass)
 	{
 		var target="pluginoptions:"+pclass;
@@ -51,7 +51,7 @@
 	<div class="grid_12  omega subtitle">
 		<h3>Magmi Utilities</h3>
 	</div>
-	<?php 
+	<?php
  		$mmi=new Magmi_UtilityEngine();
  		$mmi->initialize();
  		$mmi->initPlugins();
@@ -66,31 +66,31 @@
 	?>
 	<div class="grid_12 col utility" >
 		<h3 class="pluginname"><?php echo $pinfo["name"]." v".$pinfo["version"];?></h3>
-		<?php 
+		<?php
 		?>
 		<div>
 		<div class="plugindescription">
 			<?php if($info!==null){?>
 				<?php echo $info?>
 			<?php }?>
-		</div>		
+		</div>
 		<div class="plugininfo" style="float:right">
 			<a href="javascript:togglePanel('<?php echo $pclass?>')">Options</a>
 		</div>
 		</div>
-		
+
 		<div class="pluginoptionpanel" id="pluginoptions:<?php echo $pclass?>" style="display:none; clear:both;">
-				
+
 			<form id="<?php echo $pclass?>_params">
 				<?php echo $pinst->getOptionsPanel()->getHtml()?>
 			</form>
 		</div>
-		
+
 		<div id="plugin_run:<?php echo $pclass?>" class="pluginrun_results" style="display:none">
 			<h3><?php echo $pinfo["name"]." v".$pinfo["version"];?> Results</h3>
 			<div id="plugin_run:<?php echo $pclass?>_res"></div>
 		</div>
-		
+
 		<div class="separator"></div>
 		<div class="utility_run actionbutton" >
 			<a id="plrun_<?php echo $pclass?>" href="javascript:runUtility('<?php echo $pclass?>')">Run Utility</a>
@@ -113,7 +113,7 @@ Back to Magmi Config Interface
 	{
 		$pclass=$pinst->getPluginClass();?>
 		warntargets.push({target:'plrun_<?php echo $pclass?>',msg:'<?php echo $warn?>'});
-	<?php 	
+	<?php
 	}?>
 	warntargets.each(function(it){
 		$(it.target).observe('click',function(ev){

@@ -16,5 +16,5 @@ This plugin fills some magento index tables on the fly while importing item.
  		</select>
  	</li>
  </ul>
- 
+
 </div>

@@ -36,4 +36,3 @@ multiple categories supported :)
 <span>url ending:</span><input type="text"  name="CAT:urlending" size="80" value="<?php echo $this->getParam("CAT:urlending",".html")?>"></input>
 <div class="fieldinfo">Choose what url ending to put on category page (defaults to .html)</div>
 </div>
-

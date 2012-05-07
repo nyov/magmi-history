@@ -58,4 +58,3 @@ var img_linetpl='<ul class="formline"><li class="label">set {fieldname} as</li><
 img_mf=new magmi_multifield('IMG:err_attrlist','IMG:err_attrsetup',img_linetpl,img_vals);
 img_mf.buildparamlist();
 </script>
-

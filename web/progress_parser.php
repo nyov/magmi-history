@@ -90,13 +90,13 @@ class DefaultProgressLineParser extends ProgressLineParser
 		$this->stored[$type]=$data;
 	}
 
-	
+
 	public function getData($type)
 	{
-		
-		return (isset($this->stored[$type])?$this->stored[$type]:array());		
+
+		return (isset($this->stored[$type])?$this->stored[$type]:array());
 	}
-	
+
 	public function logtypeIsHandled($type)
 	{
 		return true;
@@ -137,7 +137,7 @@ class DefaultProgressLineParser extends ProgressLineParser
 				{
 					$this->setData("$type:speed",0);
 				}
-				
+
 				$this->setData("$type:elapsed",round($delapsed,4));
 				$this->setData("$type:incelapsed",round($dlastinc,4));
 				break;
@@ -162,10 +162,10 @@ class DefaultProgressParser extends ProgressParser
 	{
 		$this->addParser("default",new DefaultProgressLineParser());
 	}
-	
+
 	public function getData($type)
 	{
 		return $this->_parsers["default"]->getData($type);
 	}
-	
+
 }

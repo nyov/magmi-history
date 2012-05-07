@@ -5,16 +5,16 @@ class ExtDBHelper extends DBHelper
 {
 	public function initDBMysql($dbname,$host,$user,$pass)
 	{
-		
+
 		$this->_db=new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
 	}
-	
+
 	public function initDBPDOStr($user,$pass,$pdostr)
 	{
 		//fix by Mr Lei for UTF8 special chars
 		$this->_db=new PDO("$pdostr", $user, $pass);
 	}
-	
+
 }
 class SQL_Datasource extends Magmi_Datasource
 {
@@ -28,11 +28,11 @@ class SQL_Datasource extends Magmi_Datasource
 		$this->dbh=new ExtDBHelper();
 		$cdbtype=$this->getParam("SQL:dbtype");
 		$cdbusr=$this->getParam("SQL:dbuser");
-		$cdbpass=$this->getParam("SQL:dbpass");	
+		$cdbpass=$this->getParam("SQL:dbpass");
 		if($cdbtype=="other")
 		{
 			$cdbpdostr=$this->getParam("SQL:pdostr","");
-			
+
 			$this->dbh->initDBPDOStr($cdbuser,$cdbpass,$cdbpdostr);
 		}
 		else
@@ -41,9 +41,9 @@ class SQL_Datasource extends Magmi_Datasource
 			$cdbhost=$this->getParam("SQL:dbhost");
 			$extra=$this->getParam("SQL:dbextra");
 			$this->dbh->initDbMysql($cdbname,$cdbhost,$cdbusr, $cdbpass);
-			
-		}		
-		//handle extra initial commands			
+
+		}
+		//handle extra initial commands
 		if(isset($extra) && $extra!="")
 		{
 			foreach(explode(";\n",$extra) as $st)
@@ -65,7 +65,7 @@ class SQL_Datasource extends Magmi_Datasource
 					 "author"=>"Dweeves",
 					 "version"=>"1.0.2");
 	}
-	
+
 	public function getPluginParamNames()
 	{
 		return array("SQL:dbtype","SQL:dbname","SQL:dbhost","SQL:dbuser","SQL:dbpass","SQL:dbextra","SQL:queryfile","SQL:pdostr");
@@ -74,16 +74,16 @@ class SQL_Datasource extends Magmi_Datasource
 	public function startImport()
 	{
 	}
-	
-	
+
+
 
 	public function getSQLFileList()
 	{
 		$files=glob(dirname(__file__)."/requests/*.sql");
 		return $files;
 	}
-	
-	
+
+
 	public function getRecordsCount()
 	{
 		$sql=null;
@@ -97,7 +97,7 @@ class SQL_Datasource extends Magmi_Datasource
 			$sql="SELECT COUNT(*) as cnt FROM (".str_replace("\n"," ",$this->extractsql).") as t1";
 		}
 		$cnt=$this->dbh->selectone($sql,null,"cnt");
-			
+
 		return $cnt;
 	}
 
@@ -111,7 +111,7 @@ class SQL_Datasource extends Magmi_Datasource
 		return $cl;
 	}
 
-	
+
 
 	public function getNextRecord()
 	{
@@ -129,10 +129,10 @@ class SQL_Datasource extends Magmi_Datasource
 
 	public function endImport()
 	{
-		
+
 	}
 	public function afterImport()
 	{
-		
+
 	}
 }
