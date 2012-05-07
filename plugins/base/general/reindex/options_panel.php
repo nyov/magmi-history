@@ -10,7 +10,7 @@ This plugin calls magento reindex script via calling php cli. please ensure secu
 	<hr/>
 	<input type="hidden" name="REINDEX:indexes" id="indexes" value="<?php echo $this->getParam("REINDEX:indexes")?>"></input>
 	<div>
-	<a name="REINDEX:config"></a>
+	<a id="REINDEX:config"></a>
 	<span>Indexing:</span><a href="#REINDEX:config" onclick="fcheck(1);">All</a>&nbsp;<a href="#REINDEX:config" onclick="fcheck(0)">None</a>
 	<ul>
 	<?php
