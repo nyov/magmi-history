@@ -9,19 +9,19 @@
 		<div class="info">
 		<h3>Release Information</h3>
 		<div class="version">
- 			v<?php echo Magmi_Version::$version ?>
- 		</div>
+			v<?php echo Magmi_Version::$version ?>
+		</div>
 		<div class="author">
-  		Provided to the community by <b><i><a href="mailto:dweeves@gmail.com">Dweeves</a></i></b>
- 		</div>
- 		<div class="license">
- 		Released under <a href="javascript:;">MIT OSL License
- 		<span class="hover">
- 		<?php echo nl2br(file_get_contents("../inc/license.txt"))?>
- 		</span>
- 		</a>
- 		</div>
- 		</div>
+ 		Provided to the community by <b><i><a href="mailto:dweeves@gmail.com">Dweeves</a></i></b>
+		</div>
+		<div class="license">
+		Released under <a href="javascript:;">MIT OSL License
+		<span class="hover">
+		<?php echo nl2br(file_get_contents("../LICENSE"))?>
+		</span>
+		</a>
+		</div>
+		</div>
 	</div>
 </div>
 
