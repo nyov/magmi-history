@@ -67,7 +67,7 @@ abstract class Magmi_Engine extends DbHelper
 	}
 	public function getMagentoVersion()
 	{
-		$this->_conf->get("MAGENTO","version");
+		return $this->_conf->get("MAGENTO","version");
 	}
 	
 	protected function _registerPluginLoopCallback($cbtype,$cb)
