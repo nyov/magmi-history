@@ -85,13 +85,13 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 							
 				//clear tier prices for selected tier price columns
 				$sql="DELETE FROM $tpn WHERE entity_id=? AND customer_group_id IN ($instr) AND website_id IN ($wsstr)";
-				$this->delete($sql,array_merge(array($pid),$cgids));
+				$this->delete($sql,array_merge(array($pid),$cgids,$wsids));
 			}
 			else
 			{
 				//delete for all customer groups
 				$sql="DELETE FROM $tpn WHERE entity_id=? AND website_id IN ($wsstr)";
-				$this->delete($sql,$pid);
+				$this->delete($sql,array_merge(array($pid),$wsids));
 			}
 		}
 		
