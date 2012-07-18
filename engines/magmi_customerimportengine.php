@@ -436,7 +436,10 @@ class Magmi_CustomerImportEngine extends Magmi_Engine
 		$tname=$this->tablename('customer_entity');
 		$item['attribute_set_id']=$asid;
 		$item['entity_type_id']=$this->_etypes['customer'];
-		$item['created_at']=strftime("%Y-%m-%d %H:%M:%S");
+		if(!isset($item['created_at']))
+		{
+			$item['created_at']=strftime("%Y-%m-%d %H:%M:%S");
+		}
 		$item['updated_at']=strftime("%Y-%m-%d %H:%M:%S");
 		$item['website_id']=$this->getWebsiteId($item['website']);
 		$grpid=isset($item['group_id'])?$item['group_id']:'MAGMI_notset';
