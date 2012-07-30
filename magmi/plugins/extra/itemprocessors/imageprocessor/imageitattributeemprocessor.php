@@ -12,6 +12,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	protected $_img_baseattrs=array("image","small_image","thumbnail");
 	protected $_active=false;
 	protected $_newitem;
+	protected $debug;
 	
 	public function initialize($params)
 	{
@@ -30,7 +31,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			{
 				$this->errattrs[$m[1][0]]=$params[$k];
 			}
-		}	
+		}
+		$this->debug=$this->getParam("IMG:debug",0);
 	}
 
 	public function getPluginInfo()
@@ -38,7 +40,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.22",
+            "version" => "1.0.23",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Image_attributes_processor"
             );
 	}
@@ -468,12 +470,22 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return true;
 	}
 	
+	
+  
+	
 	public function getImageFSPath($imgfile,$rp=false)
 	{
 		$first=$imgfile[0];
 		$tfile=($first=="/"?substr($imgfile,1):$imgfile);
 		$fspath=$this->imgsourcedir.DIRECTORY_SEPARATOR.$tfile;
-		return $rp?realpath($fspath):$fspath;
+		$trp=truepath($fspath);
+		$frp=realpath($fspath);
+		
+		if($this->debug)
+		{
+			$this->log("Testing $imgfile:$fspath".($rp?" (rp $frp , tp : $trp)":""),"info");
+		}
+		return $rp?($frp?$frp:$trp):$fspath;
 	}
 	/**
 	 * copy image file from source directory to
