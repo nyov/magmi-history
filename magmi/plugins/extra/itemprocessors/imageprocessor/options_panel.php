@@ -52,6 +52,15 @@ if you've got 5 stores,i will create 5 different copies of the input image &amp;
 </ul>
 <div id="IMG:err_attrsetup">
 </div>
+<div class="formline">
+<span>Debug mode</span>
+<select name="IMG:debug">
+<?php $qdd=$this->getParam("IMG:debug","no");?>
+<option value="yes" <?php if($qdd=="yes"){?>selected="selected"<?php }?>>Enable</option>
+<option value="no" <?php if($qdd=="no"){?>selected="selected"<?php }?>>Disable</option>
+</select>
+</div>
+
 <script type="text/javascript">
 var img_vals=<?php echo tdarray_to_js($this,'IMG:err_attrlist','IMG_ERR')?>;
 var img_linetpl='<ul class="formline"><li class="label">set {fieldname} as</li><li class="value"><input type="text" name="IMG_ERR:{fieldname.enc}" value="{value}"></input></li></ul>';
