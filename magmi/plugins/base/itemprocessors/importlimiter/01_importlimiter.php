@@ -143,9 +143,9 @@ class ImportLimiter extends Magmi_ItemProcessor
 	
 	public function processColumnList(&$cols,$params=null)
 	{
-		if(count($this->_col_filter)>1)
+		if(count($this->_col_filter)>0)
 		{
-			$this->log("limiting column to :".implode(",",$this->_col_filter),"startup");
+			$this->log("limiting columns to :".implode(",",$this->_col_filter),"startup");
 			$cols=$this->_col_filter;
 		}
 		
