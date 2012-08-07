@@ -4,7 +4,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 
 	protected $forcename=null;
 	protected $magdir=null;
-	protected $imgsourcedir=null;
+	protected $imgsourcedirs=array();
 	protected $errattrs=array();
 	protected $_lastnotfound="";
 	protected $_lastimage="";
@@ -19,11 +19,8 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		//declare current class as attribute handler
 		$this->registerAttributeHandler($this,array("frontend_input:(media_image|gallery)"));
 		$this->magdir=Magmi_Config::getInstance()->getMagentoDir();
-		$this->imgsourcedir=realpath($this->magdir."/".$this->getParam("IMG:sourcedir"));
-		if($this->imgsourcedir==false)
-		{
-			$this->imgsourcedir=$this->getParam("IMG:sourcedir");
-		}
+		$this->imgsourcedirs=explode(";",$this->getParam("IMG:sourcedir"));
+		
 		$this->forcename=$this->getParam("IMG:renaming");
 		foreach($params as $k=>$v)
 		{
@@ -477,15 +474,16 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		$first=$imgfile[0];
 		$tfile=($first=="/"?substr($imgfile,1):$imgfile);
-		$fspath=$this->imgsourcedir.DIRECTORY_SEPARATOR.$tfile;
-		$trp=truepath($fspath);
-		$frp=realpath($fspath);
-		
-		if($this->debug)
+		for($p=0;$p<count($this->imgsourcedirs);$p++)
 		{
-			$this->log("Testing $imgfile:$fspath".($rp?" (rp $frp , tp : $trp)":""),"info");
-		}
-		return $rp?($frp?$frp:$trp):$fspath;
+			$fspath=$this->imgsourcedirs[$p].DIRECTORY_SEPARATOR.$tfile;
+			$frp=realpath($fspath);
+			if($frp!==false)
+			{
+				break;
+			}
+		}	
+		return $rp?$frp:$fspath;
 	}
 	/**
 	 * copy image file from source directory to
