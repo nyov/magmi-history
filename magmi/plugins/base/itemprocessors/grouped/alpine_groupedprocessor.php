@@ -31,14 +31,15 @@
  * This imports grouped products and associates the simple products to
  * the group
  */
-class Alpine_GroupedItemProcessor extends Magmi_ItemProcessor
+class Magmi_GroupedItemProcessor extends Magmi_ItemProcessor
 {
 
-    public static $_VERSION = '1.0.2';
+    public static $_VERSION = '1.1';
     private $_use_defaultopc = false;
     private $_optpriceinfo = array();
     private $_currentgrouped = array();
-
+	private $_linktype=null;
+	
     public function getPluginUrl()
     {
         return 'http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Grouped_Item_processor';
@@ -82,19 +83,25 @@ class Alpine_GroupedItemProcessor extends Magmi_ItemProcessor
             WHERE product_id=?";
         $this->delete($sql, array($pid));
         //recreate associations
-        $sql = "INSERT INTO $cpsl (`parent_id`,`product_id`) SELECT cpec.entity_id as parent_id,cpes.entity_id  as product_id
-            FROM $cpe as cpec
-            JOIN $cpe as cpes ON cpes.type_id='simple' AND cpes.sku $cond
-            WHERE cpec.entity_id=?";
-        $this->insert($sql, array_merge($conddata, array($pid)));
-        $sql = "select link_type_id from $cplt where code=?;";
-        $link_type_id = $this->selectone($sql, 'super', 'code');
-        $sql = "INSERT INTO $cpl (`product_id`,`linked_product_id`, `link_type_id`) SELECT cpec.entity_id as parent_id,cpes.entity_id  as product_id, $link_type_id
+        $sql = "INSERT INTO $cpsl (`parent_id`,`product_id`) 
+        	SELECT cpec.entity_id as parent_id,cpes.entity_id  as product_id
             FROM $cpe as cpec
             JOIN $cpe as cpes ON cpes.sku $cond
             WHERE cpec.entity_id=?";
         $this->insert($sql, array_merge($conddata, array($pid)));
-        $sql = "INSERT INTO $cpr (`parent_id`,`child_id`) SELECT cpec.entity_id as parent_id,cpes.entity_id  as child_id
+        if($this->_linktype==NULL)
+        {
+       		 $sql = "select link_type_id from $cplt where code=?";
+       	 	 $this->_linktype = $this->selectone($sql, 'super', 'link_type_id');
+        }
+        $sql = "INSERT INTO $cpl (`product_id`,`linked_product_id`, `link_type_id`) 
+        	SELECT cpec.entity_id as parent_id,cpes.entity_id  as product_id, ?
+            FROM $cpe as cpec
+            JOIN $cpe as cpes ON cpes.sku $cond
+            WHERE cpec.entity_id=?";
+        $this->insert($sql, array_merge(array($this->_linktype),$conddata, array($pid)));
+        $sql = "INSERT INTO $cpr (`parent_id`,`child_id`) 
+        	SELECT cpec.entity_id as parent_id,cpes.entity_id  as child_id
             FROM $cpe as cpec
             JOIN $cpe as cpes ON cpes.sku $cond
             WHERE cpec.entity_id=?";
