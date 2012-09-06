@@ -3,6 +3,20 @@ This plugin is made to limit magmi import to selected record ranges or matching 
 ranges are ranges of rows to be imported
 filters are regexps or strings that if matched will exclude record from import
 </div>
+
+<div class="ifield">
+<span class="">Column filter:</span><input type="text"  name="LIMITER:col_filter" size="80" value="<?php echo $this->getParam("LIMITER:col_filter")?>"></input>
+<div class="fieldhelp"></div>
+<div class="fieldinfo">
+This field defines what columns should be imported
+<div class="fieldsyntax" style="display:none">
+<pre>
+You should put column names, comma separated ie : sku,qty
+</pre>
+</div>
+</div>
+</div>
+
 <div class="ifield">
 <span class="">Limiter ranges:</span><input type="text"  name="LIMITER:ranges" size="80" value="<?php echo $this->getParam("LIMITER:ranges")?>"></input>
 <div class="fieldhelp"></div>

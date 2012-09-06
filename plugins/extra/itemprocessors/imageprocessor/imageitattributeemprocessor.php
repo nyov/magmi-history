@@ -4,7 +4,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 
 	protected $forcename=null;
 	protected $magdir=null;
-	protected $imgsourcedir=null;
+	protected $imgsourcedirs=array();
 	protected $errattrs=array();
 	protected $_lastnotfound="";
 	protected $_lastimage="";
@@ -12,17 +12,15 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 	protected $_img_baseattrs=array("image","small_image","thumbnail");
 	protected $_active=false;
 	protected $_newitem;
+	protected $debug;
 
 	public function initialize($params)
 	{
 		//declare current class as attribute handler
 		$this->registerAttributeHandler($this,array("frontend_input:(media_image|gallery)"));
 		$this->magdir=Magmi_Config::getInstance()->getMagentoDir();
-		$this->imgsourcedir=realpath($this->magdir."/".$this->getParam("IMG:sourcedir"));
-		if($this->imgsourcedir==false)
-		{
-			$this->imgsourcedir=$this->getParam("IMG:sourcedir");
-		}
+		$this->imgsourcedirs=explode(";",$this->getParam("IMG:sourcedir"));
+
 		$this->forcename=$this->getParam("IMG:renaming");
 		foreach($params as $k=>$v)
 		{
@@ -31,6 +29,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				$this->errattrs[$m[1][0]]=$params[$k];
 			}
 		}
+		$this->debug=$this->getParam("IMG:debug",0);
 	}
 
 	public function getPluginInfo()
@@ -38,7 +37,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.22",
+            "version" => "1.0.23",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Image_attributes_processor"
             );
 	}
@@ -468,12 +467,23 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return true;
 	}
 
+
+ 
+
 	public function getImageFSPath($imgfile,$rp=false)
 	{
 		$first=$imgfile[0];
 		$tfile=($first=="/"?substr($imgfile,1):$imgfile);
-		$fspath=$this->imgsourcedir.DIRECTORY_SEPARATOR.$tfile;
-		return $rp?realpath($fspath):$fspath;
+		for($p=0;$p<count($this->imgsourcedirs);$p++)
+		{
+			$fspath=$this->imgsourcedirs[$p].DIRECTORY_SEPARATOR.$tfile;
+			$frp=realpath($fspath);
+			if($frp!==false)
+			{
+				break;
+			}
+		}	
+		return $rp?$frp:$fspath;
 	}
 	/**
 	 * copy image file from source directory to

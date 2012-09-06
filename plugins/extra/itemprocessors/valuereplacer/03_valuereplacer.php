@@ -177,7 +177,13 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 	//auto add columns if not set
 	public function processColumnList(&$cols)
 	{
+		$base_cols=$cols;
 		$cols=array_unique(array_merge($cols,explode(",",$this->getParam("VREP:columnlist"))));
+		$newcols=array_diff($cols, $base_cols);
+		if(count($newcols)>0)
+		{
+			$this->log("Added columns : ".implode(",",$newcols),"startup");
+		}
 	}
 
 	public function getPluginParams($params)

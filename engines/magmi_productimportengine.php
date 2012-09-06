@@ -493,6 +493,19 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 
 			$brows=$this->getCachedOptIds($attid);
+			if(count($brows)==0)
+			{
+				$existing=$this->getOptionsFromValues($attid,0,$avalues);
+				$new=array_merge(array_diff($avalues,$exvals));
+				foreach($new as $nval)
+				{
+					$row=array("opvs"=>$this->createOption($attid),"value"=>$nval);
+					$this->createOptionValue($row["opvs"],$storeid,$nval);
+					$existing[]=$row;
+				}
+				$this->cacheOptIds($attid,$existing);
+				$brows=$this->getCachedOptIds($attid);
+			}
 			foreach($existing as $ex)
 			{
 				array_shift($brows);
@@ -527,7 +540,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	function getCachedOptIds($attid)
 	{
-		return $this->_optidcache[$attid];
+		if(isset($this->_optidcache[$attid]))
+		{
+			return $this->_optidcache[$attid];
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 
@@ -1241,7 +1261,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	public function updateProduct($item,$pid)
 	{
 		$tname=$this->tablename('catalog_product_entity');
-		if(isset($item[$item['type']]))
+		if(isset($item['type']))
 		{
 			$item['type_id']=$item['type'];
 		}

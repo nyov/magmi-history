@@ -58,12 +58,21 @@
 	if(Magmi_StateManager::getState()!=="running")
 	{
 		Magmi_StateManager::setState("idle");
+		$pf=Magmi_StateManager::getProgressFile(true);
+		if(file_exists($pf))
+		{
+			@unlink($pf);
+		}
 		set_time_limit(0);
 		$mmi_imp=new $engine_class();
 		$logfile=isset($params["logfile"])?$params["logfile"]:null;
 		if(isset($logfile) && $logfile!="")
 		{
 			$fname=Magmi_StateManager::getStateDir().DS.$logfile;
+			if(file_exists($fname))
+			{
+				@unlink($fname);
+			}
 			$mmi_imp->setLogger(new FileLogger($fname));
 		}
 		else

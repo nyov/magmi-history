@@ -1,8 +1,9 @@
 <?php
 class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 {
-	protected $_basecols=array("store"=>"admin","websites"=>"base","type"=>"simple","attribute_set"=>"Default");
+	protected $_basecols=array("store"=>"admin","type"=>"simple","attribute_set"=>"Default");
 	protected $_baseattrs=array("status"=>1,"visibility"=>4,"page_layout"=>"");
+	protected $_forcedefault=array("store"=>"admin");
 	protected $_missingcols=array();
 	protected $_missingattrs=array();
 
@@ -16,7 +17,7 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Standard Attribute Import",
             "author" => "Dweeves",
-            "version" => "1.0.2"
+            "version" => "1.0.4"
             );
 	}
 
@@ -24,8 +25,14 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	{
 		$this->_missingcols=array_diff(array_keys($this->_basecols),$cols);
 		$this->_missingattrs=array_diff(array_keys($this->_baseattrs),$cols);
-		$cols=array_merge($cols,$this->_missingcols,$this->_missingattrs);
+		$m=$this->getMode();
+		if($m=="create" || $m=="xcreate")
+		{
+			$cols=array_merge($cols,$this->_missingcols,$this->_missingattrs);
+			$this->log("Newly created items will have default values for columns:".implode(",",array_merge($this->_missingcols,$this->_missingattrs)),"startup");
+		}
 	}
+
 
 	public function initializeBaseCols(&$item)
 	{
@@ -43,17 +50,22 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 		}
 	}
 
-	public function processItemBeforeId(&$item,$params=null)
-	{
-		$this->initializeBaseCols($item);
-		return true;
-	}
+
 
 	public function processItemAfterId(&$item,$params=null)
 	{
 		if($params["new"]==true)
 		{
+			$this->initializeBaseCols($item);
 			$this->initializeBaseAttrs($item);
+		}
+		//forcing default values for mandatory processing columns
+		foreach($this->_forcedefault as $k=>$v)
+		{
+			if(isset($item[$k]) && trim($item[$k])=="")
+			{
+				$item[$k]=$v;
+			}
 		}
 		return true;
 	}
@@ -85,8 +97,8 @@ class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 	public function handleDatetimeAttribute($pid,&$item,$storeid,$attrcode,$attrdesc,$ivalue)
 	{
 		$ovalue=deleteifempty(trim($ivalue));
-		//Handle european date format
-		if(preg_match("|(\d){1,2}/(\d){1,2}/(\d){4}|",$ovalue,$matches))
+		//Handle european date format or other common separators
+		if(preg_match("|([0-9]){1,2}\D([0-9]){1,2}\D([0-9]){4}|",$ovalue,$matches))
 		{
 			$ovalue=sprintf("%4d-%2d-%2d",$matches[3],$matches[2],$matches[1]);
 		}

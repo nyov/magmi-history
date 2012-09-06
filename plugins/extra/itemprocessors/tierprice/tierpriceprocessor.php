@@ -16,7 +16,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Tier price importer",
             "author" => "Dweeves,bepixeld",
-            "version" => "0.0.8a",
+            "version" => "0.0.9a",
 			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Tier_price_importer"
             );
 	}
@@ -48,6 +48,18 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 		else
 		{
 
+		 //it seems that magento does not handle "per website" tier price on single store deployments , so force it to "default"
+		  //so we test wether we have single store deployment or not.
+		  //bepixeld patch : check pricescope from general config
+		  if($this->_singlestore==0 && $this->_pricescope!=0)
+		  {
+		    $wsids=$this->getItemWebsites($item);
+		  }
+		  else
+		  {
+		    $wsids=array(0);
+		  }
+		  $wsstr=$this->arr2values($wsids);
 			//clear all existing tier price info for existing customer groups in csv
 		   $cgids=array();
 			foreach($tpcol as $k)
@@ -72,14 +84,14 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 				$instr=$this->arr2values($cgids);
 
 				//clear tier prices for selected tier price columns
-				$sql="DELETE FROM $tpn WHERE entity_id=? AND customer_group_id IN ($instr)";
-				$this->delete($sql,array_merge(array($pid),$cgids));
+				$sql="DELETE FROM $tpn WHERE entity_id=? AND customer_group_id IN ($instr) AND website_id IN ($wsstr)";
+				$this->delete($sql,array_merge(array($pid),$cgids,$wsids));
 			}
 			else
 			{
 				//delete for all customer groups
-				$sql="DELETE FROM $tpn WHERE entity_id=?";
-				$this->delete($sql,$pid);
+				$sql="DELETE FROM $tpn WHERE entity_id=? AND website_id IN ($wsstr)";
+				$this->delete($sql,array_merge(array($pid),$wsids));
 			}
 		}
 
@@ -95,17 +107,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
 			(entity_id,all_groups,customer_group_id,qty,value,website_id) VALUES ";
 		  $inserts=array();
 		  $data=array();
-		  //it seems that magento does not handle "per website" tier price on single store deployments , so force it to "default"
-		  //so we test wether we have single store deployment or not.
-		  //bepixeld patch : check pricescope from general config
-		  if($this->_singlestore==0 && $this->_pricescope!=0)
-		  {
-		    $wsids=$this->getItemWebsites($item);
-		  }
-		  else
-		  {
-		    $wsids=array(0);
-		  }
+
 		  if($item[$k]=="")
 		  {
 		  	continue;

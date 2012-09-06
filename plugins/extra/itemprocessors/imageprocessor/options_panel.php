@@ -4,8 +4,8 @@ It enables image renaming from input value with some dynamic values coming from 
 </div>
 
 <div class="formline">
-<span>Read local images from:</span><input type="text"  name="IMG:sourcedir" size="80" value="<?php echo $this->getParam("IMG:sourcedir","media/import")?>"></input>
-<div class="fieldinfo">if relative path is used, it means "relative to magento base dir",absolute path is used as is</div>
+<span>Image search path:</span><input type="text"  name="IMG:sourcedir" size="80" value="<?php echo $this->getParam("IMG:sourcedir","media/import")?>"></input>
+<div class="fieldinfo">semicolon separated list of search paths for images<br>if relative path is used, it means "relative to magento base dir",absolute path is used as is</div>
 </div>
 <div class="formline ifield">
 <span>Image Renaming:</span><input type="text"  name="IMG:renaming" size="80" value="<?php echo $this->getParam("IMG:renaming")?>"></input>
@@ -52,6 +52,15 @@ if you've got 5 stores,i will create 5 different copies of the input image &amp;
 </ul>
 <div id="IMG:err_attrsetup">
 </div>
+<div class="formline">
+<span>Debug mode</span>
+<select name="IMG:debug">
+<?php $qdd=$this->getParam("IMG:debug","no");?>
+<option value="yes" <?php if($qdd=="yes"){?>selected="selected"<?php }?>>Enable</option>
+<option value="no" <?php if($qdd=="no"){?>selected="selected"<?php }?>>Disable</option>
+</select>
+</div>
+
 <script type="text/javascript">
 var img_vals=<?php echo tdarray_to_js($this,'IMG:err_attrlist','IMG_ERR')?>;
 var img_linetpl='<ul class="formline"><li class="label">set {fieldname} as</li><li class="value"><input type="text" name="IMG_ERR:{fieldname.enc}" value="{value}"></input></li></ul>';
