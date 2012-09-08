@@ -241,6 +241,9 @@ $cansock=true;
 	</div>
 	</div>
 	</div>
+	<?php if($conf->get("USE_ALTERNATE","file","")!=""){?>
+	<input type="hidden" name="USE_ALTERNATE:file" value="<?php echo $conf->get("USE_ALTERNATE","file");?>">
+	<?php }?>
 </form>
 
 <div class="clear"></div>

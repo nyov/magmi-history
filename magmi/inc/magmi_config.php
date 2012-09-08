@@ -160,6 +160,17 @@ class Magmi_Config extends DirbasedConfig
 	{
 		$conf=(!$this->isDefault())?$this->_confname:$this->_confname.".default";
 		parent::load($conf);
+		$alt=false;
+		if($this->hasSection('USE_ALTERNATE'))
+		{
+			$this->_confname=$this->get("USE_ALTERNATE","file");
+			$alt=true;
+		}
+		parent::load($this->_confname);
+		if($alt)
+		{
+			$this->set("USE_ALTERNATE","file",$this->_confname);
+		}
 		//Migration from 0.6.17
 		if($this->hasSection("PLUGINS_DATASOURCES"))
 		{
@@ -187,6 +198,11 @@ class Magmi_Config extends DirbasedConfig
 	
 	public function save($arr=null)
 	{
+		if(isset($arr["USE_ALTERNATE:file"]))
+		{
+			$this->_confname=$arr["USE_ALTERNATE:file"];
+			unset($arr["USE_ALTERNATE:file"]);
+		}
 		if($arr!==null)
 		{
 		foreach($arr as $k=>$v)
