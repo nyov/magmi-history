@@ -77,6 +77,37 @@ function abspath($path,$basepath="",$resolve=true)
 	return $abs;
 }
 
+function truepath($path){
+	$opath=$path;
+    // whether $path is unix or not
+    $unipath=strlen($path)==0 || $path{0}!='/';
+    // attempts to detect if path is relative in which case, add cwd
+    if(strpos($path,':')===false && $unipath)
+        $path=getcwd().DIRECTORY_SEPARATOR.$path;
+    // resolve path parts (single dot, double dot and double delimiters)
+    $path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
+    $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), 'strlen');
+    $absolutes = array();
+    foreach ($parts as $part) {
+        if ('.'  == $part) continue;
+        if ('..' == $part) {
+            array_pop($absolutes);
+        } else {
+            $absolutes[] = $part;
+        }
+   }
+  $path=implode(DIRECTORY_SEPARATOR, $absolutes);
+    // resolve any symlinks
+    if(file_exists($path) && linkinfo($path)>0)
+    {
+    	$path=readlink($path);
+    }
+    // put initial separator that could have been lost
+    $path=!$unipath ? '/'.$path : $path;
+    return $path;
+}
+ 
+
 function isabspath($path)
 {
 	 return ($path[0]=="." || (substr(PHP_OS,3)=="WIN" && strlen($path)>1)?$path[1]==":":$path[0]=="/");
