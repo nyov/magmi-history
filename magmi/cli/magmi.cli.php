@@ -9,7 +9,7 @@
  * 
  */
 
-require_once("../inc/magmi_defs.php");
+require_once(dirname(dirname(__FILE__))."/inc/magmi_defs.php");
 
 $script=array_shift($argv);
 $options=array();
