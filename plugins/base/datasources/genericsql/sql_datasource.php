@@ -27,7 +27,7 @@ class SQL_Datasource extends Magmi_Datasource
 	{
 		$this->dbh=new ExtDBHelper();
 		$cdbtype=$this->getParam("SQL:dbtype");
-		$cdbusr=$this->getParam("SQL:dbuser");
+		$cdbuser=$this->getParam("SQL:dbuser");
 		$cdbpass=$this->getParam("SQL:dbpass");
 		if($cdbtype=="other")
 		{
@@ -40,7 +40,7 @@ class SQL_Datasource extends Magmi_Datasource
 			$cdbname=$this->getParam("SQL:dbname");
 			$cdbhost=$this->getParam("SQL:dbhost");
 			$extra=$this->getParam("SQL:dbextra");
-			$this->dbh->initDbMysql($cdbname,$cdbhost,$cdbusr, $cdbpass);
+			$this->dbh->initDbMysql($cdbname,$cdbhost,$cdbuser, $cdbpass);
 
 		}
 		//handle extra initial commands
