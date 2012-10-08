@@ -139,7 +139,7 @@ class Magmi_Config extends DirbasedConfig
 	{
 		$bd=$this->get("MAGENTO","basedir");
 		$dp=$bd[0]=="."?dirname(__FILE__)."/".$bd:$bd;
-		return realpath($dp);
+		return $dp;
 	}
 	
 	public static function getInstance()
