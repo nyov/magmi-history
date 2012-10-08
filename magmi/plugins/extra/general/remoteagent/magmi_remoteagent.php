@@ -257,7 +257,7 @@ class LocalMagentoDirHandler extends MagentoDirHandler
 		return file_exists($mp);
 	}
 	
-	public function mkdir($path,$mask=null)
+	public function mkdir($path,$mask=null,$rec=false)
 	{
 		$mp=str_replace("//","/",$this->_magdir."/".str_replace($this->_magdir, '', $path));
 		
@@ -265,7 +265,7 @@ class LocalMagentoDirHandler extends MagentoDirHandler
 		{
 			$mask=octdec('755');
 		}
-		$ok=@mkdir($mp,$mask);
+		$ok=@mkdir($mp,$mask,$rec);
 		if(!$ok)
 		{
 			$this->_lasterror=error_get_last();
@@ -341,7 +341,7 @@ class Magmi_RemoteAgent
 	
 	public static function getStaticVersion()
 	{
-		return "1.0.0";
+		return "1.0.1";
 	}
 	
 	public function wrapResult($res)
@@ -399,7 +399,8 @@ class Magmi_RemoteAgent
 	
 	public function mkdir($params)
 	{
-		$ok=$this->_mdh->mkdir($params['path'],$params['mask']);
+		$rec=isset($params['rec']);
+		$ok=$this->_mdh->mkdir($params['path'],$params['mask'],$rec);
 		if(!$ok)
 		{
 			$this->_lasterror=$this->_mdh->getLastError();
@@ -441,7 +442,8 @@ function buildError($errname,$errdata)
 	return array("error"=>array($errname,$errdata));
 }
 
-
+if(!class_exists('Magmi_Plugin'))
+{
 
 if(!isset($_REQUEST['api']))
 {
@@ -452,7 +454,7 @@ if(!isset($_REQUEST['api']))
 $api=$_REQUEST['api'];
 
 
-if(!in_array($api, Magmi_RemoteAgent::$apidesc))
+if(!in_array($api, array_keys(Magmi_RemoteAgent::$apidesc)))
 {
 	header('Status 406 : Unauthorized call',true,406);
 	exit();
@@ -473,4 +475,5 @@ else {
 		header('Status 500 : API error',true,	500);
 	}
 	sendResponse($api,$result);
+}
 }

@@ -8,7 +8,7 @@ class CrossUpsellProducts extends Magmi_ItemProcessor
             "name" => "Cross/Upsell Importer",
             "author" => "Dweeves",
             "version" => "1.0.3",
- 			"url"=>"https://sourceforge.net/apps/mediawiki/magmi/index.php?title=Cross/Upsell_Importer"
+ 			"url"=>$this->pluginDocUrl("Cross/Upsell_Importer")
             );
  }
  

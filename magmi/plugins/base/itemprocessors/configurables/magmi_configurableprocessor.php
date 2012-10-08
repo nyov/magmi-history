@@ -19,7 +19,7 @@ class Magmi_ConfigurableItemProcessor extends Magmi_ItemProcessor
             "name" => "Configurable Item processor",
             "author" => "Dweeves",
             "version" => "1.3.7",
-			"url"=> "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Configurable_Item_processor"
+			"url"=> $this->pluginDocUrl("Configurable_Item_processor")
             );
 	}
 	

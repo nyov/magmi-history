@@ -14,7 +14,7 @@ public function getPluginInfo()
             "name" => "Import Report Mail Notifier",
             "author" => "Dweeves",
             "version" => "1.0.0",
-			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Import_report_mail_notifier"
+			"url"=>$this->pluginDocUrl("Import_report_mail_notifier")
             );
 	}
 	public function send_email($to, $from, $from_name, $subject, $message, $attachments=false)

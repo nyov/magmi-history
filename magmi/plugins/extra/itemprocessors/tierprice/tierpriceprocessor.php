@@ -17,7 +17,7 @@ class TierpriceProcessor extends Magmi_ItemProcessor
             "name" => "Tier price importer",
             "author" => "Dweeves,bepixeld",
             "version" => "0.0.9a",
-			"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Tier_price_importer"
+			"url"=>$this->pluginDocUrl("Tier_price_importer")
             );
 	}
 

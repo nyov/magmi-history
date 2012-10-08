@@ -42,7 +42,7 @@ class Magmi_GroupedItemProcessor extends Magmi_ItemProcessor
 	
     public function getPluginUrl()
     {
-        return 'http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Grouped_Item_processor';
+        return $this->pluginDocUrl('Grouped_Item_processor');
     }
 
     public function getPluginVersion()
