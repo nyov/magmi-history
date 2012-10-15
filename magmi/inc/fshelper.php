@@ -225,6 +225,7 @@ abstract class MagentoDirHandler
 	public abstract function copy($srcpath,$destpath);
 	public abstract function unlink($filepath);
 	public abstract function chmod($filepath,$mask);
+	public abstract function exec_cmd($cmd,$params);
 }
 
 class LocalMagentoDirHandler extends MagentoDirHandler
@@ -319,5 +320,19 @@ class LocalMagentoDirHandler extends MagentoDirHandler
 			}
 		}
 		return $result;
+	}
+	
+	public function exec_cmd($cmd,$params)
+	{
+		$mp=str_replace("//","/",$this->_magdir."/".str_replace($this->_magdir, '', $cmd));
+		try {
+			$out=shell_exec($cmd." ".$params);
+		}
+		catch(Exception $e)
+		{
+			$this->_lasterror=array("type"=>"remote execution error","message"=>$e->getMessage());
+			return false;
+		}
+		return $out;
 	}
 }
