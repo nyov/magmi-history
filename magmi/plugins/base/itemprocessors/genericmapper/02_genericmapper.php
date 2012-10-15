@@ -15,7 +15,7 @@ class GenericMapperProcessor extends Magmi_ItemProcessor
             "name" => "Generic mapper",
             "author" => "Dweeves",
             "version" => "0.0.6a",
-        	"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Generic_mapper"
+        	"url" => $this->pluginDocUrl("Generic_mapper")
             );
 	}
 

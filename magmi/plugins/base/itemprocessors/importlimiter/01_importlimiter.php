@@ -11,7 +11,7 @@ class ImportLimiter extends Magmi_ItemProcessor
 		return array("name"=>"Magmi Import Limiter",
 					 "author"=>"Dweeves",
 					 "version"=>"0.0.6",
-					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Magmi_Import_Limiter");
+					 "url"=>$this->pluginDocUrl("Magmi_Import_Limiter"));
 	}
 	
 	

@@ -17,7 +17,7 @@ class DefaultValuesItemProcessor extends Magmi_ItemProcessor
             "name" => "Default Values setter",
             "author" => "Dweeves",
             "version" => "0.0.5",
-        	"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Default_Values_setter"
+        	"url" => $this->pluginDocUrl("Default_Values_setter")
         );
     }
 	

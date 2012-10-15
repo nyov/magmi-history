@@ -1,6 +1,5 @@
 <?php
-require_once("../../../../inc/fshelper.php");
-
+require_once("fshelper.php");
 class RAResponse
 {
 	public $body;
@@ -30,6 +29,14 @@ class RAResponse
 	} 
 }
 
+class RAError extends RAResponse
+{
+	public function __construct($err)
+	{
+		$this->is_error=true;
+		$this->error=array("type"=>"proxy error","code"=>"0","message"=>$err);
+	}
+}
 class Magmi_RemoteAgent_Proxy extends MagentoDirHandler
 {
 	protected $_raurl=NULL;
@@ -37,9 +44,17 @@ class Magmi_RemoteAgent_Proxy extends MagentoDirHandler
 	public function __construct($magurl,$raurl)
 	{
 		parent::__construct($magurl);
-		$this->_raurl=$raurl;	
+		$sep=(substr($raurl,-1)=="/"?"":"/");
+		$this->_raurl=$raurl.$sep."magmi_remoteagent.php";
+		MagentoDirHandlerFactory::getInstance()->registerHandler($this);
+		
 	}
 
+	public function getRemoteAgentUrl()
+	{
+		return $this->_raurl;	
+	}
+	
 	public function doPost($url, $params, $optional_headers = null)
 	{
   		$ctxparams = array('http' => array(
@@ -70,20 +85,26 @@ class Magmi_RemoteAgent_Proxy extends MagentoDirHandler
 		if($hresp)
 		{
 			$resp=new RAResponse($hresp,$op);
-			return $resp;
 		}
 		else
 		{
-			$this->_lasterror=array("code"=>0,"message"=>"No connection to proxy");
-			return false;
+			$resp=new RAError("No connection to proxy");
 		}
+		return $resp;
+		
 	}
 	
 	
 	public function getVersion()
 	{
-		$r=$this->doOperation('getVersion');
-		return $r->result['version'];
+		if($r=$this->doOperation('getVersion'))
+		{
+			return $r->result['version'];
+		}
+		else
+		{
+			return "0.0.0";
+		}
 	}
 	
 	public function file_exists($filepath)
@@ -92,9 +113,9 @@ class Magmi_RemoteAgent_Proxy extends MagentoDirHandler
 		return $r->result;
 	}
 	
-	public function mkdir($path)
+	public function mkdir($path,$mask=0755,$rec=false)
 	{
-		$r=$this->doOperation('file_exists',array('path'=>$filepath));
+		$r=$this->doOperation('mkdir',array('path'=>$path,'mask'=>$mask,'rec'=>$rec));
 		if($r->is_error)
 		{
 			$this->_lasterror=$r->error;
@@ -113,6 +134,17 @@ class Magmi_RemoteAgent_Proxy extends MagentoDirHandler
 		
 	}
 	
+	public function chmod($path,$mask)
+	{
+		$r=$this->doOperation('chmod',array('path'=>$path,'mask'=>$mask));
+		if($r->is_error)
+		{
+			$this->_lasterror=$r->error;
+		}
+		return !$r->is_error;
+			
+	}
+	
 	public function copy($srcpath, $destpath)
 	{
 		$r=$this->doOperation('copy',array('src'=>$srcpath,'dest'=>$destpath));
@@ -124,7 +156,12 @@ class Magmi_RemoteAgent_Proxy extends MagentoDirHandler
 		
 	}
 	
-	public static function canHandle($url)
+	public function getLastError()
+	{
+		return $this->_lasterror;
+	}
+	
+	public function canHandle($url)
 	{
 		return preg_match('|^.*://.*$|',$url);
 	}

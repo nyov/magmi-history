@@ -8,8 +8,8 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 	{
 		return array("name"=>"Magmi Magento Reindexer",
 					 "author"=>"Dweeves",
-					 "version"=>"1.0.6",
-					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Magmi_Magento_Reindexer");
+					 "version"=>"1.0.7",
+					 "url"=>$this->pluginDocUrl("Magmi_Magento_Reindexer"));
 	}
 	
 	public function afterImport()
@@ -18,6 +18,29 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 		$this->log("running indexer","info");
 		$this->updateIndexes();
 		return true;
+	}
+	
+	public function OptimEav()
+	{
+		$tables=array("catalog_product_entity_varchar",
+					   "catalog_product_entity_int",
+					   "catalog_product_entity_text",
+					   "catalog_product_entity_decimal",
+					   "catalog_product_entity_datetime",
+					   "catalog_product_entity_media_gallery",
+					   "catalog_product_entity_tier_price");
+		
+		$cpe=$this->tablename('catalog_product_entity');
+		$this->log("Optmizing EAV Tables...","info");
+		foreach($tables as $t)
+		{
+			$this->log("Optmizing $t....","info");
+			$sql="DELETE ta.* FROM ".$this->tablename($t)." as ta
+			LEFT JOIN $cpe as cpe on cpe.entity_id=ta.entity_id 
+			WHERE ta.store_id=0 AND cpe.entity_id IS NULL";
+			$this->delete($sql);
+			$this->log("$t optimized","info");
+		}	
 	}
 	
 	public function fixFlat()

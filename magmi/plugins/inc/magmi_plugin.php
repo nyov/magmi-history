@@ -114,6 +114,11 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 	{
 	}
 	
+	public function pluginDocUrl($urlk)
+	{
+		return "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=".$urlk;
+	}
+	
 	public function getParam($pname,$default=null)
 	{
 		return (isset($this->_params[$pname]) && $this->_params[$pname]!="")?$this->_params[$pname]:$default;

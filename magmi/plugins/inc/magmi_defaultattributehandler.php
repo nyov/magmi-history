@@ -1,7 +1,7 @@
 <?php
 class Magmi_DefaultAttributeItemProcessor extends Magmi_ItemProcessor
 {
-	protected $_basecols=array("store"=>"admin","type"=>"simple","attribute_set"=>"Default");
+	protected $_basecols=array("store"=>"admin","type"=>"simple");
 	protected $_baseattrs=array("status"=>1,"visibility"=>4,"page_layout"=>"");
 	protected $_forcedefault=array("store"=>"admin");
 	protected $_missingcols=array();

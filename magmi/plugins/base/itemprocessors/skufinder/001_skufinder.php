@@ -9,7 +9,7 @@ class SkuFinderItemProcessor extends Magmi_ItemProcessor
             "name" => "SKU Finder",
             "author" => "Dweeves",
             "version" => "0.0.1",
-        	"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=SKU_Finder"
+        	"url"=>$this->pluginDocUrl("SKU_Finder")
         );
     }
     

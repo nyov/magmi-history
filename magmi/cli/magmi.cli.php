@@ -70,6 +70,7 @@ function getEngineInstance($options)
 	return $enginst;
 }
 $importer=getEngineInstance($options);
-$importer->setLogger(new CLILogger());
+$loggerclass=isset($options['logger'])?$options['logger']:"CLILogger";
+$importer->setLogger(new $loggerclass());
 $importer->run($options);
 ?>

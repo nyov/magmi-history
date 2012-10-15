@@ -7,7 +7,7 @@ class ProductDeleter extends Magmi_ItemProcessor
             "name" => "Product Deleter",
             "author" => "Dweeves",
             "version" => "0.0.2",
-        	"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Product_Deleter"
+        	"url" => $this->pluginDocUrl("Product_Deleter")
         );
 	}
 	

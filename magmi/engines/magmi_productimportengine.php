@@ -28,6 +28,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	public $status_id=array();
 	public $attribute_sets=array();
 	public $prod_etype;
+	public $default_asid;
 	public $sidcache=array();
 	public $mode="update";
 	private $_attributehandlers;
@@ -91,6 +92,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	{
 		$tname=$this->tablename("eav_entity_type");
 		$this->prod_etype=$this->selectone("SELECT entity_type_id FROM $tname WHERE entity_type_code=?","catalog_product","entity_type_id");
+		$this->default_asid=$this->getAttributeSetId('Default');
 	}
 
 
@@ -823,22 +825,24 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 			#fill with values
 			$svstr=$this->arr2update($stockvals);
-			$relqty=NULL;
-			//test for relative qty
-			if($item["qty"][0]=="+" || $item["qty"][0]=="-")
+			if(isset($item["qty"]))
 			{
-				$relqty=getRelative($item["qty"]);
+				$relqty=NULL;
+				//test for relative qty
+				if($item["qty"][0]=="+" || $item["qty"][0]=="-")
+				{
+					$relqty=getRelative($item["qty"]);
+				}
+				//if relative qty
+				if($relqty!=NULL)
+				{
+					//update UPDATE statement value affectation
+					$svstr=preg_replace("/(^|,)qty=\?/","$1qty=qty$relqty?",$svstr);
+					$stockvals["qty"]=$item["qty"];
+					$svstr=str_replace("is_in_stock=?","is_in_stock=(qty>min_qty)",$svstr);
+					unset($stockvals["is_in_stock"]);
+				}
 			}
-			//if relative qty
-			if($relqty!=NULL)
-			{
-				//update UPDATE statement value affectation
-				$svstr=preg_replace("/(^|,)qty=\?/","$1qty=qty$relqty?",$svstr);
-				$stockvals["qty"]=$item["qty"];
-				$svstr=str_replace("is_in_stock=?","is_in_stock=(qty>min_qty)",$svstr);
-				unset($stockvals["is_in_stock"]);
-			}
-
 			$sql="UPDATE `$csit` SET $svstr WHERE product_id=? AND stock_id=?";
 			$this->update($sql,array_merge(array_values($stockvals),array($pid,$stock_id)));
 		}
@@ -888,8 +892,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 		$inserts=array();
 		$data=array();
+		$cdata=array();
 		$ddata=array();
 		$catids=csl2arr($item["category_ids"]);
+		
+		//find positive category assignments
+		
 		foreach($catids as $catid)
 		{
 			$rel=getRelative($catid);
@@ -899,12 +907,39 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			}
 			else
 			{
+				$cdata[]=$catid;
+			}
+		}
+		
+		//get all "real ids"
+		$rcatids=$this->selectAll("SELECT cce.entity_id as id FROM $cce as cce WHERE cce.entity_id IN (".$this->arr2values($cdata).")",$cdata);
+		$vcatids=array();
+		foreach($rcatids as $rcatrow)
+		{
+			$vcatids[]=$rcatrow['id'];
+		}
+		//now get the diff
+		$diff=array_diff($cdata,$vcatids);
+		//if there are some, warning
+		if(count($diff)>0)
+		{
+			$this->log('Invalid category ids found for sku '.$item['sku'].":".implode(",",$diff),"warning");
+		}
+		
+		$cdata=$vcatids;
+		if(count($cdata)==0)
+		{
+			$this->log('No valid categories found, skip category assingment for sku '.$item['sku'],"warning");
+		}
+		
+		#now we have verified ids
+		foreach($cdata as $catid)
+		{
 				$inserts[]="(?,?)";
 				$data[]=$catid;
 				$data[]=$pid;
-			}
 		}
-
+			
 		#peform deletion of removed category affectation
 		if(count($ddata)>0)
 		{
@@ -913,7 +948,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$this->delete($sql,$ddata);
 			unset($ddata);
 		}
-
+		
+		
+		
 		#create new category assignment for products, if multi store with repeated ids
 		#ignore duplicates
 		if(count($inserts)>0)
@@ -1019,7 +1056,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			else
 			{
 				//only sku & attribute set id from datasource otherwise.
-				$this->_curitemids=array("pid"=>null,"sku"=>$sku,"asid"=>isset($item["attribute_set"])?$this->getAttributeSetId($item["attribute_set"]):null);
+				$this->_curitemids=array("pid"=>null,"sku"=>$sku,"asid"=>isset($item["attribute_set"])?$this->getAttributeSetId($item["attribute_set"]):$this->default_asid);
 			}
 			//do not reset values for existing if non admin	
 			$this->onNewSku($sku,($cids!==false));
@@ -1136,15 +1173,20 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		//handle "computed" ignored columns
 		$this->handleIgnore($item);
+		//get Item identifiers in magento
 		$itemids=$this->getItemIds($item);
+		
+		//extract product id & attribute set id
 		$pid=$itemids["pid"];
 		$asid=$itemids["asid"];
+		
 		$isnew=false;
 		if(isset($pid) && $this->mode=="xcreate")
 		{
 			$this->log("skipping existing sku:{$item["sku"]} - xcreate mode set","skip");
 			return false;
 		}
+		
 		if(!isset($pid))
 		{
 
@@ -1170,6 +1212,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			$this->updateProduct($item,$pid);
 		}
+		
 		try
 		{
 			if(!$this->callPlugins("itemprocessors","processItemAfterId",$item,array("product_id"=>$pid,"new"=>$isnew,"same"=>$this->_same,"asid"=>$asid)))
