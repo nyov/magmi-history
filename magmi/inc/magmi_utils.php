@@ -57,6 +57,12 @@ function getRelative(&$val)
 	return $dir;
 }
 
+function is_remote_path($path)
+{
+	$parsed=parse_url($path);
+	return isset($parsed['host']);
+}
+
 function abspath($path,$basepath="",$resolve=true)
 {
 	if($basepath=="")
@@ -64,7 +70,7 @@ function abspath($path,$basepath="",$resolve=true)
 		$basepath=dirname(dirname(__FILE__));
 	}
 	$cpath=$basepath."/".$path;
-	if($resolve)
+	if($resolve && !is_remote_path($cpath))
 	{
 		$abs=realpath($cpath);
 	}
