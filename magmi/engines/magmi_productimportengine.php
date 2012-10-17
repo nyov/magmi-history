@@ -77,7 +77,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.6","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.7","author"=>"dweeves");
 	}
 
 	/**
@@ -579,6 +579,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getItemStoreIds($item,$scope)
 	{
+		if(!isset($item['store']))
+		{
+			$item['store']="admin";
+		}
 		switch($scope){
 			//global scope
 			case 1:
@@ -894,12 +898,16 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$data=array();
 		$cdata=array();
 		$ddata=array();
+		$cpos=array();
 		$catids=csl2arr($item["category_ids"]);
 		
 		//find positive category assignments
 		
-		foreach($catids as $catid)
+		foreach($catids as $catdef)
 		{
+			$a=explode("::",$catdef);
+			$catid=$a[0];
+			$catpos=(count($a)>1?$a[1]:"0");
 			$rel=getRelative($catid);
 			if($rel=="-")
 			{
@@ -908,6 +916,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			else
 			{
 				$cdata[]=$catid;
+				$cpos[]=$catpos;
 			}
 		}
 		
@@ -933,11 +942,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		}
 		
 		#now we have verified ids
-		foreach($cdata as $catid)
+		for($i=0;$i<count($cdata);$i++)
 		{
-				$inserts[]="(?,?)";
-				$data[]=$catid;
+				$inserts[]="(?,?,?)";
+				$data[]=$cdata[$i];
 				$data[]=$pid;
+				$data[]=$cpos[$i];
 		}
 			
 		#peform deletion of removed category affectation
@@ -955,7 +965,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		#ignore duplicates
 		if(count($inserts)>0)
 		{
-			$sql="INSERT IGNORE INTO $ccpt (`category_id`,`product_id`)
+			$sql="INSERT IGNORE INTO $ccpt (`category_id`,`product_id`,`position`)
 				 VALUES	 ";
 			$sql.=implode(",",$inserts);
 			$this->insert($sql,$data);
@@ -968,6 +978,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getItemWebsites($item,$default=false)
 	{
+	  if(!isset($item['store']))
+		{
+			$item['store']="admin";
+		}
 		$k=$item["store"];
 		
 		if(!isset($this->_wsids[$k]))
@@ -1165,6 +1179,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		{
 			return false;
 		}
+		
 		//check if sku has been reset
 		if(!isset($item["sku"]) || trim($item["sku"])=='')
 		{
