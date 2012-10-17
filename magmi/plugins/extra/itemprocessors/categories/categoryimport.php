@@ -86,7 +86,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.1.7",
+            "version" => "0.2",
 			"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_category_creator/importer"
             );
 	}
@@ -190,36 +190,67 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return $clist;
 	}
 	
-	public function getCategoryIdsFromDef($catdef,$basepath)
+	public function getCategoryIdsFromDef($pcatdef,$srdefs)
 	{
 		
 		
-		//if full def is in cache, use it
-		if($this->isInCache($catdef,$basepath))
+		foreach(array_keys($srdefs) as $tsrp)
 		{
-			$catids=$this->getCache($catdef,$basepath);
+			//check which root we have
+			if(substr($pcatdef,0,strlen($tsrp))==$tsrp)
+			{
+				$srp=$tsrp;
+				break;
+			}
+		}
+
+		//remove explicit root 
+		$pcatdef=str_replace($srp.$this->_tsep,"",$pcatdef);
+		$pcatparts=explode($this->_tsep,$pcatdef);
+		$catparts=array();
+		$catpos=array();
+		//build a position table to restore after cat ids will be created
+		foreach($pcatparts as $cp)
+		{
+			$a=explode("::",$cp);
+			$catparts[]=$a[0];
+			$catpos[]=(count($a)>1?$a[1]:"0");
+			//remove position to build catpart array
+		}
+		
+		//build a position free category def
+		$catdef=implode($this->_tsep,$catparts);
+		
+		//if full def is in cache, use it
+		if($this->isInCache($catdef,$srp))
+		{
+			$catids=$this->getCache($catdef,$srp);
 		}
 		else
 		{
 			//category ids 
 			$catids=array();
 			$lastcached=array();
-			//get cat tree branches names
-			$catparts=explode($this->_tsep,$catdef);
+			
 			//path as array , basepath is always "/" separated
-			$basearr=explode("/",$basepath);
+			$basearr=explode("/",$srdefs[$srp]["path"]);
 			//for each cat tree branch		
 			$pdef=array();	
 			foreach($catparts as $catpart)
 			{
+				//ignore empty
+				if($catpart=="")
+				{
+					continue;
+				}
 				//add it to the current tree level
 				$pdef[]=$catpart;
 				$ptest=implode($this->_tsep,$pdef);
 				//test for tree level in cache
-				if($this->isInCache($ptest,$basepath))
+				if($this->isInCache($ptest,$srp))
 				{
 					//if yes , set current known cat ids to corresponding cached branch 
-					$catids=$this->getCache($ptest,$basepath);
+					$catids=$this->getCache($ptest,$srp);
 					//store last cached branch
 					$lastcached=$pdef;
 				}				
@@ -246,10 +277,17 @@ class CategoryImporter extends Magmi_ItemProcessor
 				$curpath[]=$catid;
 				//cache newly created levels
 				$lastcached[]=$catparts[$i];				
-				$this->putInCache(implode($this->_tsep,$lastcached),$basepath,$catids);
+				$this->putInCache(implode($this->_tsep,$lastcached),$srp,$catids);
 			
 			}
 		}
+		
+		//added position handling
+		for($i=0;$i<count($catparts);$i++)
+		{
+			$catids[$i].="::".$catpos[$i];
+		}
+		
 		return $catids;
 	}
 	
@@ -279,28 +317,43 @@ class CategoryImporter extends Magmi_ItemProcessor
 				$sids=array_merge($sids,$this->_catrootw[$wsid]);
 			}
 		}
-		foreach($sids as $sid)
+		$rootpaths["__error__"]=array();
+		//If using explicit root assignment , identify which root it is
+		if(preg_match_all("|\[(.*?)\]|",$item["categories"],$matches))
 		{
-			$srp=$this->_catroots[$sid];
-			$cmatch=true;
-			//If using explicit root assignment , identify which root it is
-			if(preg_match("|^\[(.*)?\].*$|",$item["categories"],$matches))
+			//for each found explicit root
+			for($i=0;$i<count($matches[1]);$i++)
 			{
-				$cmatch=(trim($matches[1])==$srp["name"]);
-				if($cmatch)
+				//test store matching
+				foreach($sids as $sid)
 				{
-					$trimroot=$matches[1];
+					$srp=$this->_catroots[$sid];
+					$rname=$matches[1][$i];
+					$cmatch=(trim($rname)==$srp["name"]);
+					//found a store match
+					if($cmatch)
+					{
+						//set a specific store key 
+						$k="%RP:$sid%";
+						//store root path definitions 
+						$rootpaths[$k]=array("path"=>$srp["path"],"rootarr"=>$srp["rootarr"]);
+						$trimroot=trim($rname);
+						//replace root name with store root key
+						$item["categories"]=str_replace($matches[0][$i],$k,$item["categories"]);	
+							break;
+					}
 				}
 			}
-			if($cmatch)
+			//now finding unmatched replaces
+			
+		}
+			if(preg_match_all("|\[(.*?)\]|",$item["categories"],$matches))
 			{
-				$rootpaths[$srp["path"]]=$srp["rootarr"];
+				for($i=0;$i<count($matches[1]);$i++)
+				{
+						$rootpaths['__error__']=$matches[1];
+				}	
 			}
-		}
-		if($trimroot!="")
-		{
-			$item["categories"]=substr($item["categories"],strlen($trimroot)+2+strlen($this->_tsep));
-		}
 		return $rootpaths;
 	}
 	
@@ -309,36 +362,41 @@ class CategoryImporter extends Magmi_ItemProcessor
 		if(isset($item["categories"]))
 		{
 			
-			$rootpaths=$this->getStoreRootPaths($item);
-			if(count($rootpaths)==0)
+			//first apply category root on each category
+			
+			$root=$this->getParam("CAT:baseroot","");
+			if($root!="")
 			{
-				if(preg_match("|^\[(.*)?\].*$|",$item["categories"],$matches))
-				{
-					$this->log("Cannot find site root with name : ".$matches[1],"error");
-					return false;
+				$catlist=explode(";;",$item["categories"]);
+				for($i=0;$i<count($catlist);$i++)
+				{	
+					if(trim($catlist[$i])!="")
+					{
+						$catlist[$i]=$root.$this->_tsep.$catdef;
+					}
 				}
+				//recompose rooted categories
+				$item["categories"]=implode(";;",$catlist);
 			}
+			//get store root category paths
+			$rootpaths=$this->getStoreRootPaths($item);
+			if(count($rootpaths["__error__"])>0)
+			{
+					$this->log("Cannot find site root with names : ".implode(",",$rootpaths["__error__"]),"error");
+					return false;
+			}
+			//unset error if empty
+			unset($rootpaths["__error__"]);
 			$catlist=explode(";;",$item["categories"]);
 			$catids=array();
 			foreach($catlist as $catdef)
 			{
-				if($catdef!="")
-				{
-					$root=$this->getParam("CAT:baseroot","");
-					if($root!="")
-					{
-						$catdef=$root.$this->_tsep.$catdef;
-					}
-					foreach(array_keys($rootpaths) as $rp)
-					{
-						$cdef=$this->getCategoryIdsFromDef($catdef,$rp);
+						$cdef=$this->getCategoryIdsFromDef($catdef,$rootpaths);
 						if($this->getParam("CAT:lastonly",0)==1)
 						{
 							$cdef=array($cdef[count($cdef)-1]);
 						}
 						$catids=array_unique(array_merge($catids,$cdef));
-					}
-				}
 			}
 			$item["category_ids"]=implode(",",$catids);
 		}
