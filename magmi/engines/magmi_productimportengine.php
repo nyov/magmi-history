@@ -1382,8 +1382,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function initImport($params)
 	{
-		$this->log("Import Mode:$this->mode","startup");
 		$this->log("MAGMI by dweeves - version:".Magmi_Version::$version,"title");
+		$this->log("Import Profile:$this->_profile","startup");
+		$this->log("Import Mode:$this->mode","startup");
 		$this->log("step:".$this->getProp("GLOBAL","step",0.5)."%","step");
 		//intialize store id cache
 		$this->connectToMagento();
@@ -1496,8 +1497,9 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	
 	public function engineRun($params,$forcebuiltin=array())
 	{
+		
+		$this->log("Import Profile:$this->_profile","startup");
 		$this->log("Import Mode:$this->mode","startup");
-		$this->log("MAGMI by dweeves - version:".Magmi_Version::$version,"title");
 		$this->log("step:".$this->getProp("GLOBAL","step",0.5)."%","step");
 		$this->createPlugins($this->_profile,$params);
 		$this->datasource=$this->getDataSource();
