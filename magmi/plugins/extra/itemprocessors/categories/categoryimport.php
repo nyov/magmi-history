@@ -8,6 +8,8 @@ class CategoryImporter extends Magmi_ItemProcessor
 	protected $_catrootw=array();
 	protected $_cat_eid=null;
 	protected $_tsep;
+	//tricky escaped separator that matches slugging separator
+	protected $_escapedtsep="---";
 	public function initialize($params)
 	{
 
@@ -106,6 +108,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	
 	public function getCategoryId($parentpath,$cattrs)
 	{
+		$cattrs["name"]=str_replace($this->_escapedtsep,$this->_tsep,$cattrs["name"]);
 		//get exisiting cat id
 		$catid=$this->getExistingCategory($parentpath,$cattrs);
 		//if found , return it
@@ -174,6 +177,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		$clist=array();
 		foreach($cdefs as $cdef)
 		{
+			
 			$attrs=array();
 			$parts=explode("::",$cdef);
 			$cp=count($parts);
@@ -361,17 +365,22 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return $rootpaths;
 	}
 	
+	public function processEscaping(&$icats)
+	{
+		$icats=str_replace("\\".$this->_tsep,$this->_escapedtsep,$icats);
+	}
 	public function processItemAfterId(&$item,$params=null)
 	{
 		if(isset($item["categories"]))
 		{
-			
+			//handle escaping
+		   $this->processEscaping($item["categories"]);
 			//first apply category root on each category
 			
 			$root=$this->getParam("CAT:baseroot","");
 			if($root!="")
 			{
-				$catlist=explode(";;",$item["categories"]);
+				$catlist=explode(";;",$icats);
 				for($i=0;$i<count($catlist);$i++)
 				{	
 					if(trim($catlist[$i])!="")
@@ -391,6 +400,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 			}
 			//unset error if empty
 			unset($rootpaths["__error__"]);
+			//categories may have been changed
 			$catlist=explode(";;",$item["categories"]);
 			$catids=array();
 			foreach($catlist as $catdef)
