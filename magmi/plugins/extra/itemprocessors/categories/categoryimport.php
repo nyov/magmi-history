@@ -193,7 +193,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 	public function getCategoryIdsFromDef($pcatdef,$srdefs)
 	{
 		
-		
+		$srp="%RP:base%";
 		foreach(array_keys($srdefs) as $tsrp)
 		{
 			//check which root we have
@@ -203,7 +203,6 @@ class CategoryImporter extends Magmi_ItemProcessor
 				break;
 			}
 		}
-
 		//remove explicit root 
 		$pcatdef=str_replace($srp.$this->_tsep,"",$pcatdef);
 		$pcatparts=explode($this->_tsep,$pcatdef);
@@ -354,6 +353,11 @@ class CategoryImporter extends Magmi_ItemProcessor
 						$rootpaths['__error__']=$matches[1];
 				}	
 			}
+			$sids=array_keys($this->_catroots);
+			$srp=$this->_catroots[$sids[0]];
+			$rootpaths["%RP:base%"]=array("path"=>$srp["path"],"rootarr"=>$srp["rootarr"]);
+				
+	
 		return $rootpaths;
 	}
 	
