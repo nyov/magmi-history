@@ -17,13 +17,16 @@
 * ProductImportEngine
 - added support for category item positioning
 - better behaviour on unmatched category id in category_ids (if not existing, warning instead of exception) 
+- autodefaulting of store column to "admin" if omitted
+
+* Magmi_config
 - support for alternate global configuration files
+
+* Magmi_cli
 - support for profile chaining in magmi.cli.php 
 - magmi.cli.php could be now more easily integrated as include in other scripts.
 
-
 * Magmi_utils
-
 - added utility functions to detect remote urls
 
 ############
@@ -47,6 +50,8 @@ need DB connectivity between magento host & magmi host.
 
 *Grouped Products:
 - added support for any type of subproducts
+
+* CSV Datasource
 
 Extra
 ----- 
