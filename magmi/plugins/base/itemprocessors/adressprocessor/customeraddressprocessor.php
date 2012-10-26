@@ -7,13 +7,14 @@ class CustomerAdressProcessor extends Magmi_ItemProcessor
     protected $_attrinfo=array();
     protected $_caetype;
     protected $_countrycache=array();
+    protected $_isomap=array();
     
 	public function getPluginInfo()
     {
         return array(
             "name" => "Customer Adresses importer",
             "author" => "Dweeves",
-            "version" => "0.0.1",
+            "version" => "0.0.2",
         );
     }
     
@@ -317,7 +318,37 @@ class CustomerAdressProcessor extends Magmi_ItemProcessor
 	public function processItemAfterId(&$item,$params=null)
 	{
 		$cid=$params['customer_id'];
+		$bc=strtoupper(trim($item["billing_country"]));
+		$sc=strtoupper(trim($item["shipping_country"]));
+		
+		if(strlen($sc)!=2)
+		{
+			if(isset($this->_isomap[$sc]))
+			{
+				$item["shipping_country"]=$this->_isomap[$sc];
+			}
+		}
+		
+		if(strlen($bc)!=2)
+		{
+			if(isset($this->_isomap[$bc]))
+			{
+				$item["billing_country"]=$this->_isomap[$bc];
+			}
+		}
+		
 		$this->createAdresses($item,$cid);
+	}
+	
+	public function initialize($params)
+	{
+		 $isomapfile=dirname(__FILE__)."/iso_map.txt";
+		 $lines=file($isomapfile);
+		 foreach($lines as $l)
+		 {
+		 	$parts=explode(";",$l);
+		 	$this->_isomap[$parts[0]]=$parts[1];
+		 }
 	}
 	
     public function findAddressId($cid,$item,$attcode)
