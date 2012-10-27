@@ -1244,7 +1244,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	public function updateProduct($item,$pid)
 	{
 		$tname=$this->tablename('catalog_product_entity');
-		if(isset($item[$item['type']]))
+		if(isset($item['type']))
 		{
 			$item['type_id']=$item['type'];
 		}
