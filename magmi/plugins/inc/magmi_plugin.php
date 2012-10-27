@@ -5,10 +5,11 @@ class Magmi_PluginConfig extends ProfileBasedConfig
 {
 	protected $_prefix;
 	protected $_conffile;
-	public function __construct($pname,$profile=null)
+	protected $_engclass;
+	public function __construct($pname,$basedir,$profile=null)
 	{
 		$this->_prefix=$pname;
-		parent::__construct("$this->_prefix.conf",$profile);
+		parent::__construct("$this->_prefix.conf",$basedir,$profile);
 	}
 	
 	public function getConfDir()
@@ -112,11 +113,6 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 	protected $_pluginmeta;
 	public function __construct()
 	{
-	}
-	
-	public function pluginDocUrl($urlk)
-	{
-		return "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=".$urlk;
 	}
 	
 	public function getParam($pname,$default=null)
@@ -223,7 +219,7 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 		$this->bind($mmi);
 		$this->_pluginmeta=$meta;
 		$this->_class=get_class($this);
-		$this->_config=new Magmi_PluginConfig(get_class($this),$profile);	
+		$this->_config=new Magmi_PluginConfig(get_class($this),$mmi->getProfilesDir(),$profile);	
 		$this->_config->load();
 		$this->_magmiconfig=Magmi_Config::getInstance();
 		
@@ -322,6 +318,11 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 		return "common";
 	}
 	
+	static public function getCompatibleEngines()
+	{
+		return "Magmi_ProductImportEngine";	
+	}
+	
 	public function getPluginDir()
 	{
 		return $this->_pluginmeta["dir"];
@@ -341,6 +342,6 @@ abstract class Magmi_Plugin extends Magmi_Mixin
 	{
 		return array(true,"");
 	}
-	
+		
 
 }

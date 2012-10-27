@@ -8,9 +8,9 @@ if($files!==false && count($files)>0){?>
 </select>
 <a id='csvdl' href="./download_file.php?file=<?php $this->getParam("CSV:filename")?>">Download CSV</a>
 <script type="text/javascript">
- $('csvdl').observe('click',function(el){
-	    var fval=$('csvfile').value;
- 		$('csvdl').href="./download_file.php?file="+fval;}
+ $('#csvdl').click(function(){
+	    var fval=$('#csvfile').val();
+ 		$('#csvdl').attr('href',"./download_file.php?file="+fval);}
 	);
 </script><?php } else {?>
 <span> No csv files found in <?php echo $this->getScanDir(false)?></span>

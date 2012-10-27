@@ -4,14 +4,13 @@ class ImportLimiter extends Magmi_ItemProcessor
 	protected $_recranges;
 	protected $_rmax=-1;
 	protected $_filters;
-	protected $_col_filter=NULL;
 	
 	public function getPluginInfo()
 	{
 		return array("name"=>"Magmi Import Limiter",
 					 "author"=>"Dweeves",
-					 "version"=>"0.0.6",
-					 "url"=>$this->pluginDocUrl("Magmi_Import_Limiter"));
+					 "version"=>"0.0.5",
+					 "url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Magmi_Import_Limiter");
 	}
 	
 	
@@ -79,7 +78,6 @@ class ImportLimiter extends Magmi_ItemProcessor
 		{
 			$this->log("Filtered row $crow not in range ".$this->getParam("LIMITER:ranges",""));
 		}
-		
 		return $ok;
 	}
 	
@@ -141,32 +139,28 @@ class ImportLimiter extends Magmi_ItemProcessor
 		}
 	}
 	
-	public function processColumnList(&$cols,$params=null)
-	{
-		if(count($this->_col_filter)>0)
-		{
-			$this->log("limiting columns to :".implode(",",$this->_col_filter),"startup");
-			$cols=$this->_col_filter;
-		}
-		
-	}
-	
 	public function initialize($params)
 	{
 		$this->parseRanges($this->getParam("LIMITER:ranges",""));
 		$this->parseFilters($this->getParam("LIMITER:filters",""));
-		$this->_col_filter=explode(",",$this->getParam("LIMITER:col_filter"));
 		return true;
 		
 	}
 	
 	public function getPluginParamNames()
 	{
-		return array('LIMITER:ranges','LIMITER:filters','LIMITER:col_filter');
+		return array('LIMITER:ranges','LIMITER:filters');
 	}
 	
 	static public function getCategory()
 	{
 		return "Input Data Preprocessing";
 	}
+	static public function getCompatibleEngines()
+	{
+		return ".*";	
+	}
+	
+
+	
 }

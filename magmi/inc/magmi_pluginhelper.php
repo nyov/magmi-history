@@ -1,6 +1,6 @@
 <?php
 require_once("magmi_config.php");
-require_once("fshelper.php");
+
 class Magmi_PluginHelper
 {
 	
@@ -12,14 +12,17 @@ class Magmi_PluginHelper
 	protected $_profile;
 	protected $_plmeta=array("datasources"=>array("Magmi_Datasource","*/*"),
 							 "itemprocessors"=>array("Magmi_ItemProcessor","*/*"),
+							 "customerprocessors"=>array("Magmi_CutomerProcessor","*/*"),
 							 "general"=>array("Magmi_GeneralImportPlugin","*/*"),
 							 "utilities"=>array("Magmi_UtilityPlugin","utilities"));
-	
+	protected $_eng;
+	protected $_engclass;
 	public function __construct($profile=null)
 	{
 		$this->_profile=$profile;
 		$this->base_dir=dirname(__FILE__);
 		$this->plugin_dir=realpath(dirname(dirname(__FILE__)).DS."plugins");
+		$this->_eng=null;
 		//set include path to inclue plugins inc & base dir
 		set_include_path(ini_get("include_path").PATH_SEPARATOR."$this->plugin_dir/inc".PATH_SEPARATOR."$this->base_dir");
 		//add base classes in context
@@ -29,6 +32,44 @@ class Magmi_PluginHelper
 		require_once("magmi_utility_plugin.php");
 		
 	}
+	
+	public function setEngineClass($engclass="magmi_productimportengine::Magmi_ProductImportEngine")
+	{
+		$this->_engclass=$engclass;
+		$enginfo=explode("::",$engclass);
+		$engfile=dirname(dirname(__FILE__))."/engines/".$enginfo[0].".php";
+		if(file_exists($engfile))
+		{
+			include_once($engfile);
+			$engcls=$enginfo[1];		
+			if(class_exists($engcls))
+			{
+				$this->setEngineInstance(new $engcls());
+				$this->_eng->setProfile($this->_profile);
+			}
+		
+		}
+	}
+	
+	public function getEngineClass()
+	{
+		if($this->_engclass==null)
+		{
+			$this->_engclass="magmi_productimportengine::Magmi_ProductImportEngine";
+		}
+		return $this->_engclass;
+	}
+	
+	public  function getEnginePluginClasses()
+	{
+		return $this->getPluginClasses($this->_eng);
+	}
+	
+	public function setEngineInstance($enginst)
+	{
+		$this->_eng=$enginst;
+	}
+	
 	public static function getInstance($profile=null)
 	{
 		$key=($profile==null?"default":$profile);
@@ -69,9 +110,29 @@ class Magmi_PluginHelper
 		return $pluginclasses;
 	}
 
-	public function getPluginClasses($pltypes)
+	public function getPluginClasses($eng)
 	{
-		return self::getPluginsInfo($pltypes,"class");
+		return self::getPluginsInfo($eng->getPluginFamilies(),"class");
+	}
+	
+	public function getEngineList()
+	{
+		$path=dirname(dirname(__FILE__))."/engines/*.php";
+		$eflist=glob($path);
+		$elist=array();
+		foreach($eflist as $efile)
+		{
+			$k=substr(basename($efile),0,-4);
+			$ct=file_get_contents($efile);
+			if(preg_match_all("|class\s+(.*?)\s+extends\s+Magmi_Engine|mi",$ct,$matches,PREG_SET_ORDER))
+			{
+				require_once($efile);
+				$cname=$matches[0][1];
+				$eng=new $cname();
+				$elist["$k::$cname"]=$eng->getEngineInfo();
+			}
+		}
+		return $elist;
 	}
 	
 	public function getPluginsInfo($pltypes,$filter=null)
@@ -92,7 +153,12 @@ class Magmi_PluginHelper
 				}
 				foreach($arr as $desc)
 				{
-					$out[$k][]=$desc[$filter];
+					$pclass=$desc["class"];
+					$pcomp=call_user_func(array($pclass,"getCompatibleEngines"));
+					if(preg_match('/'.$pcomp.'/',get_class($this->_eng)))
+					{
+						$out[$k][]=$desc[$filter];
+					}
 				}
 			}	
 			$plugins=$out;
@@ -105,6 +171,10 @@ class Magmi_PluginHelper
 		
 	}
 	
+	public function getEngine()
+	{
+		return $this->_eng;
+	}
 	public function scanPlugins($pltypes)
 	{
 		if(!is_array($pltypes))
@@ -120,8 +190,8 @@ class Magmi_PluginHelper
 		}
 	}
 	
-	
-	public function createInstance($ptype,$pclass,$params=null,$mmi=null)
+
+	public function createInstance($ptype,$pclass,$params=null,$init=false)
 	{
 	
 		if(!isset(self::$_plugins_cache[$ptype]))
@@ -129,8 +199,7 @@ class Magmi_PluginHelper
 			self::scanPlugins($ptype);
 		}
 		$plinst=new $pclass();
-		
-		$plinst->pluginInit($mmi,$this->getPluginMeta($plinst),$params,($mmi!=null),$this->_profile);
+		$plinst->pluginInit($this->_eng,$this->getPluginMeta($plinst),$params,$init,$this->_profile);
 		return $plinst;
 	}
 	

@@ -1,6 +1,6 @@
 <?php
 require_once("../inc/magmi_config.php");
-$conf=Magmi_Config::getInstance();
+$conf=new Magmi_Config();
 if($conf->save($_POST))
 {
 	$date=filemtime($conf->getConfFile());

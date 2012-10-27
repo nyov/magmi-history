@@ -1,15 +1,17 @@
 <?php 
-	$params=$_REQUEST;
+	require_once ("magmi_web_utils.php");
+	$params=getWebParams();
+	session_write_close();
 	ini_set("display_errors",1);
 	require_once("../inc/magmi_defs.php");
 	require_once("../inc/magmi_statemanager.php");
+	require_once("magmi_pluginhelper.php");
 	
 	try
 	{
-		$engdef=explode(":",$params["engine"]);
-		$engine_name=$engdef[0];
-		$engine_class=$engdef[1];
-		require_once("../engines/$engine_name.php");
+		$engclass=$params["engineclass"];
+		$ph=new Magmi_PluginHelper($params['profile']);
+		$ph->setEngineClass($engclass);
 	}
 	catch(Exception $e)
 	{
@@ -58,21 +60,12 @@
 	if(Magmi_StateManager::getState()!=="running")
 	{
 		Magmi_StateManager::setState("idle");
-		$pf=Magmi_StateManager::getProgressFile(true);
-		if(file_exists($pf))
-		{
-			@unlink($pf);
-		}
 		set_time_limit(0);
-		$mmi_imp=new $engine_class();
+		$mmi_imp=$ph->getEngine();
 		$logfile=isset($params["logfile"])?$params["logfile"]:null;
 		if(isset($logfile) && $logfile!="")
 		{
 			$fname=Magmi_StateManager::getStateDir().DS.$logfile;			
-			if(file_exists($fname))
-			{
-				@unlink($fname);
-			}
 			$mmi_imp->setLogger(new FileLogger($fname));
 		}	
 		else

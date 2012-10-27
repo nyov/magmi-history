@@ -78,11 +78,11 @@ class ProfileBasedConfig extends DirbasedConfig
 {
 	private static $_script=__FILE__;
 	protected $_profile=null;
-	
+	protected $_cbasedir=null;
 	public function getProfileDir()
 	{
 		$subdir=($this->_profile=="default"?"":DS.$this->_profile);
-		$confdir=dirname(dirname(self::$_script)).DS."conf$subdir";
+		$confdir=dirname(dirname(self::$_script)).DS."conf".DS.$this->_cbasedir.$subdir;
 		if(!file_exists($confdir))
 		{
 			@mkdir($confdir,Magmi_Config::getInstance()->getDirMask());
@@ -90,9 +90,10 @@ class ProfileBasedConfig extends DirbasedConfig
 		return realpath($confdir);
 	}
 	
-	public function __construct($fname,$profile=null)
+	public function __construct($fname,$basedir,$profile=null)
 	{
 		$this->_profile=$profile;
+		$this->_cbasedir=$basedir;
 		parent::__construct($this->getProfileDir(),$fname);
 	}
 	
@@ -139,7 +140,7 @@ class Magmi_Config extends DirbasedConfig
 	{
 		$bd=$this->get("MAGENTO","basedir");
 		$dp=$bd[0]=="."?dirname(__FILE__)."/".$bd:$bd;
-		return $dp;
+		return realpath($dp);
 	}
 	
 	public static function getInstance()
@@ -160,17 +161,6 @@ class Magmi_Config extends DirbasedConfig
 	{
 		$conf=(!$this->isDefault())?$this->_confname:$this->_confname.".default";
 		parent::load($conf);
-		$alt=false;
-		if($this->hasSection('USE_ALTERNATE'))
-		{
-			$this->_confname=$this->get("USE_ALTERNATE","file");
-			$alt=true;
-		}
-		parent::load($this->_confname);
-		if($alt)
-		{
-			$this->set("USE_ALTERNATE","file",$this->_confname);
-		}
 		//Migration from 0.6.17
 		if($this->hasSection("PLUGINS_DATASOURCES"))
 		{
@@ -198,11 +188,6 @@ class Magmi_Config extends DirbasedConfig
 	
 	public function save($arr=null)
 	{
-		if(isset($arr["USE_ALTERNATE:file"]))
-		{
-			$this->_confname=$arr["USE_ALTERNATE:file"];
-			unset($arr["USE_ALTERNATE:file"]);
-		}
 		if($arr!==null)
 		{
 		foreach($arr as $k=>$v)
@@ -216,28 +201,16 @@ class Magmi_Config extends DirbasedConfig
 		return parent::save($arr);		
 	}
 	
-	public function getProfileList()
-	{
-		$proflist=array();
-		$candidates=scandir($this->getConfDir());
-		foreach($candidates as $candidate)
-		{
-			if(is_dir($this->getConfDir().DS.$candidate) && $candidate[0]!="." && substr($candidate,0,2)!="__")
-			{
-				$proflist[]=$candidate;
-			}
-		}
-		return $proflist;
-	}
+	
 	
 }
 
 class EnabledPlugins_Config extends ProfileBasedConfig
 {
 	
-	public function __construct($profile="default")
+	public function __construct($basedir,$profile="default")
 	{
-		parent::__construct("plugins.conf",$profile);
+		parent::__construct("plugins.conf",$basedir,$profile);
 	}
 	
 	public function getEnabledPluginFamilies($typelist)

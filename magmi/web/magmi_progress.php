@@ -1,8 +1,11 @@
 <?php
 require_once("../inc/magmi_statemanager.php");
 require_once("progress_parser.php");
-
-$logfile=$_REQUEST["logfile"];
+require_once("magmi_web_utils.php");
+$logfile=getWebParam("logfile");
+$engclass=getWebParam("engineclass");
+$sessid=session_id();
+session_write_close();
 if(!isset($logfile))
 {
 	$logfile=Magmi_StateManager::getProgressFile();
@@ -38,29 +41,6 @@ else
 	die("NO FILE");
 }
 ?>	
-<script type="text/javascript">
-	loadDetails=function(dtype)
-	{
-		var detdiv='log_'+dtype+'_details';
-		if($(detdiv).hasClassName("loaded"))
-		{
-			$(detdiv).hide();
-			$(detdiv).removeClassName("loaded");
-			$(dtype+'_link').update("Show Details");
-		}
-		else
-		{
-			new Ajax.Updater(detdiv,'progress_details.php',
-					{parameters:{'key':dtype,'PHPSESSID':'<?php echo session_id()?>'},
-					 onComplete:function(f){var sb = new ScrollBox($(detdiv),{auto_hide:true});
-						$(detdiv).addClassName("loaded");
-						$(dtype+'_link').update("Hide Details");
-						$(detdiv).show();
-						},evalScripts:true});
-	
-		}
-	};
-</script>
 		
 <div class="col"><h3>Plugins</h3>
 <?php foreach($parser->getData("plugins") as $pinfo):?>
@@ -136,7 +116,7 @@ else
 	   if(count($arr)>0){?>
 		<div class="log_<?php echo $gtype?>">
 		<?php echo count($arr)." $gtype(s) found"?>
-			<a href="javascript:loadDetails('<?php echo $gtype?>');" id="<?php echo $gtype?>_link">Show Details</a>
+			<a href="javascript:loadDetails('<?php echo $gtype?>','<?php echo $sessid?>');" id="<?php echo $gtype?>_link">Show Details</a>
 		</div>
 		<div id="log_<?php echo $gtype?>_details">
 		</div>
@@ -170,8 +150,16 @@ else
 <?php else:?>	
 	<?php if($parser->getData("ended")):?>
 		<div class='log_end <?php if(count($parser->getData("error"))>0){?> log_error<?php }?>'>
-		<span><a href='magmi.php'>Back to Configuration Page</a></span>
+		<form method="post" id="backform" action="magmi.php">
+			<input type="hidden" name="PHPSESSID" value="<?php echo $sessid?>">
+			<input type="hidden" name="engineclass" value="<?php echo $engclass?>">
+		</form>
+		<span><a href='javascript:void(0)' id="backlink">Back to Configuration Page</a></span>
 		</div>
-		<script type="text/javascript">endImport();</script>
+		<script type="text/javascript">
+			$('#backlink').click(function(){$('#backform').submit()});
+		endImport();
+	
+		</script>
 	<?php endif?>
 <?php endif?>

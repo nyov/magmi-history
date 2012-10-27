@@ -1,7 +1,7 @@
 <?php
- session_start();
- $key=$_REQUEST["key"];
- $data=$_SESSION["log_$key"];
+require_once ("magmi_web_utils.php");
+ $key=getWebParam("key");
+ $data=getWebParam("log_$key");
  session_write_close();
  ?>
 <script type="text/javascript">
@@ -10,12 +10,12 @@
 	 
 	 if($('trace_'+traceid).visible())
 	 {
-		 $('trace_'+traceid).update('');
+		 $('trace_'+traceid).html('');
 		 $('trace_'+traceid).hide();
 	}
 	else
 	{ 
-		 new Ajax.Updater('trace_'+traceid,'trace_details.php',{parameters:{'traceid':traceid},onComplete:function(){$('trace_'+traceid).show()}});
+		 loaddiv('#trace_'+traceid,'trace_details.php','traceid='+traceid,function(){$('#trace_'+traceid).show()});
  	}
  }
 </script>

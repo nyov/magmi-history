@@ -10,7 +10,7 @@ This plugin enables magmi import from csv files (using Dataflow format + magmi e
  <ul class="formline">
 	 <li class="label">CSV import mode</li>
  	<li class="value">
- 	<select name="CSV:importmode" id="CSV:importmode">
+ 	<select name="CSV:importmode" id="CSV_importmode">
 	 	<option value="local" <?php if($this->getParam("CSV:importmode","local")=="local"){?>selected="selected"<?php }?>>Local</option>
  		<option value="remote" <?php if($this->getParam("CSV:importmode","local")=="remote"){?>selected="selected"<?php }?>>Remote</option>
  	</select>
@@ -20,7 +20,7 @@ This plugin enables magmi import from csv files (using Dataflow format + magmi e
  <ul class="formline">
  <li class="label">CSVs base directory</li>
  <li class="value">
- <input type="text" name="CSV:basedir" id="CSV:basedir" value="<?php echo $this->getParam("CSV:basedir","var/import")?>"></input>
+ <input type="text" name="CSV:basedir" id="CSV_basedir" value="<?php echo $this->getParam("CSV:basedir","var/import")?>"></input>
  <div class="fieldinfo">Relative paths are relative to magento base directory , absolute paths will be used as is</div></li>
  </ul>
  <ul class="formline">
@@ -35,21 +35,21 @@ This plugin enables magmi import from csv files (using Dataflow format + magmi e
  <ul class="formline">
  <li class="label">Remote CSV url</li>
  <li class="value">
- <input type="text" name="CSV:remoteurl" id="CSV:remoteurl" value="<?php echo $this->getParam("CSV:remoteurl","")?>" style="width:400px"></input>
+ <input type="text" name="CSV:remoteurl" id="CSV_remoteurl" value="<?php echo $this->getParam("CSV:remoteurl","")?>" style="width:400px"></input>
  </li>
  </ul>
- <input type="checkbox" id="CSV:remoteauth" name="CSV:remoteauth" <?php  if($this->getParam("CSV:remoteauth",false)==true){?>checked="checked"<?php }?>>authentication needed
+ <input type="checkbox" id="CSV_remoteauth" name="CSV:remoteauth" <?php  if($this->getParam("CSV:remoteauth",false)==true){?>checked="checked"<?php }?>>authentication needed
  <div id="remoteauth" <?php  if($this->getParam("CSV:remoteauth",false)==false){?>style="display:none"<?php }?>>
  
  <div class="remoteuserpass">
  	<ul class="formline">
  		<li class="label">User</li>
- 		<li class="value"><input type="text" name="CSV:remoteuser" id="CSV:remoteuser" value="<?php echo $this->getParam("CSV:remoteuser","")?>"></li>
+ 		<li class="value"><input type="text" name="CSV:remoteuser" id="CSV_remoteuser" value="<?php echo $this->getParam("CSV:remoteuser","")?>"></li>
  		
  	</ul> 
  	<ul class="formline">
  		<li class="label">Password</li>
- 		<li class="value"><input type="text" name="CSV:remotepass" id="CSV:remotepass" value="<?php echo $this->getParam("CSV:remotepass","")?>"></li>
+ 		<li class="value"><input type="text" name="CSV:remotepass" id="CSV_remotepass" value="<?php echo $this->getParam("CSV:remotepass","")?>"></li>
  	</ul> 
  	</div>
 
@@ -74,63 +74,66 @@ Allow truncated lines (bypasses data line structure correlation with headers)</d
 $malformed=($hdline!="" && $hdline!=1)?>
 <input type="checkbox" id="malformedcb" <?php if($malformed){?>checked="checked"<?php }?>/>Malformed CSV (column list line not at top of file)
 <div id="malformed" <?php if(!$malformed){?>style="display:none"<?php }?>>
-<span class="">CSV Header at line:</span><input type="text" id="CSV:headerline" name="CSV:headerline"  maxlength="7" size="7" value="<?php echo $hdline?>"></input>
+<span class="">CSV Header at line:</span><input type="text" id="CSV_headerline" name="CSV:headerline"  maxlength="7" size="7" value="<?php echo $hdline?>"></input>
 </div>
 <script type="text/javascript">
 	handle_auth=function()
 	{
-		if($('CSV:remoteauth').checked)
+		if($('#CSV_remoteauth').attr('checked'))
 		{
-			$('remoteauth').show();	
+			$('#remoteauth').show();	
 		}
 		else
 		{
-			$('remoteauth').hide();
+			$('#remoteauth').hide();
 		}
-	}
-	
-	$('CSV:basedir').observe('blur',function()
-			{
-			new Ajax.Updater('csvds_filelist','ajax_pluginconf.php',{
-			parameters:{file:'csvds_filelist.php',
-						plugintype:'datasources',
-					    pluginclass:'<?php echo get_class($this->_plugin)?>',
-					    profile:'<?php echo $this->getConfig()->getProfile()?>',
-					    'CSV:basedir':$F('CSV:basedir')}});
-			});
-	$('malformedcb').observe('click',function(ev){
-		if($('malformedcb').checked)
+	};
+
+	$('#CSV_basedir').focusout(function()
+	{
+		loaddiv($('#csvds_filelist'),'ajax_pluginconf.php',
+												decodeURIComponent($.param({file:'csvds_filelist.php',
+																plugintype:'datasources',
+				    pluginclass:'<?php echo get_class($this->_plugin)?>',
+				    profile:'<?php echo $this->getConfig()->getProfile()?>',
+				    engineclass:'<?php echo Magmi_PluginHelper::getInstance($this->getConfig()->getProfile())->getEngineClass()?>',
+				    'CSV:basedir':$('#CSV_basedir').val()})));
+	});
+				
+	$('#malformedcb').click(function(){
+		if($('#malformedcb').attr('checked'))
 		{
-			$('malformed').show();	
+			$('#malformed').show();	
 		}
 		else
 		{
-			$('malformed').hide();
+			$('#malformed').hide();
 		}
 	});
-	$('CSV:headerline').observe('blur',function()
+	$('#CSV_headerline').blur(function()
 	{
-		var wellformed=($F('CSV:headerline')=="1" || $F('CSV:headerline')=="");
+		var wellformed=($('#CSV:headerline').val()=="1" || $('#CSV:headerline').val=="");
 		if(wellformed)
 		{
-			$('malformedcb').checked=false;
-			$('malformed').hide();
-			$('CSV:headerline').value="";
+			$('#malformedcb').attr('checked','false');
+			$('#malformed').hide();
+			$('#CSV:headerline').val("");
 		}
 	});
-	$('CSV:importmode').observe('change',function()
+	$('#CSV_importmode').change(function()
 			{
-				if($F('CSV:importmode')=='local')
+				if($('#CSV_importmode').val()=='local')
 				{
-					$('localcsv').show();
-					$('remotecsv').hide();
+					$('#localcsv').show();
+					$('#remotecsv').hide();
 				}
 				else
 				{
-					$('localcsv').hide();
-					$('remotecsv').show();
+					$('#localcsv').hide();
+					$('#remotecsv').show();
 				}
 			});
-	$('CSV:remoteauth').observe('click',handle_auth);
-	$('CSV:remoteurl').observe('blur',handle_auth);
+	$('#CSV_remoteauth').click(handle_auth);
+	$('#CSV_remoteurl').blur(handle_auth);
+	
 </script>

@@ -16,7 +16,7 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
             "name" => "Column mapper",
             "author" => "Dweeves",
             "version" => "0.0.3",
-        	"url"=>$this->pluginDocUrl("Column_mapper")
+        	"url"=>"http://sourceforge.net/apps/mediawiki/magmi/index.php?title=Column_mapper"
         );
     }
 	
@@ -112,4 +112,11 @@ class ColumnMappingItemProcessor extends Magmi_ItemProcessor
 	{
 		return "Input Data Preprocessing";
 	}
+	
+	static public function getCompatibleEngines()
+	{
+		return ".*";	
+	}
+	
+	
 }

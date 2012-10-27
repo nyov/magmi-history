@@ -94,6 +94,11 @@ abstract class Magmi_ItemProcessor extends Magmi_GeneralImportPlugin
 		return true;
 	}
 	
+	static public function getCompatibleEngines()
+	{
+		return "Magmi_ProductImportEngine";	
+	}
+	
 	/*
 	public function processItemException($mmi,&$item,$params=null)
 	{

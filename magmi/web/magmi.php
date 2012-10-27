@@ -2,7 +2,7 @@
   header('Pragma: public');   // required
   header('Expires: 0');    // no cache
   header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-  header('Last-Modified: '.gmdate ('D, d M Y H:i:s').' GMT');
+  header('Last-Modified: '.gmdate ('D, d M Y H:i:s', filemtime (__FILE__)).' GMT');
   header('Cache-Control: private',false);
     
     require_once("header.php");
@@ -43,15 +43,18 @@
 	if(count($badrights)==0)
 	{
 		$state=Magmi_StateManager::getState();
+		$mode=getWebParam("run");
 		
-		if($state=="running" || (isset($_REQUEST["run"]) && $_REQUEST["run"]=="import"))
+		if($state=="running" || (isset($mode) && $mode=="import"))
 		{
 			require_once("magmi_import_run.php");		
 		}
 		else
 		{
 			Magmi_StateManager::setState("idle",true);
-			require_once("magmi_config_setup.php");		
+			require_once("magmi_config_setup.php");
+			require_once("magmi_choose_engine.php");		
+			require_once("magmi_run_profile.php");
 			require_once("magmi_profile_config.php");		
 		}		
 		

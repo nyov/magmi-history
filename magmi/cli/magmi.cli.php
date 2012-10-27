@@ -9,7 +9,8 @@
  * 
  */
 
-require_once(dirname(dirname(__FILE__))."/inc/magmi_defs.php");
+require_once("../inc/magmi_defs.php");
+require_once("magmi_pluginhelper.php");
 
 $script=array_shift($argv);
 $options=array();
@@ -46,18 +47,19 @@ function getEngineInstance($options)
 {
 	if(!isset($options["engine"]))
 	{
-		$options["engine"]="magmi_productimportengine:Magmi_ProductImportEngine";
+		$options["engine"]="magmi_productimportengine::Magmi_ProductImportEngine";
 	}
-
-	$optname=$options["engine"];
+	$ph=Magmi_PluginHelper::getInstance($options["profile"]);
+	$ph->setEngineClass($options['engine']);
+	$enginst=$ph->getEngine();
+	/*$optname=$options["engine"];
 	$engdef=explode(":",$optname);
 	$engine_name=$engdef[0];
 	$engine_class=$engdef[1];
 	$enginst=null;
-	$engfile=dirname(dirname(__FILE__))."/engines/$engine_name.php";
-	if(file_exists($engfile))
+	if(file_exists("../engines/$engine_name.php"))
 	{
-		require_once($engfile);
+		require_once("../engines/$engine_name.php");
 		if(class_exists($engine_class))
 		{
 			$enginst=new $engine_class();				
@@ -66,11 +68,11 @@ function getEngineInstance($options)
 	if($enginst==null)
 	{
 	 die("Invalid engine definition : ".$optname);
-	}
+	}*/
+	
 	return $enginst;
 }
 $importer=getEngineInstance($options);
-$loggerclass=isset($options['logger'])?$options['logger']:"CLILogger";
-$importer->setLogger(new $loggerclass());
+$importer->setLogger(new CLILogger());
 $importer->run($options);
 ?>
