@@ -577,7 +577,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 * @param array $item : item to get store for scope
 	 * @param string $scope : scope to get stores from.
 	 */
-	public function getItemStoreIds($item,$scope)
+	public function getItemStoreIds($item,$scope=0)
 	{
 		if(!isset($item['store']))
 		{
