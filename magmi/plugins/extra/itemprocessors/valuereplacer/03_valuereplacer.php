@@ -162,6 +162,16 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 		return true;
 	}
 	
+	public function initHelpers()
+	{
+		$helperdir=dirname(__FILE__)."/helper";
+		$files=glob($helperdir."/*.php");
+		foreach($files as $f)
+		{
+			require_once($f);
+		}
+	}
+	
 	public function initialize($params)
 	{
 		foreach($params as $k=>$v)
@@ -172,6 +182,7 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 				$this->_rvals[$colname]=$params[$k];
 			}
 		}
+		$this->initHelpers();
 	}
 	
 	//auto add columns if not set 
