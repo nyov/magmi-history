@@ -331,7 +331,7 @@ class LocalMagentoDirHandler extends MagentoDirHandler
 	{
 		$mp=str_replace("//","/",$this->_magdir."/".str_replace($this->_magdir, '', $cmd));
 		$out=@shell_exec($cmd." ".$params);
-		if($out===false)
+		if($out===false || $out==null)
 		{
 			$this->_lasterror=error_get_last();
 			return false;
@@ -364,7 +364,7 @@ class Magmi_RemoteAgent
 	
 	public static function getStaticVersion()
 	{
-		return "1.0.7";
+		return "1.0.0";
 	}
 	
 	public function wrapResult($res)
