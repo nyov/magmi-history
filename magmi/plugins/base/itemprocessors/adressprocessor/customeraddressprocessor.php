@@ -346,7 +346,7 @@ class CustomerAdressProcessor extends Magmi_ItemProcessor
 		 $lines=file($isomapfile);
 		 foreach($lines as $l)
 		 {
-		 	$parts=explode(";",$l);
+		 	$parts=explode(";",trim($l));
 		 	$this->_isomap[$parts[0]]=$parts[1];
 		 }
 	}
