@@ -427,7 +427,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		$t2=$this->tablename('eav_attribute_option_value');
 		$sql="SELECT optvals.option_id as opvs,optvals.value FROM $t2 as optvals";
 		$sql.=" JOIN $t1 as opt ON opt.option_id=optvals.option_id AND opt.attribute_id=?";
-		$sql.=" WHERE optvals.store_id=? AND optvals.value IN COLLATE utf8_bin ($ovstr)";
+		$sql.=" WHERE optvals.store_id=? AND BINARY optvals.value IN  ($ovstr)";
 		return $this->selectAll($sql,array_merge(array($attid,$store_id),$optvals));
 	}
 
