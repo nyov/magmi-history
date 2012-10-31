@@ -3,7 +3,7 @@
  * Class Tier price processor
  * @author dweeves
  *
- * This imports tier prices for columns names called "tier_price:"
+ * This imports tier prices for columns names called "tags:"
  */
 class TagProcessor extends Magmi_ItemProcessor
 {
@@ -11,11 +11,12 @@ class TagProcessor extends Magmi_ItemProcessor
 	protected $_useridcache=array();
 	protected $_tagidcache=array();
 	
-	public function getPluginInfo()
+	public function 	getPluginInfo()
 	{
 		return array(
             "name" => "Product Tags Importer",
-            "author" => "Dweeves",
+            "author" => "Dweeves,Pawel Kazakow",
+			"sponsorinfo"=>array("name"=>"Pawel Kasawow","url"=>"http://www.xonu.commerce.de"),
             "version" => "0.0.1",
 			"url"=>$this->pluginDocUrl("Tag_importer")
             );
