@@ -143,7 +143,7 @@ class Magmi_RemoteAgent_Proxy extends MagentoDirHandler
 			return $r->error['message'];
 		}
 		
-		return $r->result['out'];
+		return $r->result;
 	}
 	
 	public function chmod($path,$mask)
