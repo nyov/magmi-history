@@ -120,21 +120,13 @@ div.title
 	font-size:12pt;
 }
 
-.title .license .hover
-{
- display:none;
-}
-
-
-.title .license a:hover .hover
-{
- font-family:monospace;
- display:block;
- z-index:200;
- background:#ffffcc;
- border:1px solid #000000;
- color:#000000;
-
+#m_license {
+ 	font-family:monospace;
+ 	display:block;
+	 z-index:200;
+ 	background:#ffffcc;
+ 	border:1px solid #000000;
+ 	color:#000000;
 }
 
 
