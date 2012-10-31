@@ -86,8 +86,8 @@ if(isset($importer))
 	$importer->setLogger(new $loggerclass());
 	if(!isset($options["chain"]))
 	{
-		
-		$options["chain"]=isset($options["profile"])?$options["profile"]:"".isset($options["mode"])?":".$options["mode"]:"";
+		$options["chain"]=isset($options["profile"])?$options["profile"]:"";
+		$options["chain"].=isset($options["mode"])?":".$options["mode"]:"";
 	}
 	$pdefs=explode(",",$options["chain"]);
 	foreach($pdefs as $pdef)
