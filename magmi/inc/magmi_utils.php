@@ -69,7 +69,7 @@ function abspath($path,$basepath="",$resolve=true)
 	{
 		$basepath=dirname(dirname(__FILE__));
 	}
-	$cpath=$basepath."/".$path;
+	$cpath=str_replace('//','/',$basepath."/".$path);
 	if($resolve && !is_remote_path($cpath))
 	{
 		$abs=realpath($cpath);
