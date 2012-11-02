@@ -100,6 +100,8 @@ class ValueReplacerItemProcessor extends Magmi_ItemProcessor
 				if($match!=$matches[0])
 				{
 					$code=trim($match);
+					//settiing meta values
+					$meta=$params;
 					$rep=eval("return ($code);");
 					//escape potential "{{xxx}}" values in interpreted target
 					//so that they won't be reparsed in next round
