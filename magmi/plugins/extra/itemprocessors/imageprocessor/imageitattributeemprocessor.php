@@ -119,17 +119,11 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			return $ivalue;
 		}
 		
+		//ok , so it's a relative path
 		$imgfile=NULL;
-		$bi=basename($ivalue);
-		
-		if($ivalue[0]=="/" && substr($ivalue, 1)==$bi)
-		{
-			$ivalue=$bi;
-		}
-		//we have an image name with / before
 		$scandirs=explode(";",$this->getParam("IMG:sourcedir"));
-		$found=false;
-		for($i=0;$i<count($scandirs) && !$imgfile;$i++)
+		//iterate on image sourcedirs, trying to resolve file name based on input value and current source dir
+		for($i=0;$i<count($scandirs) && $imgfile===false;$i++)
 		{
 			$imgfile=abspath($ivalue,$scandirs[$i]);
 		}
