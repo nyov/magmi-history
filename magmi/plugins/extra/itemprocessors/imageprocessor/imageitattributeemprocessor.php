@@ -120,12 +120,19 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		}
 		
 		//ok , so it's a relative path
-		$imgfile=NULL;
+		$imgfile=false;
 		$scandirs=explode(";",$this->getParam("IMG:sourcedir"));
+		
 		//iterate on image sourcedirs, trying to resolve file name based on input value and current source dir
 		for($i=0;$i<count($scandirs) && $imgfile===false;$i++)
 		{
-			$imgfile=abspath($ivalue,$scandirs[$i]);
+			$sd=$scandirs[$i];
+			//scandir is relative, use mdh
+			if($sd[0]!="/")
+			{
+				$sd=$this->_mdh->getMagentoDir()."/".$sd;
+			}
+			$imgfile=abspath($ivalue,$sd);
 		}
 		return $imgfile;
 	}
