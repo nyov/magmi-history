@@ -219,6 +219,10 @@ abstract class MagentoDirHandler
 		$this->_magdir=$magurl;
 		$this->_lasterror=array();
 	}
+	public function getMagentoDir()
+	{
+		return $this->_magdir;
+	}
 	public abstract function canhandle($url);
 	public abstract function file_exists($filepath);
 	public abstract function mkdir($path,$mask,$rec);
@@ -307,12 +311,14 @@ class LocalMagentoDirHandler extends MagentoDirHandler
 	public function copy($srcpath,$destpath)
 	{
 		$result=false;
+		$destpath=str_replace("//","/",$this->_magdir."/".str_replace($this->_magdir, '', $destpath));
 		if(preg_match('|^.*?://.*$|', $srcpath))
 		{
 			$result=$this->copyFromRemote($srcpath,$destpath);
 		}	
 		else
 		{
+			
 			$result=@copy($srcpath,$destpath);
 			if(!$result)
 			{
