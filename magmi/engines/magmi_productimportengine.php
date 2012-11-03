@@ -58,6 +58,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function __construct()
 	{
+	
 		$this->setBuiltinPluginClasses("itemprocessors",dirname(dirname(__FILE__))."/plugins/inc/magmi_defaultattributehandler.php::Magmi_DefaultAttributeItemProcessor");
 	}
 
@@ -1362,6 +1363,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	public function engineInit($params)
 	{
 		$this->_profile=$this->getParam($params,"profile","default");
+		//create an instance of local magento directory handler
+		//this instance will autoregister in factory
+		$mdh=new LocalMagentoDirHandler(Magmi_Config::getInstance()->getMagentoDir());
+		
 		$this->initPlugins($this->_profile);
 		$this->mode=$this->getParam($params,"mode","update");
 
