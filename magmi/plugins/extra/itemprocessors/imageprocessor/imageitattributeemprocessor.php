@@ -52,7 +52,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		}
 		//use ";" as image separator
 		$images=explode(";",$ivalue);
-		
+		$imageindex=0;
 		//for each image
 		foreach($images as $imagefile)
 		{
@@ -69,13 +69,14 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			}
 			unset($infolist);
 			//copy it from source dir to product media dir
-			$imagefile=$this->copyImageFile($imagefile,$item,array("store"=>$storeid,"attr_code"=>$attrcode));
+			$imagefile=$this->copyImageFile($imagefile,$item,array("store"=>$storeid,"attr_code"=>$attrcode,"imageindex"=>$imageindex==0?"":$imageindex));
 			if($imagefile!==false)
 			{
 				//add to gallery
 				$targetsids=$this->getStoreIdsForStoreScope($item["store"]);
 				$vid=$this->addImageToGallery($pid,$storeid,$attrdesc,$imagefile,$targetsids,$label,$exclude);
 			}
+			$imageindex++;
 		}
 		unset($images);
 		//we don't want to insert after that
