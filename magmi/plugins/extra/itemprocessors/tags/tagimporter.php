@@ -16,7 +16,7 @@ class TagProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Product Tags Importer",
             "author" => "Dweeves,Pawel Kazakow",
-			"sponsorinfo"=>array("name"=>"Pawel Kasakow","url"=>"http://xonu.de"),
+			"sponsorinfo"=>array("name"=>"Pawel Kazakow","url"=>"http://xonu.de"),
             "version" => "0.0.1",
 			"url"=>$this->pluginDocUrl("Tag_importer")
             );
