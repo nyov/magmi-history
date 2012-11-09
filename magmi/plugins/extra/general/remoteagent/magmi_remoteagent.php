@@ -364,7 +364,7 @@ class Magmi_RemoteAgent
 	
 	public static function getStaticVersion()
 	{
-		return "1.0.0";
+		return "1.0.1";
 	}
 	
 	public function wrapResult($res)
