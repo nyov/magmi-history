@@ -724,7 +724,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 					{
 						$sids=$store_ids;
 						//remove all values bound to the other stores for this attribute,so that they default to "use admin value"
-						array_pop($sids);
+						array_shift($sids);
 						if(count($sids)>0)
 						{
 							$sidlist=implode(",",$sids);
