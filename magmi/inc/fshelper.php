@@ -225,10 +225,10 @@ abstract class MagentoDirHandler
 	}
 	public abstract function canhandle($url);
 	public abstract function file_exists($filepath);
-	public abstract function mkdir($path,$mask,$rec);
+	public abstract function mkdir($path,$mask=null,$rec=false);
 	public abstract function copy($srcpath,$destpath);
-	public abstract function unlink($filepath);
-	public abstract function chmod($filepath,$mask);
+	public abstract function unlink($path);
+	public abstract function chmod($path,$mask);
 	public abstract function exec_cmd($cmd,$params);
 }
 
