@@ -134,7 +134,7 @@ class Magmi_RemoteAgent_Proxy extends MagentoDirHandler
 		
 	}
 	
-	public function exec_cmd($cmd, $params)
+	public function exec_cmd($cmd, $params, $workingdir = null)
 	{
 		$r=$this->doOperation('exec_cmd',array('cmd'=>$cmd,'args'=>$params));
 		if($r->is_error)

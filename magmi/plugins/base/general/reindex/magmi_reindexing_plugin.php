@@ -89,7 +89,8 @@ class Magmi_ReindexingPlugin extends Magmi_GeneralImportPlugin
 			$tstart=microtime(true);
 			$this->log("Reindexing $idx....","info");
 			
-			$out = $this->_mdh->exec_cmd($cl,"--reindex $idx");
+			// Execute Reindex command, and specify that it should be ran from Magento directory
+			$out = $this->_mdh->exec_cmd($cl,"--reindex $idx", $this->_mdh->getMagentoDir());
 			$this->log($out,"info");
 			$tend=microtime(true);
 			$this->log("done in ".round($tend-$tstart,2). " secs","info");

@@ -229,7 +229,7 @@ abstract class MagentoDirHandler
 	public abstract function copy($srcpath,$destpath);
 	public abstract function unlink($path);
 	public abstract function chmod($path,$mask);
-	public abstract function exec_cmd($cmd,$params);
+	public abstract function exec_cmd($cmd,$params,$workingdir = null);
 }
 
 class LocalMagentoDirHandler extends MagentoDirHandler
@@ -327,12 +327,20 @@ class LocalMagentoDirHandler extends MagentoDirHandler
 		}
 		return $result;
 	}
-	
-	public function exec_cmd($cmd,$params)
+
+	public function exec_cmd($cmd,$params, $working_dir = null)
 	{
 		$mp=str_replace("//","/",$this->_magdir."/".str_replace($this->_magdir, '', $cmd));
 		try {
-			$out=shell_exec($cmd." ".$params);
+			$full_cmd = $cmd." ".$params;
+
+			// If a working directory has been specified, switch to it 
+			// before running the requested command
+			if(!empty($working_dir)) {
+				$full_cmd = 'cd ' . realpath($working_dir) . ' && ' . $full_cmd;
+			}
+
+			$out=shell_exec($full_cmd);
 		}
 		catch(Exception $e)
 		{
