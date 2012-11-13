@@ -31,18 +31,18 @@ class ValueRemapper
 	
 	public function map($val,$ci=false)
 	{
-		$val=trim($val);
+		$tval=trim($val);
 		//remapper case insensitive fix
 		if($ci)
 		{
-			$val=strtoupper($val);
+			$tval=strtoupper($val);
 			$targetmap=$this->_cimaps[$this->_curmap];
 		}
 		else
 		{
 			$targetmap=$this->_maps[$this->_curmap];
 		}
-		return isset($targetmap[$val])?$targetmap[$val]:$val;
+		return isset($targetmap[$tval])?$targetmap[$tval]:$val;
 	}
 
 	/*
