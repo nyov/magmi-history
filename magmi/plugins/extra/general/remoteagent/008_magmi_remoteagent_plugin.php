@@ -18,6 +18,7 @@
             "name" => "Remote Agent Plugin",
             "author" => "Dweeves",
             "version" => "0.0.1",
+        	"sponsorinfo"=>array("name"=>"Eydun Lamhauge","url"=>"http://www.admind.fo/"),
         	"url"=>$this->pluginDocUrl("Remote_Agent")
         );
     }
