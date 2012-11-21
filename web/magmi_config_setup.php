@@ -187,7 +187,7 @@ $cansock=true;
 
 $('#save_commonconf').click(function()
 {
-	loaddiv('#common_conf','magmi_saveconfig.pĥp',$('#commonconf_form').serialize(),
+	loaddiv('#common_conf','magmi_saveconfig.php',$('#commonconf_form').serialize(),
 		function(){$('#commonconf_msg').show();});							
 });
 	
