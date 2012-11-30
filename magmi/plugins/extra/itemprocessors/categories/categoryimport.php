@@ -88,7 +88,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.2",
+            "version" => "0.2.1",
 			"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_category_creator/importer"
             );
 	}
@@ -272,6 +272,10 @@ class CategoryImporter extends Magmi_ItemProcessor
 			//iterate on missing levels.
 			for($i=count($catids);$i<count($catparts);$i++)
 			{
+				if($catparts[$i]=="")
+				{
+					continue;
+				}
 				//retrieve category id (by creating it if needed from categories attributes)
 				$catid=$this->getCategoryId($curpath,$catattributes[$i]);
 				//add newly created level to item category ids
