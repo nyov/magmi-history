@@ -103,7 +103,7 @@ if(isset($importer))
 		 	$eargv[]="-mode=".$pm[1];
 		 }
 		$eoptions=buildOptions($eargv);
-		$importer->run($eoptions);
+		$importer->run(array_merge($eoptions,$options));
 	}
 }
 ?>
