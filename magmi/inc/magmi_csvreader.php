@@ -110,7 +110,12 @@ class Magmi_CSVReader extends Magmi_Mixin
 		if($bomtest!=$utf8bom)
 		{
 			//rewind to first byte;
+			$this->log("No BOM detected, assuming File is UTF8 without BOM...","startup");
 			fseek($this->_fh,0,SEEK_SET);
+		}
+		else
+		{
+			$this->log("File is UTF8 (BOM Detected)","startup");
 		}
 	}
 	
