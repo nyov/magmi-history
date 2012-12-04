@@ -107,7 +107,7 @@ class Magmi_CSVReader extends Magmi_Mixin
 		//check for UTF8 BOM
 		$bomtest=fread($this->_fh,3);
 		//if 3 first bytes of file are not utf8 bom
-		if(!$bomtest==$utf8bom)
+		if($bomtest!=$utf8bom)
 		{
 			//rewind to first byte;
 			fseek($this->_fh,0,SEEK_SET);
@@ -137,7 +137,7 @@ class Magmi_CSVReader extends Magmi_Mixin
 		{
 			$line++;
 			$dummy=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
-			$this->log("skip line $line:$dummy","info");
+			$this->log("skip line $line:".implode($this->_csep,$dummy),"info");
 		}
 		$cols=fgetcsv($this->_fh,$this->_buffersize,$this->_csep,$this->_cenc);
 		//if csv has no headers,use column number as column name
