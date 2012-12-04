@@ -48,7 +48,7 @@
     	{
     		$this->log("Remote Agent v$pv found at ".$this->_raproxy->getRemoteAgentUrl(),"startup");
     	}
-    	$cv=MRA\Magmi_RemoteAgent::getStaticVersion();
+    	$cv=Magmi_RemoteAgent::getStaticVersion();
 		if($pv<$cv)
 		{
 			$this->log("Deploying latest v$cv");

@@ -2,9 +2,8 @@
 //REMOTE AGENT IS A HTTP API ENABLING REMOTE FILE SAVING AND OTHER EXECUTION PROXYING
 //THIS IS USING A SINGLE BIG FILE ON PURPOSE , MAYBE LATER MORE COMPLEX STRUCTURE WILL BE USED
 
-namespace MRA;
 
-class FSHelper
+class MRA_FSHelper
 {
 	 public static function isDirWritable($dir)
 	 {
@@ -25,7 +24,7 @@ class FSHelper
 
 
 
-class MagentoDirHandlerFactory
+class MRA_MagentoDirHandlerFactory
 {
 	protected $_handlers=array();
 	protected static $_instance;
@@ -66,7 +65,7 @@ class MagentoDirHandlerFactory
 	
 }
 
-abstract class RemoteFileGetter
+abstract class MRA_RemoteFileGetter
 {
 	protected $_errors;
  	public abstract function urlExists($url);
@@ -77,7 +76,7 @@ abstract class RemoteFileGetter
  	}	
 }
 
-class CURL_RemoteFileGetter extends RemoteFileGetter
+class MRA_CURL_RemoteFileGetter extends RemoteFileGetter
 {
 	protected $_curlh;
 
@@ -165,7 +164,7 @@ class CURL_RemoteFileGetter extends RemoteFileGetter
 		}
 }
 
-class URLFopen_RemoteFileGetter extends RemoteFileGetter
+class MRA_URLFopen_RemoteFileGetter extends RemoteFileGetter
 {
 	public function urlExists($url)
 	{
@@ -196,7 +195,7 @@ class URLFopen_RemoteFileGetter extends RemoteFileGetter
 	}
 }
 
-class RemoteFileGetterFactory
+class MRA_RemoteFileGetterFactory
 {
 	
 	public static function getFGInstance()
@@ -204,18 +203,18 @@ class RemoteFileGetterFactory
 		$fginst=NULL;
 		if(function_exists("curl_init"))
 		{
-			$fginst=new CURL_RemoteFileGetter();
+			$fginst=new MRA_CURL_RemoteFileGetter();
 		}
 		else
 		{
-			$fginst=new URLFopen_RemoteFileGetter();
+			$fginst=new MRA_URLFopen_RemoteFileGetter();
 		}
 		return $fginst;
 	}
 		
 }
 
-abstract class MagentoDirHandler
+abstract class MRA_MagentoDirHandler
 {
 	protected $_magdir;
 	protected $_lasterror;
@@ -233,12 +232,12 @@ abstract class MagentoDirHandler
 	public abstract function exec_cmd($cmd,$params);
 }
 
-class LocalMagentoDirHandler extends MagentoDirHandler
+class MRA_LocalMagentoDirHandler extends MRA_MagentoDirHandler
 {
 	public function __construct($magdir)
 	{
 		parent::__construct($magdir);
-		MagentoDirHandlerFactory::getInstance()->registerHandler($this);
+		MRA_MagentoDirHandlerFactory::getInstance()->registerHandler($this);
 	}
 	
 	public function canHandle($url)
@@ -359,7 +358,7 @@ class Magmi_RemoteAgent
 	
 	public function __construct()
 	{
-		$this->_mdh=new LocalMagentoDirHandler(dirname(__FILE__));	
+		$this->_mdh=new MRA_LocalMagentoDirHandler(dirname(__FILE__));	
 	}
 	
 	public static function getStaticVersion()
