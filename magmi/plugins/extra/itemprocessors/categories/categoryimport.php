@@ -88,7 +88,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.2.1",
+            "version" => "0.2.2",
 			"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_category_creator/importer"
             );
 	}
@@ -416,6 +416,17 @@ class CategoryImporter extends Magmi_ItemProcessor
 						}
 						$catids=array_unique(array_merge($catids,$cdef));
 			}
+			
+			//assign to category roots
+			if($this->getParam("CAT:lastonly",0)==0)
+			{
+				foreach(array_values($rootpaths) as $ra)
+				{
+					$id=array_pop($ra["rootarr"]);
+					$catids[]=$id;
+				}
+			}
+			$catids=array_unique($catids);
 			$item["category_ids"]=implode(",",$catids);
 		}
 		return true;
