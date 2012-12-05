@@ -183,7 +183,7 @@ else{?>
 										<li <?php if(isset($sp)){ ?> class='sponsored'<?php } ?>><?php
 											if($pik=="url")
 											{?>
-												<span><?php echo $pik?></span>:<span><a href="<?php echo $piv?>">Wiki entry</a></span>
+												<span><?php echo $pik?></span>:<span><a href="<?php echo $piv?>" target="_blank">Wiki entry</a></span>
 											<?php }
 											else
 											if($pik=="sponsorinfo")
