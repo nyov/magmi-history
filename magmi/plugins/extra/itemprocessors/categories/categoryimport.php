@@ -208,7 +208,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 			}
 		}
 		//remove explicit root 
-		//$pcatdef=str_replace($srp.$this->_tsep,"",$pcatdef);
+		$pcatdef=str_replace($srp.$this->_tsep,"",$pcatdef);
 		$pcatparts=explode($this->_tsep,$pcatdef);
 		$catparts=array();
 		$catpos=array();
