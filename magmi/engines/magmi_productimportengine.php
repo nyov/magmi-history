@@ -966,9 +966,10 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		#ignore duplicates
 		if(count($inserts)>0)
 		{
-			$sql="INSERT IGNORE INTO $ccpt (`category_id`,`product_id`,`position`)
+			$sql="INSERT INTO $ccpt (`category_id`,`product_id`,`position`)
 				 VALUES	 ";
 			$sql.=implode(",",$inserts);
+			$sql.="ON DUPLICATE KEY UPDATE position=VALUES('position')";
 			$this->insert($sql,$data);
 			unset($data);
 		}
