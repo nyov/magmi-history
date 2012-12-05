@@ -78,7 +78,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.7","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.7.1","author"=>"dweeves");
 	}
 
 	/**
