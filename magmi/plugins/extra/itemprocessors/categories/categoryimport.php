@@ -88,7 +88,7 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return array(
             "name" => "On the fly category creator/importer",
             "author" => "Dweeves",
-            "version" => "0.2.2",
+            "version" => "0.2.3",
 			"url" => "http://sourceforge.net/apps/mediawiki/magmi/index.php?title=On_the_fly_category_creator/importer"
             );
 	}
@@ -369,16 +369,16 @@ class CategoryImporter extends Magmi_ItemProcessor
 		return $rootpaths;
 	}
 	
-	public function processEscaping(&$icats)
+	public function processEscaping($icats)
 	{
-		$icats=str_replace("\\".$this->_tsep,$this->_escapedtsep,$icats);
+		return str_replace("\\".$this->_tsep,$this->_escapedtsep,$icats);
 	}
 	public function processItemAfterId(&$item,$params=null)
 	{
 		if(isset($item["categories"]))
 		{
 			//handle escaping
-		   $this->processEscaping($item["categories"]);
+		     $icats = $this->processEscaping($item["categories"]);
 			//first apply category root on each category
 			
 			$root=$this->getParam("CAT:baseroot","");
@@ -389,10 +389,10 @@ class CategoryImporter extends Magmi_ItemProcessor
 				{	
 					if(trim($catlist[$i])!="")
 					{
-						$catlist[$i]=$root.$this->_tsep.$catdef;
+						$catlist[$i]=$root.$this->_tsep.$icats;
 					}
 				}
-				//recompose rooted categories
+			//recompose rooted categories
 				$item["categories"]=implode(";;",$catlist);
 			}
 			//get store root category paths
