@@ -10,7 +10,7 @@
  */
 
 require_once(dirname(dirname(__FILE__))."/inc/magmi_defs.php");
-
+require_once('magmi_loggers.php');
 $script=array_shift($argv);
 
 function buildOptions($argv)
@@ -37,13 +37,7 @@ function buildOptions($argv)
 	}
 	return $options;
 }
-class CLILogger
-{
-	public function log($data,$type)
-	{
-		echo("$type:$data\n");
-	}	
-}
+
 
 function getClassInstance($cval,$cdir=".")
 {
@@ -82,7 +76,7 @@ $options=buildOptions($argv);
 $importer=getEngineInstance($options);
 if(isset($importer))
 {
-	$loggerclass=isset($options['logger'])?$options['logger']:"CLILogger";
+	$loggerclass=isset($options['logger'])?$options['logger']:"FileLogger";
 	$importer->setLogger(new $loggerclass());
 	if(!isset($options["chain"]))
 	{
