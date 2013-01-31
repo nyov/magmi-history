@@ -421,7 +421,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 * @param mixed $optval : value to get option id for
 	 * @return : array of lines (should be as much as values found),"opvd"=>option_id for value on store 0,"opvs" option id for value on current store
 	 */
-	function getOptionsFromValues($attid,$store_id,$optvals)
+	public function getOptionsFromValues($attid,$store_id,$optvals)
 	{
 		$ovstr=substr(str_repeat("?,",count($optvals)),0,-1);
 		$t1=$this->tablename('eav_attribute_option');
@@ -434,7 +434,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 
 	/* create a new option entry for an attribute */
-	function createOption($attid)
+	public function createOption($attid)
 	{
 		$t=$this->tablename('eav_attribute_option');
 		$optid=$this->insert("INSERT INTO $t (attribute_id) VALUES (?)",$attid);
@@ -447,7 +447,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 * @param mixed $optval : new option value to add
 	 * @return : option id for new created value
 	 */
-	function  createOptionValue($optid,$store_id,$optval)
+	public function  createOptionValue($optid,$store_id,$optval)
 	{
 		$t=$this->tablename('eav_attribute_option_value');
 		$optval_id=$this->insert("INSERT INTO $t (option_id,store_id,value) VALUES (?,?,?)",array($optid,$store_id,$optval));
@@ -455,7 +455,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	}
 
 
-	function getOptionIds($attid,$storeid,$values)
+	public function getOptionIds($attid,$storeid,$values)
 	{
 		$optids=array();
 		$svalues=array();
@@ -536,12 +536,12 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	}
 
-	function cacheOptIds($attid,$row)
+	public function cacheOptIds($attid,$row)
 	{
 		$this->_optidcache[$attid]=$row;
 	}
 
-	function getCachedOptIds($attid)
+	public function getCachedOptIds($attid)
 	{
 		if(isset($this->_optidcache[$attid]))
 		{
@@ -570,7 +570,101 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		return $txid;
 	}
 
-
+	public function parseCalculatedValue($pvalue,$item,$params)
+	{
+		$matches=array();
+		$ik=array_keys($item);
+		$rep="";
+		
+		//replace base item values
+		while(preg_match("|\{item\.(.*?)\}|",$pvalue,$matches))
+		{
+			foreach($matches as $match)
+			{
+				if($match!=$matches[0])
+				{
+					if(in_array($match,$ik))
+					{
+						$rep='$item["'.$match.'"]';
+					}
+					else
+					{
+						$rep="";
+					}
+					$pvalue=str_replace($matches[0],$rep,$pvalue);
+				}
+			}
+		}
+		unset($matches);
+		//replac meta
+		$meta=$params;
+		
+		
+		while(preg_match("|\{meta\.(.*?)\}|",$pvalue,$matches))
+		{
+			foreach($matches as $match)
+			{
+				if($match!=$matches[0])
+				{
+					if(in_array($match,$ik))
+					{
+						$rep='$meta["'.$match.'"]';
+					}
+					else
+					{
+						$rep="";
+					}
+					$pvalue=str_replace($matches[0],$rep,$pvalue);
+				}
+			}
+		}
+		unset($matches);
+	
+	
+		//replacing expr values
+		while(preg_match("|\{\{\s*(.*?)\s*\}\}|",$pvalue,$matches))
+		{
+			foreach($matches as $match)
+			{
+				if($match!=$matches[0])
+				{
+					$code=trim($match);
+					//settiing meta values
+					$meta=$params;
+					$rep=eval("return ($code);");
+					//escape potential "{{xxx}}" values in interpreted target
+					//so that they won't be reparsed in next round
+					$rep=preg_replace("|\{\{\s*(.*?)\s*\}\}|", "____$1____", $rep);
+					$pvalue=str_replace($matches[0],$rep,$pvalue);							
+				}				
+			}
+		}
+		
+		//unescape matches
+		$pvalue=preg_replace("|____(.*?)____|",'{{$1}}',$pvalue);
+		//replacing single values not in complex values
+		while(preg_match('|\$item\["(.*?)"\]|',$pvalue,$matches))
+		{
+			foreach($matches as $match)
+			{
+				if($match!=$matches[0])
+				{
+					if(in_array($match,$ik))
+					{
+						$rep=$item[$match];
+					}
+					else
+					{
+						$rep="";
+					}
+					$pvalue=str_replace($matches[0],$rep,$pvalue);
+				}
+			}
+		}
+		
+		unset($matches);
+		return $pvalue;
+	}
 
 	/**
 	 *
