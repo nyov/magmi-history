@@ -38,7 +38,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.24",
+            "version" => "1.0.25",
 			"url"=>$this->pluginDocUrl("Image_attributes_processor")
             );
 	}
@@ -299,44 +299,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 
 	public function parsename($info,$item,$extra)
 	{
-		$matches=array();
-		while(preg_match("|\{item\.(.*?)\}|",$info,$matches))
-		{
-			foreach($matches as $match)
-			{
-				if($match!=$matches[0])
-				{
-					if(isset($item[$match]))
-					{
-						$rep=$item[$match];
-					}
-					else
-					{
-						$rep="";
-					}
-					$info=str_replace($matches[0],$rep,$info);
-				}
-			}
-		}
-		while(preg_match("|\{magmi\.(.*?)\}|",$info,$matches))
-		{
-			foreach($matches as $match)
-			{
-				if($match!=$matches[0])
-				{
-					if(isset($extra[$match]))
-					{
-						$rep=$extra[$match];
-					}
-					else
-					{
-						$rep="";
-					}
-					$info=str_replace($matches[0],$rep,$info);
-				}
-			}
-		}
-		unset($matches);
+		$info=$this->parseCalculatedValue($info,$item,$extra);
 		return $info;
 	}
 	
@@ -361,26 +324,42 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 			$item[$k]=$v;
 		}
 	}
+	
+	
+	public function getImagenameComponents($fname,$formula,$extra)
+	{
+		$matches=array();
+		$xname=$fname;
+		if(preg_match("|re::(.*)::(.*)|",$formula,$matches))
+		{
+			$rep=$matches[2];
+			$xname=preg_replace("|".$matches[1]."|",$rep,$xname);
+			$extra['parsed']=true;
+		}
+		$xname=basename($xname);
+		$m=preg_match("/(.*)\.(jpg|png|gif)$/i",$xname,$matches);
+		if($m)
+		{
+			$extra["imagename"]=$xname;
+			$extra["imagename.ext"]=$matches[2];
+			$extra["imagename.noext"]=$matches[1];
+		}
+		else
+		{
+			$uid=uniqid("img",true);
+			$extra=array_merge($extra,array("imagename"=>"$uid.jpg","imagename.ext"=>"jpg","imagename.noext"=>$uid));
+		}
+			
+		return $extra;
+	}
 	public function getTargetName($fname,$item,$extra)
 	{
-		$cname=$fname;
+		$cname=basename($fname);
 		if(isset($this->forcename) && $this->forcename!="")
 		{
-			$matches=array();
-			$m=preg_match("/(.*)\.(jpg|png|gif)$/i",$cname,$matches);	
-			if($m)
- 			{			
-				$extra["imagename"]=$cname;
-				$extra["imagename.ext"]=$matches[2];
-				$extra["imagename.noext"]=$matches[1];
-			}
-			else
-			{
-			 $uid=uniqid("img",true);
-			 $extra=array("imagename"=>"$uid.jpg","imagename.ext"=>"jpg","imagename.noext"=>$uid);
-			}			
-			$cname=$this->parsename($this->forcename,$item,$extra);
-			unset($matches);
+			$extra=$this->getImagenameComponents($fname,$this->forcename,$extra);
+			$pname=($extra['parsed']?$extra['imagename']:$this->forcename);
+			$cname=$this->parsename($pname,$item,$extra);
 		}
 		$cname=strtolower(preg_replace("/%[0-9][0-9|A-F]/","_",rawurlencode($cname)));
 		
@@ -420,7 +399,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		$imgfile=$source;
 		$checkexist= ($this->getParam("IMG:existingonly")=="yes");
 		$curlh=false;
-		$bimgfile=$this->getTargetName(basename($imgfile),$item,$extra);
+		$bimgfile=$this->getTargetName($imgfile,$item,$extra);
 		//source file exists
 		$i1=$bimgfile[0];
 		$i2=$bimgfile[1];
