@@ -78,7 +78,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.7.1","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.7.2","author"=>"dweeves");
 	}
 
 	/**
@@ -1000,7 +1000,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 		
 		foreach($catids as $catdef)
 		{
-			$a=explode("::",$catdef);
+		    $a=explode("::",$catdef);
 			$catid=$a[0];
 			$catpos=(count($a)>1?$a[1]:"0");
 			$rel=getRelative($catid);
@@ -1010,8 +1010,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			}
 			else
 			{
-				$cdata[]=$catid;
-				$cpos[]=$catpos;
+				$cdata[$catid]=$catpos;
 			}
 		}
 		
@@ -1023,26 +1022,30 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$vcatids[]=$rcatrow['id'];
 		}
 		//now get the diff
-		$diff=array_diff($cdata,$vcatids);
+		$diff=array_diff(array_keys($cdata),$vcatids);
 		//if there are some, warning
 		if(count($diff)>0)
 		{
 			$this->log('Invalid category ids found for sku '.$item['sku'].":".implode(",",$diff),"warning");
+			//remove invalid category entries
+			for($i=0;$i<count($diff);$i++)
+			{
+				unset($cdata[$diff[$i]]);
+			}
 		}
 		
-		$cdata=$vcatids;
 		if(count($cdata)==0)
 		{
 			$this->log('No valid categories found, skip category assingment for sku '.$item['sku'],"warning");
 		}
 		
 		#now we have verified ids
-		for($i=0;$i<count($cdata);$i++)
+		foreach($cdata as $catid=>$catpos)
 		{
 				$inserts[]="(?,?,?)";
-				$data[]=$cdata[$i];
+				$data[]=$catid;
 				$data[]=$pid;
-				$data[]=$cpos[$i];
+				$data[]=$catpos;
 		}
 			
 		#peform deletion of removed category affectation
