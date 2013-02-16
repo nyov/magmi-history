@@ -38,7 +38,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 		return array(
             "name" => "Image attributes processor",
             "author" => "Dweeves",
-            "version" => "1.0.25",
+            "version" => "1.0.26",
 			"url"=>$this->pluginDocUrl("Image_attributes_processor")
             );
 	}
@@ -289,7 +289,7 @@ class ImageAttributeItemProcessor extends Magmi_ItemProcessor
 				$sql="INSERT INTO $tgv
 					(value_id,store_id,position,disabled,label)
 					VALUES ".implode(",",$vinserts)." 
-					ON DUPLICATE KEY UPDATE label=VALUES(`label`)";
+					ON DUPLICATE KEY UPDATE label=VALUES(`label`),disabled=VALUES(`disabled`)";
 				$this->insert($sql,$data);
 			}
 			unset($vinserts);
