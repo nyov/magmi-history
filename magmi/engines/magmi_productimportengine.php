@@ -78,7 +78,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 	 */
 	public function getEngineInfo()
 	{
-		return array("name"=>"Magmi Product Import Engine","version"=>"1.7.2","author"=>"dweeves");
+		return array("name"=>"Magmi Product Import Engine","version"=>"1.7.3","author"=>"dweeves");
 	}
 
 	/**
@@ -1077,6 +1077,25 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 	public function getItemWebsites($item,$default=false)
 	{
+		//support for websites column if set
+		if(!empty($item["websites"])) 
+		{
+			if(!isset($this->_wsids[$item["websites"]]))
+			{
+				$this->_wsids[$item["websites"]]=array();
+		
+				$cws=$this->tablename("core_website");
+				$wscodes=csl2arr($item["websites"]);
+				$qcolstr=$this->arr2values($wscodes);
+				$rows=$this->selectAll("SELECT website_id FROM $cws WHERE code IN ($qcolstr)",$wscodes);
+				foreach($rows as $row)
+				{
+					$this->_wsids[$item["websites"]][]=$row['website_id'];
+				}
+			}
+			return $this->_wsids[$item["websites"]];
+		}
+		
 	  if(!isset($item['store']))
 		{
 			$item['store']="admin";
@@ -1619,6 +1638,13 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 			$cols=$this->datasource->getColumnNames();
 			$this->log(count($cols),"columns");
 			$this->callPlugins("itemprocessors","processColumnList",$cols);
+			if(count($cols)<2)
+			{
+				$this->log("Invalid input data , not enough columns found,check datasource parameters","error");
+				$this->log("Import Ended","end");
+				Magmi_StateManager::setState("idle");
+				return;
+			}
 			$this->log("Ajusted processed columns:".count($cols),"startup");
 			$this->initProdType();
 			//initialize attribute infos & indexes from column names
