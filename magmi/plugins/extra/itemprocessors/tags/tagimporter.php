@@ -17,7 +17,7 @@ class TagProcessor extends Magmi_ItemProcessor
             "name" => "Product Tags Importer",
             "author" => "Dweeves,Pawel Kazakow",
 			"sponsorinfo"=>array("name"=>"Pawel Kazakow","url"=>"http://xonu.de"),
-            "version" => "0.0.1",
+            "version" => "0.0.2",
 			"url"=>$this->pluginDocUrl("Tag_importer")
             );
 	}
@@ -41,15 +41,12 @@ class TagProcessor extends Magmi_ItemProcessor
 		}
 		else
 		{
-			if($create)
+			//find lowercase
+			$sql="SELECT id FROM ".$this->tablename("tag")." WHERE LOWER(name)=LOWER(?)";
+			$tagid=$this->selectone($sql,$taginfo["name"],"id");
+			if($tagid==NULL  && $create)
 			{
 				$tagid=$this->createTag($taginfo);
-			}
-			else
-			{
-				$sql="SELECT id FROM ".$this->tablename["tag"]." WHERE name=?";
-				$tagid=$this->selectone($sql,$taginfo["name"],"id");
-				
 			}
 			//add to cache
 			$this->_tagidcache[$ck]=$tagid;
