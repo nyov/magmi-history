@@ -903,10 +903,6 @@ class Magmi_ProductImportEngine extends Magmi_Engine
 
 			$mqty=(isset($item["min_qty"])?$item["min_qty"]:0);
 			$is_in_stock=isset($item["is_in_stock"])?$item["is_in_stock"]:($item["qty"]>$mqty?1:0);
-			if(!$is_in_stock && $item["qty"]>$mqty)
-			{
-				$is_in_stock=1;
-			}
 			$item["is_in_stock"]=$is_in_stock;
 		}
 		#take only stock columns that are in  item after item update
