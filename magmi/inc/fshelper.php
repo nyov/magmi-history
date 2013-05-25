@@ -112,7 +112,7 @@ class CURL_RemoteFileGetter extends RemoteFileGetter
 
 		/* Check for 404 (file not found). */
 		$httpCode = curl_getinfo($context, CURLINFO_HTTP_CODE);
-		$exists = ($httpCode==200);
+		$exists = ($httpCode<400);
 		/* retry on error */
 			
 		if($httpCode==503 or $httpCode==403)
@@ -121,7 +121,7 @@ class CURL_RemoteFileGetter extends RemoteFileGetter
 			usleep(500000);
 			$response = curl_exec($context);
 			$httpCode = curl_getinfo($context, CURLINFO_HTTP_CODE);
-			$exists = ($httpCode==200);
+			$exists = ($httpCode<400);
 		}
 		return $exists;
 	}
