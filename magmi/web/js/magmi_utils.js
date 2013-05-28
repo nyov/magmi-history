@@ -22,6 +22,7 @@ var magmi_multifield=function(listfield,dyncontainer,linetpl,vlist)
 	 	var arr=value.split(",");
 	  	var farr=[];
 	 	 arr.each(function(it){
+	 		 it=trim(it);
 	 	 	 if(it!='')
 	 	 	 {
 	 	 		 var v=typeof(this.vlist[it])!='undefined'?this.vlist[it]:'';
